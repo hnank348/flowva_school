@@ -1,3 +1,4 @@
+import 'package:flowva_school/view/auth/otp_view.dart';
 import 'package:flowva_school/widget/button.dart';
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
@@ -6,7 +7,6 @@ import 'login/login_view.dart';
 
 class SignUpScreen extends StatelessWidget {
   SignUpScreen({super.key});
-  static const String routeName = 'sign-up';
 
   // المتحكمات
   final firstNameController = TextEditingController();
@@ -87,7 +87,7 @@ class SignUpScreen extends StatelessWidget {
                               AppSizes.paddingLarge,
                             ),
                             child: Scrollbar(
-                              thumbVisibility: true,
+                             // thumbVisibility: true,
                               child: ListView(
                                 physics: const BouncingScrollPhysics(),
                                 children: [
@@ -275,11 +275,14 @@ class SignUpScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 30),
                                   Button(
-                                    text: "Sign Up",
+                                    text: "CREATE",
                                     color: Colors.white,
                                     colorText: AppColors.primaryTeal,
                                     colorOutline: AppColors.primaryTeal,
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
+                                      return OtpScreen();
+                                    }));},
                                   ),
                                 ],
                               ),

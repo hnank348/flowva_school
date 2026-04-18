@@ -1,3 +1,4 @@
+import 'package:flowva_school/view/auth/login/new_password_view.dart';
 import 'package:flowva_school/view/auth/signup_view.dart';
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
@@ -6,7 +7,6 @@ import '../../../widget/custom_text_field.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
-  static const String routeName = 'login';
 
   // المتحكمات
   static final nameController = TextEditingController();
@@ -124,7 +124,11 @@ class LoginScreen extends StatelessWidget {
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
+                                      return ForgetPasswordScreen();
+                                    }));
+                                  },
                                   child: const Text(
                                     "Forgot Password?",
                                     style: TextStyle(
@@ -136,7 +140,7 @@ class LoginScreen extends StatelessWidget {
                               SizedBox(height: 10),
 
                               Button(
-                                text: "Login",
+                                text: "LOGIN",
                                 color: AppColors.primaryTeal,
                                 colorText: Colors.white,
                                 onPressed: () {},
