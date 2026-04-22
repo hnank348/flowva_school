@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
-import '../../view/auth/login/login_view.dart';
+import 'login/login_view.dart';
 
 class WaitingScreen extends StatelessWidget {
   const WaitingScreen({super.key});
@@ -15,7 +15,6 @@ class WaitingScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Modern clock icon representing the pending status
               const Icon(
                 Icons.pending_actions_rounded,
                 size: 120,
@@ -36,7 +35,6 @@ class WaitingScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Status Description
               const Text(
                 "Thank you for joining us! Your account is currently under review. "
                     "You will be able to access the app once the administrator approves your request. "
@@ -51,7 +49,6 @@ class WaitingScreen extends StatelessWidget {
               ),
               const SizedBox(height: 60),
 
-              // Action Button to return to Login
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

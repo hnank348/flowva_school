@@ -25,7 +25,6 @@ class Button extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
           maximumSize: const Size(330, 50),
-          // هنا التعديل: إذا كان colorOutline فارغاً، استخدم لون الـ color نفسه
           side: BorderSide(
             color: colorOutline ?? color,
             width: 2,

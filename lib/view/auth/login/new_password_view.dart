@@ -2,9 +2,8 @@ import 'package:flowva_school/view/auth/login/reset_password_view.dart';
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import '../../../widget/button.dart';
-import '../../../widget/custom_text_field.dart';
 import '../../../widget/password_field.dart';
-import '../../../widget/field_styles.dart'; // استيراد كلاس الستايل الموحد
+import '../../../widget/field_styles.dart';
 
 class ForgetPasswordScreen extends StatelessWidget {
   ForgetPasswordScreen({super.key});
@@ -30,7 +29,6 @@ class ForgetPasswordScreen extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // صورة الخلفية السفلية
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
@@ -43,7 +41,6 @@ class ForgetPasswordScreen extends StatelessWidget {
               ),
             ),
 
-            // زر العودة (Back to Login)
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
@@ -98,7 +95,6 @@ class ForgetPasswordScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 30),
 
-                            // حقل كلمة المرور الجديدة
                             PasswordField(
                               controller: passwordController,
                               isVisibleNotifier: isPasswordVisible,
@@ -112,7 +108,6 @@ class ForgetPasswordScreen extends StatelessWidget {
 
                             const SizedBox(height: 15),
 
-                            // حقل تأكيد كلمة المرور
                             PasswordField(
                               controller: confirmPasswordController,
                               isVisibleNotifier: isConfirmPasswordVisible,

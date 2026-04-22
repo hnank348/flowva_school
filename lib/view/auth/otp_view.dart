@@ -43,7 +43,6 @@ class OtpScreen extends StatelessWidget {
 
               const SizedBox(height: 40),
 
-              // مربعات الـ OTP الأربعة
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [

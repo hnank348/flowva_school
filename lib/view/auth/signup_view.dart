@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
-import '../../services/auth/waiting_view .dart';
+import 'waiting_view .dart';
 import '../../widget/date.dart';
 import '../../widget/footer.dart';
 import '../../widget/custom_text_field.dart';

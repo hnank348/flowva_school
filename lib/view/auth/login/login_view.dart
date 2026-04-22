@@ -25,7 +25,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final LoginService _loginService = LoginService();
   bool _isLoading = false;
 
-  // منطق تسجيل الدخول
   Future<void> _handleLogin() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _notify("Please fill in all fields", isError: true);
@@ -47,7 +46,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // أداة عرض التنبيهات
   void _notify(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -67,14 +65,12 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // 1. الخلفية العلوية
           Container(
             height: screenHeight * 0.45,
             width: double.infinity,
             color: AppColors.primaryTeal,
           ),
 
-          // 2. المحتوى الأساسي
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -106,7 +102,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              // حقل الإيميل باستخدام FieldStyles
                               CustomTextField(
                                 controller: _emailController,
                                 hintText: "Email",
@@ -117,7 +112,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const SizedBox(height: 20),
 
-                              // حقل الباسورد باستخدام FieldStyles و PasswordField
                               PasswordField(
                                 controller: _passwordController,
                                 isVisibleNotifier: _isPasswordVisible,
