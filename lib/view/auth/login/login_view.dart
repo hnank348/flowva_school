@@ -1,198 +1,179 @@
-import 'package:flowva_school/view/auth/login/new_password_view.dart';
-import 'package:flowva_school/view/auth/signup_view.dart';
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
+import '../../../services/auth/login_services.dart';
+import '../../../widget/footer.dart';
 import '../../../widget/button.dart';
 import '../../../widget/custom_text_field.dart';
+import '../../../widget/password_field.dart';
+import '../../../widget/field_styles.dart';
 
-class LoginScreen extends StatelessWidget {
+import '../signup_view.dart';
+import 'new_password_view.dart';
+
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
-  // المتحكمات
-  static final nameController = TextEditingController();
-  static final emailController = TextEditingController();
-  static final passwordController = TextEditingController();
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
 
-  static final ValueNotifier<bool> isPasswordVisible = ValueNotifier<bool>(
-    false,
-  );
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final ValueNotifier<bool> _isPasswordVisible = ValueNotifier<bool>(false);
 
-  static InputDecoration _buildDecoration(String label, IconData icon) =>
-      InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: AppColors.primaryTeal),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.primaryTeal, width: 2),
-          borderRadius: BorderRadius.circular(12),
-        ),
-      );
+  final LoginService _loginService = LoginService();
+  bool _isLoading = false;
+
+  // منطق تسجيل الدخول
+  Future<void> _handleLogin() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      _notify("Please fill in all fields", isError: true);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    final result = await _loginService.login(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
+
+    if (mounted) setState(() => _isLoading = false);
+
+    if (result['success']) {
+      _notify(result['message']);
+    } else {
+      _notify(result['message'], isError: true);
+    }
+  }
+
+  // أداة عرض التنبيهات
+  void _notify(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.redAccent : AppColors.primaryTeal,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.height;
+    double cardWidth = MediaQuery.of(context).size.width > 600 ? 450 : double.infinity;
+
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: Column(
+      backgroundColor: Colors.white,
+      body: Stack(
         children: [
-          Expanded(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  stops: [0.5, 0.5],
-                  colors: [AppColors.primaryTeal, Colors.white],
-                ),
-              ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.paddingLarge,
+          // 1. الخلفية العلوية
+          Container(
+            height: screenHeight * 0.45,
+            width: double.infinity,
+            color: AppColors.primaryTeal,
+          ),
+
+          // 2. المحتوى الأساسي
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 60),
+                  const Text(
+                    "Login",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 60,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'PlayfairDisplay',
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 40),
-                      const Text(
-                        "Login",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 50,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'PlayfairDisplay'
-                        ),
-                      ),
-                      const SizedBox(height: 80),
-                      Card(
-                        elevation: 20,
+                  const SizedBox(height: 40),
+
+                  Center(
+                    child: SizedBox(
+                      width: cardWidth,
+                      child: Card(
+                        elevation: 10,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppSizes.borderRadiusLarge,
-                          ),
+                          borderRadius: BorderRadius.circular(20),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(AppSizes.paddingLarge),
+                          padding: const EdgeInsets.all(25),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              // حقل الإيميل باستخدام FieldStyles
                               CustomTextField(
-                                controller: nameController,
-                                hintText: "Name",
-                                decoration: _buildDecoration(
-                                  "Name",
-                                  Icons.person,
-                                ),
-                              ),
-                              const SizedBox(height: 15),
-                              CustomTextField(
-                                controller: emailController,
+                                controller: _emailController,
                                 hintText: "Email",
-                                decoration: _buildDecoration(
-                                  "Email",
-                                  Icons.email,
+                                decoration: FieldStyles.authInputDecoration(
+                                  label: "Email",
+                                  icon: Icons.email_outlined,
                                 ),
                               ),
-                              const SizedBox(height: 15),
+                              const SizedBox(height: 20),
 
-                              ValueListenableBuilder<bool>(
-                                valueListenable: isPasswordVisible,
-                                builder: (context, isVisible, _) =>
-                                    CustomTextField(
-                                      controller: passwordController,
-                                      hintText: "Password",
-                                      isPassword: !isVisible,
-                                      decoration:
-                                          _buildDecoration(
-                                            "Password",
-                                            Icons.lock,
-                                          ).copyWith(
-                                            suffixIcon: IconButton(
-                                              icon: Icon(
-                                                isVisible
-                                                    ? Icons.visibility
-                                                    : Icons.visibility_off,
-                                                color: AppColors.primaryTeal,
-                                              ),
-                                              onPressed: () =>
-                                                  isPasswordVisible.value =
-                                                      !isPasswordVisible.value,
-                                            ),
-                                          ),
-                                    ),
+                              // حقل الباسورد باستخدام FieldStyles و PasswordField
+                              PasswordField(
+                                controller: _passwordController,
+                                isVisibleNotifier: _isPasswordVisible,
+                                label: "Password",
+                                icon: Icons.lock_outline,
+                                decoration: FieldStyles.authInputDecoration(
+                                  label: "Password",
+                                  icon: Icons.lock_outline,
+                                ),
                               ),
 
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
-                                  onPressed: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
-                                      return ForgetPasswordScreen();
-                                    }));
-                                  },
+                                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ForgetPasswordScreen())),
                                   child: const Text(
                                     "Forgot Password?",
-                                    style: TextStyle(
-                                      color: AppColors.primaryTeal,
-                                    ),
+                                    style: TextStyle(color: AppColors.primaryTeal, fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ),
-                              SizedBox(height: 10),
+                              const SizedBox(height: 10),
 
-                              Button(
-                                text: "LOGIN",
+                              _isLoading
+                                  ? const CircularProgressIndicator(color: AppColors.primaryTeal)
+                                  : Button(
+                                text: "Login",
                                 color: AppColors.primaryTeal,
                                 colorText: Colors.white,
-                                onPressed: () {},
+                                onPressed: _handleLogin,
                               ),
                             ],
                           ),
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
 
-          Column(
-            children: [
-              const Divider(
-                color: AppColors.primaryTeal,
-                thickness: 1.5,
-                height: 0,
+          // 3. التذييل (Footer)
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Footer(
+              leadingText: "Don't have an account? ",
+              actionText: "Sign Up",
+              backgroundColor: Colors.white,
+              textColor: AppColors.primaryTeal,
+              dividerColor: AppColors.primaryTeal,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SignUpScreen()),
               ),
-              Container(
-                color: Colors.white,
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () { Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
-                    return SignUpScreen();
-                  }));},
-                  child: RichText(
-                    textAlign: TextAlign.center,
-                    text: const TextSpan(
-                      children: [
-                        TextSpan(
-                          text: "Don't have an account? ",
-                          style: TextStyle(color: AppColors.primaryTeal, fontSize: 16),
-                        ),
-                        TextSpan(
-                          text: "Sign Up",
-                          style: TextStyle(
-                            color: AppColors.primaryTeal,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 18,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ],
       ),

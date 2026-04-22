@@ -1,48 +1,36 @@
-import 'package:flowva_school/view/auth/otp_view.dart';
-import 'package:flowva_school/widget/button.dart';
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
+import '../../services/auth/waiting_view .dart';
+import '../../widget/date.dart';
+import '../../widget/footer.dart';
 import '../../widget/custom_text_field.dart';
+import '../../widget/button.dart';
+import '../../widget/password_field.dart';
+import '../../widget/field_styles.dart';
 import 'login/login_view.dart';
 
 class SignUpScreen extends StatelessWidget {
   SignUpScreen({super.key});
 
-  // المتحكمات
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
   final phoneController = TextEditingController();
   final emailController = TextEditingController();
-  final genderController = TextEditingController(text: 'Boy');
+  final genderController = TextEditingController(text: 'Male');
   final dobController = TextEditingController();
   final userTypeController = TextEditingController(text: 'Student');
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
   final ValueNotifier<bool> isPasswordVisible = ValueNotifier<bool>(false);
-  final ValueNotifier<bool> isConfirmPasswordVisible = ValueNotifier<bool>(
-    false,
-  );
-  final ValueNotifier<String> userTypeNotifier = ValueNotifier<String>(
-    'Student',
-  );
-  final ValueNotifier<String> genderNotifier = ValueNotifier<String>('Boy');
-
-  InputDecoration _buildDecoration(String label, IconData icon) =>
-      InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: AppColors.primaryTeal),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.primaryTeal, width: 2),
-          borderRadius: BorderRadius.circular(12),
-        ),
-      );
+  final ValueNotifier<bool> isConfirmPasswordVisible = ValueNotifier<bool>(false);
+  final ValueNotifier<String> userTypeNotifier = ValueNotifier<String>('Student');
+  final ValueNotifier<String> genderNotifier = ValueNotifier<String>('Male');
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    //  resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -57,282 +45,167 @@ class SignUpScreen extends StatelessWidget {
             Expanded(
               child: SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.paddingLarge,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 10),
                       const Text(
                         "Sign Up",
                         style: TextStyle(
                           color: AppColors.primaryTeal,
-                          fontSize: 45,
+                          fontSize: 40,
                           fontWeight: FontWeight.bold,
-                          fontFamily: 'PlayfairDisplay'
+                          fontFamily: 'PlayfairDisplay',
                         ),
                       ),
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 15),
                       Expanded(
                         child: Card(
-                          elevation: 20,
+                          elevation: 15,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              AppSizes.borderRadiusLarge,
-                            ),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.all(
-                              AppSizes.paddingLarge,
-                            ),
-                            child: Scrollbar(
-                             // thumbVisibility: true,
-                              child: ListView(
-                                physics: const BouncingScrollPhysics(),
-                                children: [
-                                  CustomTextField(
-                                    controller: firstNameController,
-                                    hintText: "First Name",
-                                    decoration: _buildDecoration(
-                                      "First Name",
-                                      Icons.person,
+                            padding: const EdgeInsets.all(12),
+                            child: ListView(
+                              physics: const BouncingScrollPhysics(),
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: CustomTextField(
+                                        controller: firstNameController,
+                                        hintText: "First Name",
+                                        decoration: FieldStyles.authInputDecoration(label: "First Name", icon: Icons.person),
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 15),
-                                  CustomTextField(
-                                    controller: lastNameController,
-                                    hintText: "Last Name",
-                                    decoration: _buildDecoration(
-                                      "Last Name",
-                                      Icons.person_outline,
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: CustomTextField(
+                                        controller: lastNameController,
+                                        hintText: "Last Name",
+                                        decoration: FieldStyles.authInputDecoration(label: "Last Name", icon: Icons.person_outline),
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 15),
-                                  CustomTextField(
-                                    controller: phoneController,
-                                    hintText: "Phone",
-                                    keyboardType: TextInputType.phone,
-                                    decoration: _buildDecoration(
-                                      "Phone",
-                                      Icons.phone,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 15),
-                                  CustomTextField(
-                                    controller: emailController,
-                                    hintText: "Email",
-                                    keyboardType: TextInputType.emailAddress,
-                                    decoration: _buildDecoration(
-                                      "Email",
-                                      Icons.email,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 15),
+                                  ],
+                                ),
+                                const SizedBox(height: 15),
 
-                                  ValueListenableBuilder<String>(
-                                    valueListenable: genderNotifier,
-                                    builder: (context, selectedGender, _) =>
-                                        DropdownButtonFormField<String>(
-                                          initialValue: selectedGender,
-                                          decoration: _buildDecoration(
-                                            "Gender",
-                                            Icons.wc,
-                                          ),
-                                          items: ['Boy', 'Girl']
-                                              .map(
-                                                (g) => DropdownMenuItem(
-                                                  value: g,
-                                                  child: Text(g),
-                                                ),
-                                              )
-                                              .toList(),
-                                          onChanged: (val) {
-                                            genderNotifier.value = val!;
-                                            genderController.text = val;
+                                CustomTextField(
+                                  controller: phoneController,
+                                  hintText: "Phone",
+                                  keyboardType: TextInputType.phone,
+                                  decoration: FieldStyles.authInputDecoration(label: "Phone", icon: Icons.phone),
+                                ),
+                                const SizedBox(height: 15),
+
+                                CustomTextField(
+                                  controller: emailController,
+                                  hintText: "Email",
+                                  keyboardType: TextInputType.emailAddress,
+                                  decoration: FieldStyles.authInputDecoration(label: "Email", icon: Icons.email),
+                                ),
+                                const SizedBox(height: 15),
+
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: ValueListenableBuilder<String>(
+                                        valueListenable: genderNotifier,
+                                        builder: (context, val, _) => DropdownButtonFormField<String>(
+                                          isExpanded: true,
+                                          initialValue: val,
+                                          decoration: FieldStyles.authInputDecoration(label: "Gender", icon: Icons.wc),
+                                          items: ['Male', 'Female'].map((e) => DropdownMenuItem(
+                                              value: e,
+                                              child: Text(e, style: const TextStyle(fontSize: 13))
+                                          )).toList(),
+                                          onChanged: (v) {
+                                            genderNotifier.value = v!;
+                                            genderController.text = v;
                                           },
                                         ),
-                                  ),
-                                  const SizedBox(height: 15),
-
-                                  CustomTextField(
-                                    controller: dobController,
-                                    hintText: "Date of Birth",
-                                    readOnly: true,
-                                    onTap: () async {
-                                      DateTime? picked = await showDatePicker(
-                                        context: context,
-                                        initialDate: DateTime.now(),
-                                        firstDate: DateTime(1900),
-                                        lastDate: DateTime.now(),
-                                        builder: (context, child) => Theme(
-                                          data: Theme.of(context).copyWith(
-                                            colorScheme:
-                                                const ColorScheme.light(
-                                                  primary:
-                                                      AppColors.primaryTeal,
-                                                ),
-                                          ),
-                                          child: child!,
-                                        ),
-                                      );
-                                      if (picked != null) {
-                                        dobController.text =
-                                            "${picked.day}/${picked.month}/${picked.year}";
-                                      }
-                                    },
-                                    decoration: _buildDecoration(
-                                      "Date of Birth",
-                                      Icons.calendar_today,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 15),
-
-                                  ValueListenableBuilder<String>(
-                                    valueListenable: userTypeNotifier,
-                                    builder: (context, selectedType, _) =>
-                                        DropdownButtonFormField<String>(
-                                          initialValue: selectedType,
-                                          decoration: _buildDecoration(
-                                            "User Type",
-                                            Icons.badge,
-                                          ),
-                                          items:
-                                              ['Parent', 'Student', 'Teacher']
-                                                  .map(
-                                                    (t) => DropdownMenuItem(
-                                                      value: t,
-                                                      child: Text(t),
-                                                    ),
-                                                  )
-                                                  .toList(),
-                                          onChanged: (val) {
-                                            userTypeNotifier.value = val!;
-                                            userTypeController.text = val;
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: ValueListenableBuilder<String>(
+                                        valueListenable: userTypeNotifier,
+                                        builder: (context, val, _) => DropdownButtonFormField<String>(
+                                          isExpanded: true,
+                                          initialValue: val,
+                                          decoration: FieldStyles.authInputDecoration(label: "User Type", icon: Icons.badge),
+                                          items: ['Parent', 'Student', 'Teacher'].map((e) => DropdownMenuItem(
+                                              value: e,
+                                              child: Text(e, style: const TextStyle(fontSize: 13))
+                                          )).toList(),
+                                          onChanged: (v) {
+                                            userTypeNotifier.value = v!;
+                                            userTypeController.text = v;
                                           },
                                         ),
-                                  ),
-                                  const SizedBox(height: 15),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 15),
 
-                                  ValueListenableBuilder<bool>(
-                                    valueListenable: isPasswordVisible,
-                                    builder: (context, isVisible, _) =>
-                                        CustomTextField(
-                                          controller: passwordController,
-                                          hintText: "Password",
-                                          isPassword: !isVisible,
-                                          decoration:
-                                              _buildDecoration(
-                                                "Password",
-                                                Icons.lock,
-                                              ).copyWith(
-                                                suffixIcon: IconButton(
-                                                  icon: Icon(
-                                                    isVisible
-                                                        ? Icons.visibility
-                                                        : Icons.visibility_off,
-                                                    color:
-                                                        AppColors.primaryTeal,
-                                                  ),
-                                                  onPressed: () =>
-                                                      isPasswordVisible.value =
-                                                          !isPasswordVisible
-                                                              .value,
-                                                ),
-                                              ),
-                                        ),
+                                CustomTextField(
+                                  controller: dobController,
+                                  hintText: "Date of Birth",
+                                  readOnly: true,
+                                  onTap: () => Date.selectDate(context, dobController),
+                                  decoration: FieldStyles.authInputDecoration(
+                                    label: "Date of Birth",
+                                    icon: Icons.calendar_today,
                                   ),
-                                  const SizedBox(height: 15),
+                                ),
+                                const SizedBox(height: 15),
 
-                                  ValueListenableBuilder<bool>(
-                                    valueListenable: isConfirmPasswordVisible,
-                                    builder: (context, isVisible, _) =>
-                                        CustomTextField(
-                                          controller: confirmPasswordController,
-                                          hintText: "Confirm Password",
-                                          isPassword: !isVisible,
-                                          decoration:
-                                              _buildDecoration(
-                                                "Confirm Password",
-                                                Icons.lock_outline,
-                                              ).copyWith(
-                                                suffixIcon: IconButton(
-                                                  icon: Icon(
-                                                    isVisible
-                                                        ? Icons.visibility
-                                                        : Icons.visibility_off,
-                                                    color:
-                                                        AppColors.primaryTeal,
-                                                  ),
-                                                  onPressed: () =>
-                                                      isConfirmPasswordVisible
-                                                              .value =
-                                                          !isConfirmPasswordVisible
-                                                              .value,
-                                                ),
-                                              ),
-                                        ),
-                                  ),
-                                  const SizedBox(height: 30),
-                                  Button(
-                                    text: "CREATE",
-                                    color: Colors.white,
-                                    colorText: AppColors.primaryTeal,
-                                    colorOutline: AppColors.primaryTeal,
-                                    onPressed: () {
-                                      Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
-                                      return OtpScreen();
-                                    }));},
-                                  ),
-                                ],
-                              ),
+                                PasswordField(
+                                  controller: passwordController,
+                                  isVisibleNotifier: isPasswordVisible,
+                                  label: "Password",
+                                  icon: Icons.lock,
+                                  decoration: FieldStyles.authInputDecoration(label: "Password", icon: Icons.lock),
+                                ),
+                                const SizedBox(height: 15),
+                                PasswordField(
+                                  controller: confirmPasswordController,
+                                  isVisibleNotifier: isConfirmPasswordVisible,
+                                  label: "Confirm Password",
+                                  icon: Icons.lock_outline,
+                                  decoration: FieldStyles.authInputDecoration(label: "Confirm Password", icon: Icons.lock_outline),
+                                ),
+
+                                const SizedBox(height: 25),
+
+                                Button(
+                                  text: "CREATE",
+                                  color: Colors.white,
+                                  colorText: AppColors.primaryTeal,
+                                  colorOutline: AppColors.primaryTeal,
+                                  onPressed: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (c) => const WaitingScreen()));
+                                  },
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 40),
                     ],
                   ),
                 ),
               ),
             ),
-            Column(
-              children: [
-                const Divider(
-                  color: Colors.white,
-                  thickness: 1,
-                  height: 0,
-                ),
-                Container(
-                  color: AppColors.primaryTeal,
-                  width: double.infinity,
-                  child: TextButton(
-                    onPressed: () {Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
-                      return LoginScreen();
-                    }));},
-                    child: RichText(
-                      textAlign: TextAlign.center,
-                      text: const TextSpan(
-                        children: [
-                          TextSpan(
-                            text: "Already have an account? ",
-                            style: TextStyle(color: Colors.white, fontSize: 16),
-                          ),
-                          TextSpan(
-                            text: "Log in",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 18,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            Footer(
+              leadingText: "Already have an account? ",
+              actionText: "Log in",
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const LoginScreen())),
             ),
           ],
         ),

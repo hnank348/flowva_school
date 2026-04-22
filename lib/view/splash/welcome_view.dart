@@ -34,7 +34,6 @@ class WelcomeView extends StatelessWidget {
                 ],
               ),
 
-
               Image.asset('assets/Images/welcome.png', height: 250),
 
               Text(
@@ -60,7 +59,7 @@ class WelcomeView extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(height:30),
+             SizedBox(height:30),
 
              Button(text: "Login",
                  color: AppColors.primaryTeal,
@@ -69,10 +68,9 @@ class WelcomeView extends StatelessWidget {
                    return LoginScreen();
                  }));}),
 
-              SizedBox(height: AppSizes.paddingMedium),
+             SizedBox(height: AppSizes.paddingMedium),
 
-              // زر Create an Account (Outline)
-              Button(text: "Create an Account",
+             Button(text: "Create an Account",
                   color: Colors.white,
                   colorText: AppColors.primaryTeal,
                   colorOutline:AppColors.primaryTeal ,

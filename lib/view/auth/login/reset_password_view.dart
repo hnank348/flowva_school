@@ -54,6 +54,7 @@ class ResetPasswordScreen extends StatelessWidget {
                 text: "LOGIN",
                 color: AppColors.primaryTeal,
                 colorText: Colors.white,
+
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
                     return LoginScreen();

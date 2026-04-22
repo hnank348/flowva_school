@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import '../../../widget/button.dart';
 import '../../../widget/custom_text_field.dart';
+import '../../../widget/password_field.dart';
+import '../../../widget/field_styles.dart'; // استيراد كلاس الستايل الموحد
 
 class ForgetPasswordScreen extends StatelessWidget {
   ForgetPasswordScreen({super.key});
@@ -12,16 +14,6 @@ class ForgetPasswordScreen extends StatelessWidget {
 
   final ValueNotifier<bool> isPasswordVisible = ValueNotifier<bool>(false);
   final ValueNotifier<bool> isConfirmPasswordVisible = ValueNotifier<bool>(false);
-
-  InputDecoration _buildDecoration(String label, IconData icon) => InputDecoration(
-    labelText: label,
-    prefixIcon: Icon(icon, color: AppColors.primaryTeal),
-    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-    focusedBorder: OutlineInputBorder(
-      borderSide: const BorderSide(color: AppColors.primaryTeal, width: 2),
-      borderRadius: BorderRadius.circular(12),
-    ),
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +30,7 @@ class ForgetPasswordScreen extends StatelessWidget {
         ),
         child: Stack(
           children: [
+            // صورة الخلفية السفلية
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
@@ -50,6 +43,7 @@ class ForgetPasswordScreen extends StatelessWidget {
               ),
             ),
 
+            // زر العودة (Back to Login)
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
@@ -104,36 +98,32 @@ class ForgetPasswordScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 30),
 
-                            ValueListenableBuilder<bool>(
-                              valueListenable: isPasswordVisible,
-                              builder: (context, isVisible, _) => CustomTextField(
-                                controller: passwordController,
-                                hintText: "New Password",
-                                isPassword: !isVisible,
-                                decoration: _buildDecoration("New Password", Icons.lock_outline).copyWith(
-                                  suffixIcon: IconButton(
-                                    icon: Icon(isVisible ? Icons.visibility : Icons.visibility_off, color: AppColors.primaryTeal),
-                                    onPressed: () => isPasswordVisible.value = !isPasswordVisible.value,
-                                  ),
-                                ),
+                            // حقل كلمة المرور الجديدة
+                            PasswordField(
+                              controller: passwordController,
+                              isVisibleNotifier: isPasswordVisible,
+                              label: "New Password",
+                              icon: Icons.lock_outline,
+                              decoration: FieldStyles.authInputDecoration(
+                                label: "New Password",
+                                icon: Icons.lock_outline,
                               ),
                             ),
+
                             const SizedBox(height: 15),
 
-                            ValueListenableBuilder<bool>(
-                              valueListenable: isConfirmPasswordVisible,
-                              builder: (context, isVisible, _) => CustomTextField(
-                                controller: confirmPasswordController,
-                                hintText: "Confirm Password",
-                                isPassword: !isVisible,
-                                decoration: _buildDecoration("Confirm Password", Icons.published_with_changes).copyWith(
-                                  suffixIcon: IconButton(
-                                    icon: Icon(isVisible ? Icons.visibility : Icons.visibility_off, color: AppColors.primaryTeal),
-                                    onPressed: () => isConfirmPasswordVisible.value = !isConfirmPasswordVisible.value,
-                                  ),
-                                ),
+                            // حقل تأكيد كلمة المرور
+                            PasswordField(
+                              controller: confirmPasswordController,
+                              isVisibleNotifier: isConfirmPasswordVisible,
+                              label: "Confirm Password",
+                              icon: Icons.published_with_changes,
+                              decoration: FieldStyles.authInputDecoration(
+                                label: "Confirm Password",
+                                icon: Icons.published_with_changes,
                               ),
                             ),
+
                             const SizedBox(height: 35),
 
                             Button(
@@ -142,7 +132,7 @@ class ForgetPasswordScreen extends StatelessWidget {
                               colorText: Colors.white,
                               onPressed: () {
                                 Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
-                                  return ResetPasswordScreen();
+                                  return const ResetPasswordScreen();
                                 }));
                               },
                             ),
