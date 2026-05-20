@@ -21,7 +21,7 @@ class WelcomeView extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Image.asset('assets/Images/logo.png', width: 100, height: 100),
+                  Image.asset('assets/Images/logo.png', width: 110, height: 110),
                   Text(
                     "FLOWVA",
                     style: TextStyle(
@@ -34,7 +34,7 @@ class WelcomeView extends StatelessWidget {
                 ],
               ),
 
-              Image.asset('assets/Images/welcome.png', height: 250),
+              Image.asset('assets/Images/welcome.png', height: 300),
 
               Text(
                   "WELCOME TO FLOWVA",
@@ -59,7 +59,7 @@ class WelcomeView extends StatelessWidget {
                 ),
               ),
 
-             SizedBox(height:30),
+             SizedBox(height:40),
 
              Button(text: "Login",
                  color: AppColors.primaryTeal,
@@ -70,13 +70,13 @@ class WelcomeView extends StatelessWidget {
 
              SizedBox(height: AppSizes.paddingMedium),
 
-             Button(text: "Create an Account",
-                  color: Colors.white,
-                  colorText: AppColors.primaryTeal,
-                  colorOutline:AppColors.primaryTeal ,
-                  onPressed: (){ Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
-                    return SignUpScreen();
-                  }));}),
+             // Button(text: "Create an Account",
+             //      color: Colors.white,
+             //      colorText: AppColors.primaryTeal,
+             //      colorOutline:AppColors.primaryTeal ,
+             //      onPressed: (){ Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
+             //        return SignUpScreen();
+             //      }));}),
 
             ],
           ),

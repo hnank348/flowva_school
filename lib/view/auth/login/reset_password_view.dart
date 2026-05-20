@@ -29,9 +29,9 @@ class ResetPasswordScreen extends StatelessWidget {
                 "Password Reset",
                 style: TextStyle(
                   color: AppColors.primaryTeal,
-                  fontSize: 40,
+                  fontSize: 45,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'PurplePurse',
+                  fontFamily: 'GoogleSans',
                 ),
               ),
 

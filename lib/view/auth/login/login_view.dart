@@ -1,3 +1,4 @@
+import 'package:flowva_school/view/auth/otp_view.dart';
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import '../../../services/auth/login_services.dart';
@@ -104,9 +105,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               CustomTextField(
                                 controller: _emailController,
-                                hintText: "Email",
+                                hintText: "User name",
                                 decoration: FieldStyles.authInputDecoration(
-                                  label: "Email",
+                                  label: "User name",
                                   icon: Icons.email_outlined,
                                 ),
                               ),
@@ -126,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
-                                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ForgetPasswordScreen())),
+                                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => OtpScreen())),
                                   child: const Text(
                                     "Forgot Password?",
                                     style: TextStyle(color: AppColors.primaryTeal, fontWeight: FontWeight.bold),
@@ -155,20 +156,20 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
 
           // 3. التذييل (Footer)
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Footer(
-              leadingText: "Don't have an account? ",
-              actionText: "Sign Up",
-              backgroundColor: Colors.white,
-              textColor: AppColors.primaryTeal,
-              dividerColor: AppColors.primaryTeal,
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => SignUpScreen()),
-              ),
-            ),
-          ),
+          // Align(
+          //   alignment: Alignment.bottomCenter,
+          //   child: Footer(
+          //     leadingText: "Don't have an account? ",
+          //     actionText: "Sign Up",
+          //     backgroundColor: Colors.white,
+          //     textColor: AppColors.primaryTeal,
+          //     dividerColor: AppColors.primaryTeal,
+          //     onPressed: () => Navigator.push(
+          //       context,
+          //       MaterialPageRoute(builder: (_) => SignUpScreen()),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );

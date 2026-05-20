@@ -1,3 +1,4 @@
+import 'package:flowva_school/view/auth/login/new_password_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../app_theme.dart';
@@ -22,9 +23,9 @@ class OtpScreen extends StatelessWidget {
                 "Verification Code",
                 style: TextStyle(
                   color: AppColors.primaryTeal,
-                  fontSize: 32,
+                  fontSize: 35,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'PurplePurse',
+                  fontFamily: 'PlayfairDisplay',
                 ),
               ),
 
@@ -59,9 +60,8 @@ class OtpScreen extends StatelessWidget {
                 text: "VERIFY",
                 color: AppColors.primaryTeal,
                 colorText: Colors.white,
-                onPressed: () {
-                  // منطق التحقق من الرمز
-                },
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ForgetPasswordScreen())),
+
               ),
 
               const Spacer(flex: 3),
