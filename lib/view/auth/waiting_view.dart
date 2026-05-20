@@ -30,15 +30,15 @@ class WaitingScreen extends StatelessWidget {
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primaryTeal,
-                  fontFamily: 'Sekuya'
+                  fontFamily: 'Sekuya',
                 ),
               ),
               const SizedBox(height: 20),
 
               const Text(
                 "Thank you for joining us! Your account is currently under review. "
-                    "You will be able to access the app once the administrator approves your request. "
-                    "Please check back later.",
+                "You will be able to access the app once the administrator approves your request. "
+                "Please check back later.",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -53,9 +53,14 @@ class WaitingScreen extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
-                      return LoginScreen();
-                    }));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (BuildContext context) {
+                          return LoginScreen();
+                        },
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryTeal,

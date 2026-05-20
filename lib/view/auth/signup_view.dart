@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
-import 'waiting_view .dart';
+import 'waiting_view.dart';
 import '../../widget/date.dart';
 import '../../widget/footer.dart';
 import '../../widget/custom_text_field.dart';
@@ -23,8 +23,12 @@ class SignUpScreen extends StatelessWidget {
   final confirmPasswordController = TextEditingController();
 
   final ValueNotifier<bool> isPasswordVisible = ValueNotifier<bool>(false);
-  final ValueNotifier<bool> isConfirmPasswordVisible = ValueNotifier<bool>(false);
-  final ValueNotifier<String> userTypeNotifier = ValueNotifier<String>('Student');
+  final ValueNotifier<bool> isConfirmPasswordVisible = ValueNotifier<bool>(
+    false,
+  );
+  final ValueNotifier<String> userTypeNotifier = ValueNotifier<String>(
+    'Student',
+  );
   final ValueNotifier<String> genderNotifier = ValueNotifier<String>('Male');
 
   @override
@@ -77,7 +81,11 @@ class SignUpScreen extends StatelessWidget {
                                       child: CustomTextField(
                                         controller: firstNameController,
                                         hintText: "First Name",
-                                        decoration: FieldStyles.authInputDecoration(label: "First Name", icon: Icons.person),
+                                        decoration:
+                                            FieldStyles.authInputDecoration(
+                                              label: "First Name",
+                                              icon: Icons.person,
+                                            ),
                                       ),
                                     ),
                                     const SizedBox(width: 8),
@@ -85,7 +93,11 @@ class SignUpScreen extends StatelessWidget {
                                       child: CustomTextField(
                                         controller: lastNameController,
                                         hintText: "Last Name",
-                                        decoration: FieldStyles.authInputDecoration(label: "Last Name", icon: Icons.person_outline),
+                                        decoration:
+                                            FieldStyles.authInputDecoration(
+                                              label: "Last Name",
+                                              icon: Icons.person_outline,
+                                            ),
                                       ),
                                     ),
                                   ],
@@ -96,7 +108,10 @@ class SignUpScreen extends StatelessWidget {
                                   controller: phoneController,
                                   hintText: "Phone",
                                   keyboardType: TextInputType.phone,
-                                  decoration: FieldStyles.authInputDecoration(label: "Phone", icon: Icons.phone),
+                                  decoration: FieldStyles.authInputDecoration(
+                                    label: "Phone",
+                                    icon: Icons.phone,
+                                  ),
                                 ),
                                 const SizedBox(height: 15),
 
@@ -104,7 +119,10 @@ class SignUpScreen extends StatelessWidget {
                                   controller: emailController,
                                   hintText: "Email",
                                   keyboardType: TextInputType.emailAddress,
-                                  decoration: FieldStyles.authInputDecoration(label: "Email", icon: Icons.email),
+                                  decoration: FieldStyles.authInputDecoration(
+                                    label: "Email",
+                                    icon: Icons.email,
+                                  ),
                                 ),
                                 const SizedBox(height: 15),
 
@@ -114,38 +132,72 @@ class SignUpScreen extends StatelessWidget {
                                     Expanded(
                                       child: ValueListenableBuilder<String>(
                                         valueListenable: genderNotifier,
-                                        builder: (context, val, _) => DropdownButtonFormField<String>(
-                                          isExpanded: true,
-                                          initialValue: val,
-                                          decoration: FieldStyles.authInputDecoration(label: "Gender", icon: Icons.wc),
-                                          items: ['Male', 'Female'].map((e) => DropdownMenuItem(
-                                              value: e,
-                                              child: Text(e, style: const TextStyle(fontSize: 13))
-                                          )).toList(),
-                                          onChanged: (v) {
-                                            genderNotifier.value = v!;
-                                            genderController.text = v;
-                                          },
-                                        ),
+                                        builder: (context, val, _) =>
+                                            DropdownButtonFormField<String>(
+                                              isExpanded: true,
+                                              initialValue: val,
+                                              decoration:
+                                                  FieldStyles.authInputDecoration(
+                                                    label: "Gender",
+                                                    icon: Icons.wc,
+                                                  ),
+                                              items: ['Male', 'Female']
+                                                  .map(
+                                                    (e) => DropdownMenuItem(
+                                                      value: e,
+                                                      child: Text(
+                                                        e,
+                                                        style: const TextStyle(
+                                                          fontSize: 13,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  )
+                                                  .toList(),
+                                              onChanged: (v) {
+                                                genderNotifier.value = v!;
+                                                genderController.text = v;
+                                              },
+                                            ),
                                       ),
                                     ),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: ValueListenableBuilder<String>(
                                         valueListenable: userTypeNotifier,
-                                        builder: (context, val, _) => DropdownButtonFormField<String>(
-                                          isExpanded: true,
-                                          initialValue: val,
-                                          decoration: FieldStyles.authInputDecoration(label: "User Type", icon: Icons.badge),
-                                          items: ['Parent', 'Student', 'Teacher'].map((e) => DropdownMenuItem(
-                                              value: e,
-                                              child: Text(e, style: const TextStyle(fontSize: 13))
-                                          )).toList(),
-                                          onChanged: (v) {
-                                            userTypeNotifier.value = v!;
-                                            userTypeController.text = v;
-                                          },
-                                        ),
+                                        builder: (context, val, _) =>
+                                            DropdownButtonFormField<String>(
+                                              isExpanded: true,
+                                              initialValue: val,
+                                              decoration:
+                                                  FieldStyles.authInputDecoration(
+                                                    label: "User Type",
+                                                    icon: Icons.badge,
+                                                  ),
+                                              items:
+                                                  [
+                                                        'Parent',
+                                                        'Student',
+                                                        'Teacher',
+                                                      ]
+                                                      .map(
+                                                        (e) => DropdownMenuItem(
+                                                          value: e,
+                                                          child: Text(
+                                                            e,
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 13,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                      .toList(),
+                                              onChanged: (v) {
+                                                userTypeNotifier.value = v!;
+                                                userTypeController.text = v;
+                                              },
+                                            ),
                                       ),
                                     ),
                                   ],
@@ -156,7 +208,8 @@ class SignUpScreen extends StatelessWidget {
                                   controller: dobController,
                                   hintText: "Date of Birth",
                                   readOnly: true,
-                                  onTap: () => Date.selectDate(context, dobController),
+                                  onTap: () =>
+                                      Date.selectDate(context, dobController),
                                   decoration: FieldStyles.authInputDecoration(
                                     label: "Date of Birth",
                                     icon: Icons.calendar_today,
@@ -169,7 +222,10 @@ class SignUpScreen extends StatelessWidget {
                                   isVisibleNotifier: isPasswordVisible,
                                   label: "Password",
                                   icon: Icons.lock,
-                                  decoration: FieldStyles.authInputDecoration(label: "Password", icon: Icons.lock),
+                                  decoration: FieldStyles.authInputDecoration(
+                                    label: "Password",
+                                    icon: Icons.lock,
+                                  ),
                                 ),
                                 const SizedBox(height: 15),
                                 PasswordField(
@@ -177,7 +233,10 @@ class SignUpScreen extends StatelessWidget {
                                   isVisibleNotifier: isConfirmPasswordVisible,
                                   label: "Confirm Password",
                                   icon: Icons.lock_outline,
-                                  decoration: FieldStyles.authInputDecoration(label: "Confirm Password", icon: Icons.lock_outline),
+                                  decoration: FieldStyles.authInputDecoration(
+                                    label: "Confirm Password",
+                                    icon: Icons.lock_outline,
+                                  ),
                                 ),
 
                                 const SizedBox(height: 25),
@@ -188,7 +247,12 @@ class SignUpScreen extends StatelessWidget {
                                   colorText: AppColors.primaryTeal,
                                   colorOutline: AppColors.primaryTeal,
                                   onPressed: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (c) => const WaitingScreen()));
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (c) => const WaitingScreen(),
+                                      ),
+                                    );
                                   },
                                 ),
                               ],
@@ -205,7 +269,10 @@ class SignUpScreen extends StatelessWidget {
             Footer(
               leadingText: "Already have an account? ",
               actionText: "Log in",
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const LoginScreen())),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (c) => const LoginScreen()),
+              ),
             ),
           ],
         ),
