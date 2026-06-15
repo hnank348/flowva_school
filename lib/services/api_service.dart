@@ -15,10 +15,11 @@ class ApiService {
     ),
   );
 
-  Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) async {
+  // تم إضافة options هنا وفي بقية الدوال
+  Future<Response> get(String path, {Map<String, dynamic>? queryParameters, Options? options}) async {
     try {
       log('🔍 GET Request to: $path | Params: $queryParameters');
-      final response = await _dio.get(path, queryParameters: queryParameters);
+      final response = await _dio.get(path, queryParameters: queryParameters, options: options);
       return response;
     } on DioException catch (e) {
       _handleError(e);
@@ -26,10 +27,10 @@ class ApiService {
     }
   }
 
-  Future<Response> post(String path, {Object? data}) async {
+  Future<Response> post(String path, {Object? data, Options? options}) async {
     try {
       log('🚀 POST Request to: $path');
-      final response = await _dio.post(path, data: data);
+      final response = await _dio.post(path, data: data, options: options);
       return response;
     } on DioException catch (e) {
       _handleError(e);
@@ -37,10 +38,10 @@ class ApiService {
     }
   }
 
-  Future<Response> put(String path, {Object? data}) async {
+  Future<Response> put(String path, {Object? data, Options? options}) async {
     try {
       log('🔄 PUT Request to: $path');
-      final response = await _dio.put(path, data: data);
+      final response = await _dio.put(path, data: data, options: options);
       return response;
     } on DioException catch (e) {
       _handleError(e);
@@ -48,10 +49,10 @@ class ApiService {
     }
   }
 
-  Future<Response> patch(String path, {Object? data}) async {
+  Future<Response> patch(String path, {Object? data, Options? options}) async {
     try {
       log('🛠️ PATCH Request to: $path');
-      final response = await _dio.patch(path, data: data);
+      final response = await _dio.patch(path, data: data, options: options);
       return response;
     } on DioException catch (e) {
       _handleError(e);
@@ -59,10 +60,11 @@ class ApiService {
     }
   }
 
-  Future<Response> delete(String path, {Object? data}) async {
+  Future<Response> delete(String path, {Object? data, Options? options}) async {
     try {
       log('🗑️ DELETE Request to: $path');
-      final response = await _dio.post(path, data: data); //
+      // تصحيح: استدعاء دالة الـ delete الخاصة بـ dio
+      final response = await _dio.delete(path, data: data, options: options);
       return response;
     } on DioException catch (e) {
       _handleError(e);

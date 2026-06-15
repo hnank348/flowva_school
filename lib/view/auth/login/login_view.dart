@@ -1,15 +1,12 @@
-import 'package:flowva_school/view/auth/otp_view.dart';
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import '../../../services/auth/login_services.dart';
-import '../../../widget/footer.dart';
 import '../../../widget/button.dart';
 import '../../../widget/custom_text_field.dart';
 import '../../../widget/password_field.dart';
 import '../../../widget/field_styles.dart';
 
-import '../signup_view.dart';
-import 'new_password_view.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -124,17 +121,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
 
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: TextButton(
-                                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => OtpScreen())),
-                                  child: const Text(
-                                    "Forgot Password?",
-                                    style: TextStyle(color: AppColors.primaryTeal, fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
+                              // Align(
+                              //   alignment: Alignment.centerRight,
+                              //   child: TextButton(
+                              //     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => OtpScreen())),
+                              //     child: const Text(
+                              //       "Forgot Password?",
+                              //       style: TextStyle(color: AppColors.primaryTeal, fontWeight: FontWeight.bold),
+                              //     ),
+                              //   ),
+                              // ),
+                               const SizedBox(height: 20),
 
                               _isLoading
                                   ? const CircularProgressIndicator(color: AppColors.primaryTeal)
@@ -155,21 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
 
-          // 3. التذييل (Footer)
-          // Align(
-          //   alignment: Alignment.bottomCenter,
-          //   child: Footer(
-          //     leadingText: "Don't have an account? ",
-          //     actionText: "Sign Up",
-          //     backgroundColor: Colors.white,
-          //     textColor: AppColors.primaryTeal,
-          //     dividerColor: AppColors.primaryTeal,
-          //     onPressed: () => Navigator.push(
-          //       context,
-          //       MaterialPageRoute(builder: (_) => SignUpScreen()),
-          //     ),
-          //   ),
-          // ),
+
         ],
       ),
     );
