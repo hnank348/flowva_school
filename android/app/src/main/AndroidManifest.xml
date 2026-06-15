@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="flowva_school"
+        android:label="first_test_1"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
