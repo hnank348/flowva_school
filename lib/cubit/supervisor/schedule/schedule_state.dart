@@ -15,10 +15,16 @@ class ScheduleLoading extends ScheduleState {
   ScheduleLoading({required super.selectedClass});
 }
 
-// حالة نجاح جلب البيانات وعرض الجدول
 class ScheduleLoaded extends ScheduleState {
   final List<ScheduleSessionModel> sessions;
-  ScheduleLoaded({required this.sessions, required super.selectedClass});
+  final String selectedClass;
+  final int selectedSemester; // 🎯 أضفنا هذا المتغير هنا
+
+  ScheduleLoaded({
+    required this.sessions,
+    required this.selectedClass,
+    this.selectedSemester = 1, // القيمة الافتراضية
+  }) : super(selectedClass: selectedClass);
 }
 
 // حالة حدوث خطأ في أي عملية (جلب، رفع، تعديل، حذف)

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../widgets/common_widgets.dart';
+import '../../widget/common_widgets.dart';
 import '../../data/mock_data.dart';
 import '../../models/student.dart';
 import 'student_evaluation_view.dart';

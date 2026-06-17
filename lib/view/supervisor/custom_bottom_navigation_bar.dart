@@ -13,12 +13,13 @@ class CustomBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
             blurRadius: 10,
             offset: const Offset(0, -3),
           )
@@ -29,10 +30,10 @@ class CustomBottomNavigationBar extends StatelessWidget {
         onTap: onTap,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: colorScheme.primary,
-        unselectedItemColor: Colors.grey.withOpacity(0.7),
+        unselectedItemColor: colorScheme.onSurfaceVariant.withOpacity(0.6),
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, fontFamily: 'Cairo'),
         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11, fontFamily: 'Cairo'),
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surfaceContainerLow,
         elevation: 0,
         items: const [
           BottomNavigationBarItem(

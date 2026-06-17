@@ -5,6 +5,11 @@ class ConstantApi {
 
   static const String login = '$baseApi/login';
 
-  // إضافة مسار الـ Timetables هنا
   static const String timetables = '$baseApi/timetables';
+  static const String timetable = '$baseApi/sections';
+
+  static const String classes='$baseApi/classes';
+  static const String subjects='$baseApi/subjects';
+  static const String teachers='$baseApi/teachers';
+  static const String profile='$baseApi/auth/me';
 }

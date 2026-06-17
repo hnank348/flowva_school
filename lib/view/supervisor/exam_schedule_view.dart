@@ -7,19 +7,20 @@ class ExamScheduleView extends StatelessWidget {
 
   final List<String> supervisorClasses = const ['الصف الثالث - أ', 'الصف الثالث - ب', 'الصف الرابع - أ'];
 
-  // --- دالة إظهار واجهة إضافة / تعديل مادة الامتحان (Responsive Bottom Sheet) ---
   void _showEditExamBottomSheet(BuildContext context, {String? subject, String? time, String? date, String? day}) {
     final subjectController = TextEditingController(text: subject ?? '');
     final timeController = TextEditingController(text: time ?? '');
     final dateController = TextEditingController(text: date ?? '');
     final dayController = TextEditingController(text: day ?? '');
 
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (bottomSheetContext) {
-        // نستخدم LayoutBuilder هنا ليعرف الـ BottomSheet كم مساحة العرض المتاحة له
         return LayoutBuilder(
           builder: (context, sheetConstraints) {
             bool isWideScreen = sheetConstraints.maxWidth > 600;
@@ -27,14 +28,13 @@ class ExamScheduleView extends StatelessWidget {
             return Directionality(
               textDirection: TextDirection.rtl,
               child: Container(
-                // على الشاشات الكبيرة جداً، نجعل للـ BottomSheet عرضاً أقصى لكي لا يتمدد بشكل قبيح
                 width: isWideScreen ? 650 : double.infinity,
                 margin: isWideScreen
                     ? EdgeInsets.symmetric(horizontal: (sheetConstraints.maxWidth - 650) / 2)
                     : EdgeInsets.zero,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLow,
+                  borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(28),
                     topRight: Radius.circular(28),
                   ),
@@ -53,55 +53,59 @@ class ExamScheduleView extends StatelessWidget {
                       child: Container(
                         width: 50,
                         height: 5,
-                        decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
+                        decoration: BoxDecoration(
+                          color: colorScheme.outlineVariant.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
                     Text(
                       subject == null ? 'إضافة مادة لجدول الامتحان' : 'تعديل مادة الامتحان',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Cairo', color: Color(0xFF234E52)),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Cairo',
+                        color: isDark ? colorScheme.primary : const Color(0xFF234E52),
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
 
-                    // --- التوزيع الذكي للحقول حسب عرض الشاشة ---
                     if (isWideScreen) ...[
-                      // شاشات كبيرة: نعرض كل حقلين بجانب بعضهما في سطر واحد
                       Row(
                         children: [
-                          Expanded(child: _buildInputField(label: 'اسم المادة', controller: subjectController, icon: Icons.book_outlined)),
+                          Expanded(child: _buildInputField(context, label: 'اسم المادة', controller: subjectController, icon: Icons.book_outlined)),
                           const SizedBox(width: 12),
-                          Expanded(child: _buildInputField(label: 'اليوم (مثال: الأحد)', controller: dayController, icon: Icons.today_rounded)),
+                          Expanded(child: _buildInputField(context, label: 'اليوم (مثال: الأحد)', controller: dayController, icon: Icons.today_rounded)),
                         ],
                       ),
                       const SizedBox(height: 14),
                       Row(
                         children: [
-                          Expanded(child: _buildInputField(label: 'التاريخ', controller: dateController, icon: Icons.calendar_month_outlined)),
+                          Expanded(child: _buildInputField(context, label: 'التاريخ', controller: dateController, icon: Icons.calendar_month_outlined)),
                           const SizedBox(width: 12),
-                          Expanded(child: _buildInputField(label: 'الزمن / الوقت', controller: timeController, icon: Icons.access_time_rounded)),
+                          Expanded(child: _buildInputField(context, label: 'الزمن / الوقت', controller: timeController, icon: Icons.access_time_rounded)),
                         ],
                       ),
                     ] else ...[
-                      // شاشات صغيرة (جوال): حقول متتالية تحت بعضها
-                      _buildInputField(label: 'اسم المادة', controller: subjectController, icon: Icons.book_outlined),
+                      _buildInputField(context, label: 'اسم المادة', controller: subjectController, icon: Icons.book_outlined),
                       const SizedBox(height: 14),
-                      _buildInputField(label: 'اليوم (مثال: الأحد)', controller: dayController, icon: Icons.today_rounded),
+                      _buildInputField(context, label: 'اليوم (مثال: الأحد)', controller: dayController, icon: Icons.today_rounded),
                       const SizedBox(height: 14),
-                      _buildInputField(label: 'التاريخ', controller: dateController, icon: Icons.calendar_month_outlined),
+                      _buildInputField(context, label: 'التاريخ', controller: dateController, icon: Icons.calendar_month_outlined),
                       const SizedBox(height: 14),
-                      _buildInputField(label: 'الزمن / الوقت', controller: timeController, icon: Icons.access_time_rounded),
+                      _buildInputField(context, label: 'الزمن / الوقت', controller: timeController, icon: Icons.access_time_rounded),
                     ],
 
                     const SizedBox(height: 24),
 
-                    // --- أزرار التحكم الفليكسيبل ---
                     Row(
                       children: [
                         Expanded(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF234E52),
+                              backgroundColor: isDark ? colorScheme.primary : const Color(0xFF234E52),
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
@@ -116,12 +120,12 @@ class ExamScheduleView extends StatelessWidget {
                         Expanded(
                           child: OutlinedButton(
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Colors.grey[300]!),
+                              side: BorderSide(color: colorScheme.outlineVariant),
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                             onPressed: () => Navigator.pop(bottomSheetContext),
-                            child: const Text('إلغاء', style: TextStyle(color: Color(0xFF64748B), fontSize: 14, fontFamily: 'Cairo')),
+                            child: Text('إلغاء', style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14, fontFamily: 'Cairo')),
                           ),
                         ),
                       ],
@@ -136,37 +140,40 @@ class ExamScheduleView extends StatelessWidget {
     );
   }
 
-  Widget _buildInputField({required String label, required TextEditingController controller, required IconData icon}) {
+  Widget _buildInputField(BuildContext context, {required String label, required TextEditingController controller, required IconData icon}) {
+    final colorScheme = Theme.of(context).colorScheme;
     return TextFormField(
       controller: controller,
       textAlign: TextAlign.right,
       style: const TextStyle(fontFamily: 'Cairo', fontSize: 14),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(fontFamily: 'Cairo', color: Color(0xFF64748B), fontSize: 13),
-        prefixIcon: Icon(icon, color: const Color(0xFF319795)),
+        labelStyle: TextStyle(fontFamily: 'Cairo', color: colorScheme.onSurfaceVariant, fontSize: 13),
+        prefixIcon: Icon(icon, color: colorScheme.primary),
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
-        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12), // ريسبونسف مع اللمس
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF319795))),
+        fillColor: colorScheme.surfaceContainer,
+        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.4))),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.primary)),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return BlocBuilder<ExamScheduleCubit, ExamScheduleState>(
       builder: (context, state) {
         return Container(
-          color: const Color(0xFFF8FAFC),
+          color: colorScheme.surface,
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 12),
 
-              // --- 1. شريط الكبسولات العلوي (يتجاوب تلقائياً مع السحب) ---
               Directionality(
                 textDirection: TextDirection.rtl,
                 child: SizedBox(
@@ -187,15 +194,17 @@ class ExamScheduleView extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 18),
                             decoration: BoxDecoration(
-                              color: isSelected ? const Color(0xFF234E52) : Colors.white,
+                              color: isSelected
+                                  ? (isDark ? colorScheme.primary : const Color(0xFF234E52))
+                                  : colorScheme.surfaceContainerLow,
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: isSelected ? Colors.transparent : Colors.grey[300]!),
+                              border: Border.all(color: isSelected ? Colors.transparent : colorScheme.outlineVariant),
                             ),
                             child: Center(
                               child: Text(
                                 currentClass,
                                 style: TextStyle(
-                                  color: isSelected ? Colors.white : const Color(0xFF64748B),
+                                  color: isSelected ? Colors.white : colorScheme.onSurfaceVariant,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
                                   fontFamily: 'Cairo',
@@ -212,7 +221,6 @@ class ExamScheduleView extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // --- 2. صف العناوين وأزرار التحكم الفليكسيبل ---
               Wrap(
                 alignment: WrapAlignment.spaceBetween,
                 crossAxisAlignment: WrapCrossAlignment.center,
@@ -229,18 +237,16 @@ class ExamScheduleView extends StatelessWidget {
                   ),
                   Text(
                     'جدول امتحانات ${state.selectedClass}',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontFamily: 'Cairo'),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontFamily: 'Cairo'),
                   ),
                 ],
               ),
 
               const SizedBox(height: 14),
 
-              // --- 3. عرض بطاقات الامتحانات العصرية (Dynamic Responsive Grid) ---
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, mainConstraints) {
-                    // حساب عدد الأعمدة ديناميكياً: شاشة صغيرة = 1، تابلت = 2، شاشة واسعة/كمبيوتر = 3 أو 4
                     int crossAxisCount = 1;
                     if (mainConstraints.maxWidth > 900) {
                       crossAxisCount = 3;
@@ -248,7 +254,6 @@ class ExamScheduleView extends StatelessWidget {
                       crossAxisCount = 2;
                     }
 
-                    // ضبط النسبة بين الطول والعرض لتبقى الكروت متناسقة
                     double childAspectRatio = mainConstraints.maxWidth > 900
                         ? 2.5
                         : (mainConstraints.maxWidth > 600 ? 2.2 : 3.4);
@@ -296,14 +301,17 @@ class ExamScheduleView extends StatelessWidget {
   }
 
   Widget _buildExamCard(BuildContext context, String subject, String time, String date, String day, Color accentColor) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Card(
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.withOpacity(0.12), width: 1),
+        side: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5), width: 1),
       ),
-      color: Colors.white,
+      color: colorScheme.surfaceContainerLow,
       child: InkWell(
         onTap: () => _showEditExamBottomSheet(context, subject: subject, time: time, date: date, day: day),
         borderRadius: BorderRadius.circular(16),
@@ -324,14 +332,14 @@ class ExamScheduleView extends StatelessWidget {
                   children: [
                     Text(
                       subject,
-                      style: const TextStyle(fontFamily: 'Cairo', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                      style: TextStyle(fontFamily: 'Cairo', fontSize: 14, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.access_time_rounded, size: 12, color: Colors.grey),
+                        Icon(Icons.access_time_rounded, size: 12, color: colorScheme.onSurfaceVariant),
                         const SizedBox(width: 4),
-                        Text(time, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500)),
+                        Text(time, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500)),
                       ],
                     ),
                   ],
@@ -343,11 +351,22 @@ class ExamScheduleView extends StatelessWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                    decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(20)),
-                    child: Text(day, style: const TextStyle(fontFamily: 'Cairo', fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+                    decoration: BoxDecoration(
+                      color: isDark ? colorScheme.surfaceContainerHigh : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      day,
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? colorScheme.onSurface : const Color(0xFF475569),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 6),
-                  Text(date, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                  Text(date, style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
                 ],
               ),
             ],

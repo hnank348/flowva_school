@@ -7,22 +7,24 @@ class AttendanceView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
-      color: const Color(0xFFF8FAFC),
+      color: colorScheme.surface,
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // عنوان القسم العصري مع إشارة ملونة جانبية
+          // عنوان القسم العصري مع إشارة ملونة جانبية متوافقة مع الثيم
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              const Text(
+              Text(
                 'إدارة الحضور والغياب اليومي',
                 style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                    color: colorScheme.onSurface,
                     fontFamily: 'Cairo'
                 ),
               ),
@@ -31,7 +33,7 @@ class AttendanceView extends StatelessWidget {
                 width: 4,
                 height: 16,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF319795),
+                  color: colorScheme.primary,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -57,7 +59,7 @@ class AttendanceView extends StatelessWidget {
                           icon: Icons.school_rounded,
                           statsText: 'تم تسجيل 24 صف اليوم',
                           progressValue: 0.85,
-                          gradientColors: [const Color(0xFF319795), const Color(0xFF4FD1C5)],
+                          gradientColors: [colorScheme.primary, colorScheme.primary.withOpacity(0.7)],
                           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentAttendanceView())),
                         ),
                       ),
@@ -70,7 +72,7 @@ class AttendanceView extends StatelessWidget {
                           icon: Icons.badge_rounded,
                           statsText: 'نسبة الحضور الحالية: 94%',
                           progressValue: 0.94,
-                          gradientColors: [const Color(0xFF234E52), const Color(0xFF319795)],
+                          gradientColors: [const Color(0xFF234E52), colorScheme.primary],
                           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TeachersAttendanceView())),
                         ),
                       ),
@@ -87,7 +89,7 @@ class AttendanceView extends StatelessWidget {
                         icon: Icons.school_rounded,
                         statsText: 'تم تسجيل 24 صف اليوم',
                         progressValue: 0.85,
-                        gradientColors: [const Color(0xFF319795), const Color(0xFF4FD1C5)],
+                        gradientColors: [colorScheme.primary, colorScheme.primary.withOpacity(0.7)],
                         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentAttendanceView())),
                       ),
                       const SizedBox(height: 14),
@@ -98,7 +100,7 @@ class AttendanceView extends StatelessWidget {
                         icon: Icons.badge_rounded,
                         statsText: 'نسبة الحضور الحالية: 94%',
                         progressValue: 0.94,
-                        gradientColors: [const Color(0xFF234E52), const Color(0xFF319795)],
+                        gradientColors: [const Color(0xFF234E52), colorScheme.primary],
                         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TeachersAttendanceView())),
                       ),
                     ],
@@ -112,7 +114,7 @@ class AttendanceView extends StatelessWidget {
     );
   }
 
-  // ميثود بناء الكرت المطور والمحمي بالكامل من التداخل والأخطاء الصفراء
+  // ميثود بناء الكرت المطور والمحمي بالكامل ومتوافق مع المودين
   Widget _buildAttendanceCard(
       BuildContext context, {
         required String title,
@@ -123,48 +125,53 @@ class AttendanceView extends StatelessWidget {
         required List<Color> gradientColors,
         required VoidCallback onTap,
       }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // تحديد لون الأيقونة والخلفية الدائرية حسب الوضع لحماية التباين
+    final primaryAccent = isDark ? colorScheme.primary : gradientColors.first;
+
     return Card(
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
-          side: BorderSide(color: const Color(0xFFE2E8F0), width: 1.2)
+          side: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5), width: 1.2)
       ),
-      color: Colors.white,
+      color: colorScheme.surfaceContainerLow,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-        splashColor: gradientColors.first.withOpacity(0.04),
+        splashColor: primaryAccent.withOpacity(0.08),
         child: Padding(
           padding: const EdgeInsets.all(18.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // السطر العلوي الأصلي مع تلطيف الخلفية الدائرية للأيقونة
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(Icons.arrow_back_ios_new_rounded, size: 14, color: gradientColors.first.withOpacity(0.6)),
+                  Icon(Icons.arrow_back_ios_new_rounded, size: 14, color: primaryAccent.withOpacity(0.6)),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontFamily: 'Cairo',
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B)
+                            color: colorScheme.onSurface
                         ),
                       ),
                       const SizedBox(width: 12),
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                            color: gradientColors.first.withOpacity(0.08),
+                            color: primaryAccent.withOpacity(isDark ? 0.15 : 0.08),
                             shape: BoxShape.circle
                         ),
-                        child: Icon(icon, color: gradientColors.first, size: 24),
+                        child: Icon(icon, color: primaryAccent, size: 24),
                       ),
                     ],
                   ),
@@ -172,23 +179,21 @@ class AttendanceView extends StatelessWidget {
               ),
               const SizedBox(height: 10),
 
-              // الوصف التوضيحي
               Text(
                 subtitle,
                 textAlign: TextAlign.right,
-                style: const TextStyle(
+                style: TextStyle(
                     fontFamily: 'Cairo',
                     fontSize: 12,
-                    color: Color(0xFF64748B),
+                    color: colorScheme.onSurfaceVariant,
                     height: 1.4
                 ),
               ),
               const SizedBox(height: 16),
 
-              Divider(color: Colors.grey.withOpacity(0.1), height: 1),
+              Divider(color: colorScheme.outlineVariant.withOpacity(0.3), height: 1),
               const SizedBox(height: 14),
 
-              // الإحصائيات والأرقام التوضيحية
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -197,15 +202,15 @@ class AttendanceView extends StatelessWidget {
                     style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: gradientColors.first
+                        color: primaryAccent
                     ),
                   ),
                   Text(
                     statsText,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontFamily: 'Cairo',
                         fontSize: 11,
-                        color: Color(0xFF475569),
+                        color: colorScheme.onSurfaceVariant,
                         fontWeight: FontWeight.w500
                     ),
                   ),
@@ -213,15 +218,14 @@ class AttendanceView extends StatelessWidget {
               ),
               const SizedBox(height: 8),
 
-              // شريط الحضور الملون العريض والمحمي
               Directionality(
                 textDirection: TextDirection.rtl,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: LinearProgressIndicator(
                     value: progressValue,
-                    backgroundColor: const Color(0xFFE2E8F0),
-                    valueColor: AlwaysStoppedAnimation<Color>(gradientColors.first),
+                    backgroundColor: isDark ? colorScheme.surfaceContainerHigh : const Color(0xFFE2E8F0),
+                    valueColor: AlwaysStoppedAnimation<Color>(primaryAccent),
                     minHeight: 6,
                   ),
                 ),

@@ -6,7 +6,7 @@ import '../../models/activity.dart';
 import 'create_exam_view.dart';
 import 'performance_reports_view.dart';
 import 'notifications_view.dart';
-import 'settings_view.dart';
+import '../settings_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});

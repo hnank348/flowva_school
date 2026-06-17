@@ -11,66 +11,62 @@ class TeachersAttendanceView extends StatelessWidget {
     final mediaQuery = MediaQuery.of(context);
     final double screenWidth = mediaQuery.size.width;
     final bool isTablet = screenWidth > 650;
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return BlocProvider(
       create: (context) => TeachersAttendanceCubit(),
       child: BlocBuilder<TeachersAttendanceCubit, TeachersAttendanceState>(
         builder: (context, state) {
           return Scaffold(
-            backgroundColor: const Color(0xFFF8FAFC),
-            // --- AppBar متدرج متناسق تماماً مع الواجهة الرئيسية ---
+            backgroundColor: isDark ? colorScheme.surface : const Color(0xFFF8FAFC),
+
+            // 🌟 الـ AppBar الآن نظيف تماماً ويقرأ ألوانه تلقائياً من كلاس AppTheme الخاص بك
             appBar: AppBar(
               title: const Text(
                 'حضور وغياب المعلمين',
-                style: TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               centerTitle: true,
-              backgroundColor: Colors.transparent, // جعل الخلفية شفافة ليظهر التدرج
               elevation: 0,
-              foregroundColor: Colors.white,
-              systemOverlayStyle: const SystemUiOverlayStyle(
+              systemOverlayStyle: SystemUiOverlayStyle(
                 statusBarColor: Colors.transparent,
                 statusBarIconBrightness: Brightness.light,
-                statusBarBrightness: Brightness.dark,
+                statusBarBrightness: isDark ? Brightness.light : Brightness.dark,
               ),
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: Colors.white),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
                 onPressed: () => Navigator.pop(context),
               ),
-              // حقن التدرج اللوني والحواف الدائرية المماثلة للـ MainLayout
-              flexibleSpace: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                    colors: [
-                      Color(0xFF319795),
-                      Color(0xFF4FD1C5),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(32),
-                    bottomRight: Radius.circular(32),
-                  ),
+              // ✨ تم إزالة الـ FlexibleSpace والتدرج القديم ليتطابق مع الـ Theme الخاص بك
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(24),
+                  bottomRight: Radius.circular(24),
                 ),
               ),
             ),
+
             body: SafeArea(
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   int crossAxisCount = 1;
-                  double aspectRatio = 2.6;
+                  double aspectRatio = 2.3;
 
                   if (constraints.maxWidth > 950) {
                     crossAxisCount = 3;
-                    aspectRatio = 2.4;
+                    aspectRatio = 2.1;
                   } else if (constraints.maxWidth > 600) {
                     crossAxisCount = 2;
-                    aspectRatio = 2.4;
+                    aspectRatio = 2.1;
                   }
 
                   return GridView.builder(
-                    padding: EdgeInsets.symmetric(horizontal: isTablet ? 24.0 : 16.0, vertical: 12.0),
+                    padding: EdgeInsets.symmetric(horizontal: isTablet ? 24.0 : 16.0, vertical: 16.0),
                     physics: const BouncingScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: crossAxisCount,
@@ -81,17 +77,37 @@ class TeachersAttendanceView extends StatelessWidget {
                     itemCount: 10,
                     itemBuilder: (context, index) {
                       final teacherName = 'الأستاذ / اسم المعلم الكامل التجريبي رقم ${index + 1}';
-                      final currentStatus = state.attendanceMap[teacherName] ?? TeacherAttendanceStatus.present;
+                      final currentStatus = state.attendanceMap[teacherName] ?? TeacherAttendanceStatus.active;
 
-                      return Card(
-                        elevation: 2,
-                        shadowColor: const Color(0xFF0F172A).withOpacity(0.05),
-                        margin: EdgeInsets.zero,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            side: const BorderSide(color: Color(0xFFF1F5F9))
+                      Color statusBaseColor = const Color(0xFF1E3A8A);
+                      String statusSubtitle = 'نشط بالمنشأة';
+
+                      if (currentStatus == TeacherAttendanceStatus.inactive) {
+                        statusBaseColor = const Color(0xFFEF4444);
+                        statusSubtitle = 'غير نشط';
+                      } else if (currentStatus == TeacherAttendanceStatus.vacation) {
+                        statusBaseColor = const Color(0xFFF59E0B);
+                        statusSubtitle = 'في إجازة';
+                      } else if (currentStatus == TeacherAttendanceStatus.transferred) {
+                        statusBaseColor = const Color(0xFF6366F1);
+                        statusSubtitle = 'تم الانتقال';
+                      }
+
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: colorScheme.outlineVariant.withOpacity(isDark ? 0.2 : 0.6),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(isDark ? 0.15 : 0.03),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            )
+                          ],
                         ),
-                        color: Colors.white,
                         child: Padding(
                           padding: const EdgeInsets.all(14.0),
                           child: Column(
@@ -102,11 +118,11 @@ class TeachersAttendanceView extends StatelessWidget {
                                 textDirection: TextDirection.rtl,
                                 children: [
                                   CircleAvatar(
-                                    backgroundColor: const Color(0xFF1E3A8A).withOpacity(0.08),
-                                    radius: 18,
-                                    child: const Icon(Icons.badge_rounded, color: Color(0xFF1E3A8A), size: 18),
+                                    backgroundColor: statusBaseColor.withOpacity(0.12),
+                                    radius: 20,
+                                    child: Icon(Icons.badge_rounded, color: statusBaseColor, size: 18),
                                   ),
-                                  const SizedBox(width: 10),
+                                  const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -115,21 +131,24 @@ class TeachersAttendanceView extends StatelessWidget {
                                           teacherName,
                                           textAlign: TextAlign.right,
                                           overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                               fontFamily: 'Cairo',
                                               fontSize: 13,
                                               fontWeight: FontWeight.bold,
-                                              color: Color(0xFF1E293B)
+                                              color: colorScheme.onSurface
                                           ),
                                         ),
-                                        const SizedBox(height: 2),
+                                        const SizedBox(height: 4),
                                         Text(
-                                          currentStatus == TeacherAttendanceStatus.present
-                                              ? 'حضر: 07:45 ص'
-                                              : (currentStatus == TeacherAttendanceStatus.absent ? 'لم يسجل دخول' : 'إجازة رسمية مصدقة'),
+                                          'حالة المعلم: $statusSubtitle',
                                           textAlign: TextAlign.right,
                                           overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontFamily: 'Cairo',
+                                            fontWeight: FontWeight.w500,
+                                            color: colorScheme.onSurfaceVariant.withOpacity(0.8),
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -140,17 +159,19 @@ class TeachersAttendanceView extends StatelessWidget {
                               Directionality(
                                 textDirection: TextDirection.rtl,
                                 child: SizedBox(
-                                  height: 34,
+                                  height: 36,
                                   child: SingleChildScrollView(
                                     scrollDirection: Axis.horizontal,
                                     physics: const BouncingScrollPhysics(),
                                     child: Row(
                                       children: [
-                                        _buildTeacherStatusChip(context, teacherName, 'حاضر الآن', Colors.green, TeacherAttendanceStatus.present, currentStatus),
+                                        _buildTeacherStatusChip(context, teacherName, 'نشط', const Color(0xFF10B981), TeacherAttendanceStatus.active, currentStatus),
                                         const SizedBox(width: 6),
-                                        _buildTeacherStatusChip(context, teacherName, 'غائب', Colors.red, TeacherAttendanceStatus.absent, currentStatus),
+                                        _buildTeacherStatusChip(context, teacherName, 'غير نشط', const Color(0xFFEF4444), TeacherAttendanceStatus.inactive, currentStatus),
                                         const SizedBox(width: 6),
-                                        _buildTeacherStatusChip(context, teacherName, 'إجازة رسمية', Colors.blue, TeacherAttendanceStatus.vacation, currentStatus),
+                                        _buildTeacherStatusChip(context, teacherName, 'إجازة', const Color(0xFFF59E0B), TeacherAttendanceStatus.vacation, currentStatus),
+                                        const SizedBox(width: 6),
+                                        _buildTeacherStatusChip(context, teacherName, 'انتقل', const Color(0xFF6366F1), TeacherAttendanceStatus.transferred, currentStatus),
                                       ],
                                     ),
                                   ),
@@ -173,28 +194,40 @@ class TeachersAttendanceView extends StatelessWidget {
 
   Widget _buildTeacherStatusChip(BuildContext context, String teacherName, String label, Color color, TeacherAttendanceStatus buttonStatus, TeacherAttendanceStatus currentStatus) {
     bool isSelected = currentStatus == buttonStatus;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return InkWell(
       onTap: () => context.read<TeachersAttendanceCubit>().updateAttendance(teacherName, buttonStatus),
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? color : Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: isSelected ? Colors.transparent : color.withOpacity(0.3)),
-          boxShadow: isSelected
-              ? [BoxShadow(color: color.withOpacity(0.25), blurRadius: 4, offset: const Offset(0, 2))]
+          color: isSelected
+              ? (isDark ? color.withOpacity(0.2) : color)
+              : (isDark ? colorScheme.surfaceContainer : const Color(0xFFF1F5F9)),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? color
+                : (isDark ? colorScheme.outlineVariant.withOpacity(0.3) : color.withOpacity(0.25)),
+            width: isSelected ? 1.5 : 1,
+          ),
+          boxShadow: isSelected && !isDark
+              ? [BoxShadow(color: color.withOpacity(0.2), blurRadius: 6, offset: const Offset(0, 2))]
               : null,
         ),
         child: Center(
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : color,
+              color: isSelected
+                  ? (isDark ? color : Colors.white)
+                  : (isDark ? colorScheme.onSurfaceVariant : color.withOpacity(0.9)),
               fontFamily: 'Cairo',
               fontSize: 11,
-              fontWeight: FontWeight.w600,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
             ),
           ),
         ),

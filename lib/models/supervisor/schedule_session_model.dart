@@ -76,14 +76,16 @@ class ScheduleSessionModel {
 class ApiSubjectModel {
   final int id;
   final String name;
+  final String nameAr; // 🎯 تمت إضافته هنا ليطابق رد السيرفر ويختفي الخطأ بالواجهة
   final String? code;
 
-  ApiSubjectModel({required this.id, required this.name, this.code});
+  ApiSubjectModel({required this.id, required this.name, required this.nameAr, this.code});
 
   factory ApiSubjectModel.fromJson(Map<String, dynamic> json) {
     return ApiSubjectModel(
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
+      nameAr: json['name_ar'] ?? '', // تفكيك الاسم العربي القادم من الباكيند
       code: json['code'],
     );
   }
@@ -98,7 +100,8 @@ class ApiTeacherModel {
   factory ApiTeacherModel.fromJson(Map<String, dynamic> json) {
     return ApiTeacherModel(
       id: json['id'] ?? 0,
-      fullName: json['full_name'] ?? '',
+      // 🎯 السيرفر يرسل اسم المعلم بـ "full_name" داخل كائن الـ teacher، تأكد من استخراجه بشكل صحيح هكذا:
+      fullName: json['full_name'] ?? json['name'] ?? '',
     );
   }
 }

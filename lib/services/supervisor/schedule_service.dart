@@ -1,76 +1,99 @@
 import 'package:dio/dio.dart';
-
+import 'package:flowva_school/services/constant_api.dart';
 import '../../models/supervisor/schedule_session_model.dart';
 import '../api_service.dart';
 
-
 class ScheduleService {
-  final ApiService _apiService = ApiService();
+  final ApiService _apiService;
 
-  // 1. رفع حصة جديدة للبرنامج (Create)
-  Future<ScheduleSessionModel> createSession(ScheduleSessionModel session, String token) async {
+  ScheduleService(this._apiService);
+
+  /// 🎯 جلب جدول الحصص الأسبوعي بناءً على الـ [sectionId] والـ [semesterId] المختار
+  Future<List<ScheduleSessionModel>> getTimetableBySection({
+    required int sectionId,
+    required String token,
+    required int semesterId,
+  }) async {
     try {
-      final response = await _apiService.post(
-        'timetables',
-        data: session.toJson(),
+      final response = await _apiService.get(
+        '${ConstantApi.timetable}/$sectionId/timetable',
+        queryParameters: {'semester_id': semesterId},
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
-      if (response.statusCode == 201 && response.data['success'] == true) {
+
+      print('🌐 [ScheduleService - Fetch] Response Data: ${response.data}');
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        final rawData = response.data['data'];
+
+        if (rawData == null) return [];
+
+        // 🎯 الحالة الأحدث: السيرفر يعود بحصة واحدة مباشرة كـ Object
+        if (rawData is Map<String, dynamic> && rawData.containsKey('day_of_week')) {
+          return [ScheduleSessionModel.fromJson(rawData)];
+        }
+
+        // حالة خريطة الأيام الأسبوعية المقسمة (تأمين إضافي)
+        if (rawData is Map<String, dynamic> && !rawData.containsKey('day_of_week')) {
+          List<ScheduleSessionModel> allSessions = [];
+          rawData.forEach((day, sessionsList) {
+            if (sessionsList is List) {
+              for (var jsonSession in sessionsList) {
+                allSessions.add(ScheduleSessionModel.fromJson(jsonSession));
+              }
+            }
+          });
+          return allSessions;
+        }
+
+        // حالة القائمة المباشرة من الحصص
+        if (rawData is List) {
+          return rawData.map((json) => ScheduleSessionModel.fromJson(json)).toList();
+        }
+      }
+      throw Exception(response.data['message'] ?? 'فشل جلب الجدول');
+    } catch (e) {
+      throw Exception(e.toString().replaceAll("Exception: ", ""));
+    }
+  }
+
+  /// إنشاء أو تحديث حصة جديدة في الجدول
+  Future<ScheduleSessionModel> createSession({
+    required ScheduleSessionModel session,
+    required String token,
+    required int sectionId,
+    required int subjectId,
+    required int teacherId,
+    required int academicYearId,
+    required int semesterId,
+  }) async {
+    try {
+      // دمج بيانات الحصة مع الـ IDs المطلوبة من السيرفر في Map واحد
+      final Map<String, dynamic> requestData = session.toJson()
+        ..addAll({
+          'section_id': sectionId,
+          'subject_id': subjectId,
+          'teacher_id': teacherId,
+          'academic_year_id': academicYearId,
+          'semester_id': semesterId,
+        });
+
+      final response = await _apiService.post(
+        ConstantApi.timetables,
+        data: requestData, // إرسال البيانات المكتملة
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      // طباعة بيانات الرفع تحت في الـ Log للـ Debugging
+      print('🌐 [ScheduleService - Create] Response Data: ${response.data}');
+      print('📊 [ScheduleService - Create] Status Code: ${response.statusCode}');
+
+      if ((response.statusCode == 201 || response.statusCode == 200) && response.data['success'] == true) {
         return ScheduleSessionModel.fromJson(response.data['data']);
       }
       throw Exception(response.data['message'] ?? 'فشل إنشاء الحصة');
     } catch (e) {
-      throw Exception('خطأ أثناء رفع الحصة: $e');
-    }
-  }
-
-  // 2. جلب كل حصص جدول صف معين (Read)
-  Future<List<ScheduleSessionModel>> getTimetableBySection(int sectionId, String token) async {
-    try {
-      final response = await _apiService.get(
-        'timetables', // أو المسار المخصص حسب الـ Index endpoint لديك
-        queryParameters: {'section_id': sectionId},
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        final List<dynamic> data = response.data['data'];
-        return data.map((json) => ScheduleSessionModel.fromJson(json)).toList();
-      }
-      throw Exception(response.data['message'] ?? 'فشل جلب الجدول');
-    } catch (e) {
-      throw Exception('خطأ أثناء جلب الجدول: $e');
-    }
-  }
-
-  // 3. تعديل تفاصيل حصة موجودة (Update)
-  Future<ScheduleSessionModel> updateSession(int id, ScheduleSessionModel session, String token) async {
-    try {
-      final response = await _apiService.put(
-        'timetables/$id',
-        data: session.toJson(),
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        return ScheduleSessionModel.fromJson(response.data['data']);
-      }
-      throw Exception(response.data['message'] ?? 'فشل تعديل الحصة');
-    } catch (e) {
-      throw Exception('خطأ أثناء تعديل الحصة: $e');
-    }
-  }
-
-  // 4. حذف حصة من الجدول (Delete)
-  Future<void> deleteSession(int id, String token) async {
-    try {
-      final response = await _apiService.delete(
-        'timetables/$id',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
-      if (response.statusCode != 200 || response.data['success'] != true) {
-        throw Exception(response.data['message'] ?? 'فشل حذف الحصة');
-      }
-    } catch (e) {
-      throw Exception('خطأ أثناء حذف الحصة: $e');
+      throw Exception(e.toString().replaceAll("Exception: ", ""));
     }
   }
 }

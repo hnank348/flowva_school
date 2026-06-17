@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-// تعريف الحالات الثلاثة المطلوبة للمعلم
-enum TeacherAttendanceStatus { present, absent, vacation }
+// 🎨 الحالات الأربعة المحدثة بدقة لمعلمي المنشأة
+enum TeacherAttendanceStatus { active, inactive, vacation, transferred }
 
 class TeachersAttendanceState {
   final Map<String, TeacherAttendanceStatus> attendanceMap;
@@ -10,6 +10,7 @@ class TeachersAttendanceState {
 }
 
 class TeachersAttendanceCubit extends Cubit<TeachersAttendanceState> {
+  // القيمة الابتدائية تبدأ بـ active (نشط) كحالة افتراضية
   TeachersAttendanceCubit() : super(const TeachersAttendanceState(attendanceMap: {}));
 
   // دالة تحديث حالة المعلم الدورية
