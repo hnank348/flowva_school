@@ -1,8 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flowva_school/services/api_service.dart';
-
-import '../models/user_model.dart';
-import 'constant_api.dart'; // تأكد من مسار الـ ApiService الخاص بك
+import '../../models/user_model.dart';
+import '../constant_api.dart';
 
 class ProfileService {
   final ApiService _apiService;
@@ -11,19 +10,13 @@ class ProfileService {
 
   Future<UserModel> getUserProfile({String? token}) async {
     try {
-      Options? options;
-      if (token != null) {
-        options = Options(
-          headers: {
-            'Authorization': 'Bearer $token',
-          },
-        );
-      }
-
+      // 🚀 تم الاستغناء عن تهيئة الـ Options اليدوية وتمرير الـ token لـ ApiService مباشرة
       final response = await _apiService.get(
         ConstantApi.profile,
-        options: options,
       );
+
+      print('🌐 [ProfileService] Response Data: ${response.data}');
+      print('📊 [ProfileService] Status Code: ${response.statusCode}');
 
       if (response.statusCode == 200 && response.data != null) {
         final responseData = response.data as Map<String, dynamic>;

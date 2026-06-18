@@ -17,15 +17,25 @@ class UserModel {
     this.dateOfBirth,
   });
 
-  // الـ Factory لإنشاء الكائن مباشرة من عقدة "data" القادمة من الـ API
   factory UserModel.fromJson(Map<String, dynamic> json) {
+
+    String? cleanAvatarUrl(String? url) {
+      if (url == null || url.isEmpty) return null;
+
+      if (url.contains(':\\') || url.contains('AppData') || url.endsWith('.tmp')) {
+        return null;
+      }
+
+      return url;
+    }
+
     return UserModel(
       id: json['id'] as int,
       firstName: json['first_name'] ?? '',
       lastName: json['last_name'] ?? '',
       email: json['email'] ?? '',
       phone: json['phone'],
-      avatarUrl: json['avatar'],
+      avatarUrl: cleanAvatarUrl(json['avatar']),
       dateOfBirth: json['date_of_birth'],
     );
   }

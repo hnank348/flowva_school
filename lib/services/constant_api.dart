@@ -12,4 +12,5 @@ class ConstantApi {
   static const String subjects='$baseApi/subjects';
   static const String teachers='$baseApi/teachers';
   static const String profile='$baseApi/auth/me';
+  static const String academic_years='$baseApi/academic-years/current';
 }

@@ -14,11 +14,19 @@ class LoginService {
 
       final response = await _apiService.post(ConstantApi.login, data: formData);
 
+      print('🌐 [LoginService] Response Data: ${response.data}');
+      print('📊 [LoginService] Status Code: ${response.statusCode}');
+
       if (response.statusCode == 200 && response.data['success'] == true) {
+        // 🚀 استخراج العقدة الداخلية 'data' التي تحتوي على التوكن والـ user مباشرة
+        final innerData = response.data['data'];
+
         return {
           'success': true,
           'message': response.data['message'] ?? 'Login Successful',
-          'data': response.data
+          'token': innerData['token'] ?? '', // التوكن الصافي
+          'user_type': innerData['user']?['user_type'] ?? 'admin', // نوع المستخدم
+          'data': innerData // تمرير البيانات الداخلية المصفاة
         };
       } else {
         return {
@@ -27,6 +35,7 @@ class LoginService {
         };
       }
     } catch (e) {
+      print('❌ [LoginService Exception]: $e');
       return {
         'success': false,
         'message': 'Server is unreachable. Make sure it is running.'

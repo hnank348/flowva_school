@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../cubit/supervisor/classes/classes_cubit.dart';
 import '../../data/mock_data.dart';
 import '../../models/student.dart';
 import '../../models/activity.dart';
@@ -94,7 +96,7 @@ class HomeView extends StatelessWidget {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          const SettingsView(),
+                                           SettingsView(userToken: context.read<ClassesCubit>().userToken,),
                                     ),
                                   );
                                 },

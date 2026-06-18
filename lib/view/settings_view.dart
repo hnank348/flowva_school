@@ -7,7 +7,10 @@ import '../cubit/theme/theme_cubit.dart';
 import '../cubit/theme/theme_state.dart';
 
 class SettingsView extends StatelessWidget {
-  const SettingsView({super.key});
+  // 🚀 استقبال التوكن مباشرة هنا لقطع الاعتماد على الـ Context المعزول نهائياً
+  final String userToken;
+
+  const SettingsView({super.key, required this.userToken});
 
   @override
   Widget build(BuildContext context) {
@@ -54,12 +57,17 @@ class SettingsView extends StatelessWidget {
                   context,
                   'الملف الشخصي',
                   Icons.person_outline_rounded,
-                      () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (c) => const ProfileView()),
-                  ),
+                      () {
+                    // 🚀 نمرر التوكن المستلم مباشرة إلى صفحة الـ ProfileView دون الحاجة لأي Cubit هنا!
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ProfileView(userToken: userToken),
+                      ),
+                    );
+                  },
                 ),
-                _buildDivider(context), // تم إبقاء فاصل واحد نظيف هنا
+                _buildDivider(context),
                 _buildSettingTile(context, 'تغيير كلمة المرور', Icons.lock_outline_rounded, () {}),
               ]),
 
@@ -89,7 +97,7 @@ class SettingsView extends StatelessWidget {
                     themeCubit.toggleTheme();
                   },
                 ),
-                _buildDivider(context), // تم إبقاء فاصل واحد نظيف هنا
+                _buildDivider(context),
                 _buildSettingTile(context, 'اللغة الحالية', Icons.language_rounded, () {}),
               ]),
 

@@ -271,7 +271,7 @@ class SignUpScreen extends StatelessWidget {
               actionText: "Log in",
               onPressed: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (c) => const LoginScreen()),
+                MaterialPageRoute(builder: (c) =>  LoginScreen()),
               ),
             ),
           ],

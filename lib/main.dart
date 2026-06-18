@@ -1,13 +1,10 @@
+import 'package:flowva_school/view/auth/login/login_view.dart';
 import 'package:flowva_school/view/splash/splach_view.dart';
-import 'package:flowva_school/view/teacher/teacher_dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
 import 'package:flowva_school/cubit/theme/theme_cubit.dart';
 import 'package:flowva_school/cubit/theme/theme_state.dart';
-
-import 'app_providers.dart';
-import 'view/supervisor/main_layout_view.dart';
+import 'package:flowva_school/cubit/login/login_cubit.dart'; // استيراد الكيوبت الجديد
 import 'theme.dart';
 
 void main() => runApp(const SchoolManagementApp());
@@ -17,8 +14,14 @@ class SchoolManagementApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: AppProviders.providers,
+    return MultiBlocProvider(
+      providers: [
+        // 💡 حقن الـ ThemeCubit هنا ليعمل على مستوى التطبيق بالكامل
+        BlocProvider<ThemeCubit>(create: (context) => ThemeCubit()),
+
+        // 💡 حقن الـ LoginCubit هنا لتوفيره لصفحة الـ LoginScreen فور تشغيلها
+        BlocProvider<LoginCubit>(create: (context) => LoginCubit()),
+      ],
       child: BlocBuilder<ThemeCubit, ThemeState>(
         builder: (context, state) {
           final isDark = state is DarkModeState;
@@ -29,7 +32,9 @@ class SchoolManagementApp extends StatelessWidget {
             themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
             theme: AppTheme.light(),
             darkTheme: AppTheme.dark(),
-            home: const MainLayoutView(),
+
+            // 🚀 البداية من صفحة تسجيل الدخول، ومنها يتم الانتقال وحقن باقي الـ Providers بالتوكن الديناميكي
+            home: SplashScreen(),
           );
         },
       ),

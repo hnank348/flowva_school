@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'profile_state.dart';
-import 'package:flowva_school/services/profile_service.dart'; // مسار السيرفس الجديد
+import 'package:flowva_school/services/auth/profile_service.dart'; // مسار السيرفس الجديد
 
 class ProfileCubit extends Cubit<ProfileState> {
   final ProfileService _profileService;

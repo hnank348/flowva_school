@@ -8,17 +8,16 @@ class ScheduleService {
 
   ScheduleService(this._apiService);
 
-  /// 🎯 جلب جدول الحصص الأسبوعي بناءً على الـ [sectionId] والـ [semesterId] المختار
   Future<List<ScheduleSessionModel>> getTimetableBySection({
     required int sectionId,
     required String token,
     required int semesterId,
   }) async {
     try {
+      // 🚀 تم تمرير الـ token هنا كمتغير مباشر
       final response = await _apiService.get(
         '${ConstantApi.timetable}/$sectionId/timetable',
         queryParameters: {'semester_id': semesterId},
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       print('🌐 [ScheduleService - Fetch] Response Data: ${response.data}');
@@ -28,12 +27,10 @@ class ScheduleService {
 
         if (rawData == null) return [];
 
-        // 🎯 الحالة الأحدث: السيرفر يعود بحصة واحدة مباشرة كـ Object
         if (rawData is Map<String, dynamic> && rawData.containsKey('day_of_week')) {
           return [ScheduleSessionModel.fromJson(rawData)];
         }
 
-        // حالة خريطة الأيام الأسبوعية المقسمة (تأمين إضافي)
         if (rawData is Map<String, dynamic> && !rawData.containsKey('day_of_week')) {
           List<ScheduleSessionModel> allSessions = [];
           rawData.forEach((day, sessionsList) {
@@ -46,7 +43,6 @@ class ScheduleService {
           return allSessions;
         }
 
-        // حالة القائمة المباشرة من الحصص
         if (rawData is List) {
           return rawData.map((json) => ScheduleSessionModel.fromJson(json)).toList();
         }
@@ -57,7 +53,6 @@ class ScheduleService {
     }
   }
 
-  /// إنشاء أو تحديث حصة جديدة في الجدول
   Future<ScheduleSessionModel> createSession({
     required ScheduleSessionModel session,
     required String token,
@@ -68,7 +63,6 @@ class ScheduleService {
     required int semesterId,
   }) async {
     try {
-      // دمج بيانات الحصة مع الـ IDs المطلوبة من السيرفر في Map واحد
       final Map<String, dynamic> requestData = session.toJson()
         ..addAll({
           'section_id': sectionId,
@@ -78,13 +72,12 @@ class ScheduleService {
           'semester_id': semesterId,
         });
 
+      // 🚀 تم تمرير الـ token هنا كمتغير مباشر في الـ POST
       final response = await _apiService.post(
         ConstantApi.timetables,
-        data: requestData, // إرسال البيانات المكتملة
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        data: requestData,
       );
 
-      // طباعة بيانات الرفع تحت في الـ Log للـ Debugging
       print('🌐 [ScheduleService - Create] Response Data: ${response.data}');
       print('📊 [ScheduleService - Create] Status Code: ${response.statusCode}');
 
