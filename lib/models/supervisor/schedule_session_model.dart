@@ -100,7 +100,6 @@ class ApiTeacherModel {
   factory ApiTeacherModel.fromJson(Map<String, dynamic> json) {
     return ApiTeacherModel(
       id: json['id'] ?? 0,
-      // 🎯 السيرفر يرسل اسم المعلم بـ "full_name" داخل كائن الـ teacher، تأكد من استخراجه بشكل صحيح هكذا:
       fullName: json['full_name'] ?? json['name'] ?? '',
     );
   }

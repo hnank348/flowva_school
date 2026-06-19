@@ -1,4 +1,5 @@
 import 'dart:developer';
+
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flowva_school/services/constant_api.dart';
@@ -34,7 +35,7 @@ class ApiService {
   // 🚀 دالة قسرية لتحديث الـ Headers فوراً في اللحظة الحالية لكسر تأخير الـ Async
   void forceUpdateToken(String token) {
     _dio.options.headers['Authorization'] = 'Bearer $token';
-    log('⚡ [ApiService] Forced Token Update: Bearer $token');
+    log('⚡️ [ApiService] Forced Token Update: Bearer $token');
   }
 
   Future<Response> get(String path, {Map<String, dynamic>? queryParameters, Options? options}) async {
@@ -52,6 +53,18 @@ class ApiService {
     try {
       log('🚀 POST Request to: $path');
       final response = await _dio.post(path, data: data, options: options);
+      return response;
+    } on DioException catch (e) {
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  // 🚀 الدالة الجديدة المضافة لدعم عمليات التحديث (PUT)
+  Future<Response> put(String path, {Object? data, Options? options}) async {
+    try {
+      log('🔄 PUT Request to: $path');
+      final response = await _dio.put(path, data: data, options: options);
       return response;
     } on DioException catch (e) {
       _handleError(e);

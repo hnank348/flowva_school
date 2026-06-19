@@ -14,7 +14,6 @@ class ScheduleService {
     required int semesterId,
   }) async {
     try {
-      // 🚀 تم تمرير الـ token هنا كمتغير مباشر
       final response = await _apiService.get(
         '${ConstantApi.timetable}/$sectionId/timetable',
         queryParameters: {'semester_id': semesterId},
@@ -72,19 +71,54 @@ class ScheduleService {
           'semester_id': semesterId,
         });
 
-      // 🚀 تم تمرير الـ token هنا كمتغير مباشر في الـ POST
       final response = await _apiService.post(
         ConstantApi.timetables,
         data: requestData,
       );
 
       print('🌐 [ScheduleService - Create] Response Data: ${response.data}');
-      print('📊 [ScheduleService - Create] Status Code: ${response.statusCode}');
 
       if ((response.statusCode == 201 || response.statusCode == 200) && response.data['success'] == true) {
         return ScheduleSessionModel.fromJson(response.data['data']);
       }
       throw Exception(response.data['message'] ?? 'فشل إنشاء الحصة');
+    } catch (e) {
+      throw Exception(e.toString().replaceAll("Exception: ", ""));
+    }
+  }
+
+  Future<ScheduleSessionModel> updateSession({
+    required int timetableId,
+    required ScheduleSessionModel session,
+    required String token,
+    required int sectionId,
+    required int subjectId,
+    required int teacherId,
+    required int academicYearId,
+    required int semesterId,
+  }) async {
+    try {
+      final Map<String, dynamic> requestData = session.toJson()
+        ..addAll({
+          'section_id': sectionId,
+          'subject_id': subjectId,
+          'teacher_id': teacherId,
+          'academic_year_id': academicYearId,
+          'semester_id': semesterId,
+        });
+
+      final response = await _apiService.put(
+        '${ConstantApi.timetables}/$timetableId',
+        data: requestData,
+      );
+
+      print('🌐 [ScheduleService - Update] Response Data: ${response.data}');
+      print('🌐 [ScheduleService - Update] Response Data: ${response.data}');
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return ScheduleSessionModel.fromJson(response.data['data']);
+      }
+      throw Exception(response.data['message'] ?? 'فشل تعديل الحصة');
     } catch (e) {
       throw Exception(e.toString().replaceAll("Exception: ", ""));
     }

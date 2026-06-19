@@ -16,7 +16,6 @@ class SchoolManagementApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        // 💡 حقن الـ ThemeCubit هنا ليعمل على مستوى التطبيق بالكامل
         BlocProvider<ThemeCubit>(create: (context) => ThemeCubit()),
 
         // 💡 حقن الـ LoginCubit هنا لتوفيره لصفحة الـ LoginScreen فور تشغيلها
