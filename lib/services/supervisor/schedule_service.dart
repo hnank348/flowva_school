@@ -15,7 +15,7 @@ class ScheduleService {
   }) async {
     try {
       final response = await _apiService.get(
-        '${ConstantApi.timetable}/$sectionId/timetable',
+        '${ConstantApi.section}/$sectionId/timetable',
         queryParameters: {'semester_id': semesterId},
       );
 

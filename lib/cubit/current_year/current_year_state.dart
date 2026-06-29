@@ -1,6 +1,6 @@
 // current_year_state.dart
 
-import '../../models/academic_year_model.dart';
+import '../../models/mutual/academic_year_model.dart';
 
 abstract class CurrentYearState {}
 

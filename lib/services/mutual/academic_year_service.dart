@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import '../models/academic_year_model.dart';
-import 'api_service.dart';
-import 'constant_api.dart';
+import '../../models/mutual/academic_year_model.dart';
+import '../api_service.dart';
+import '../constant_api.dart';
 
 class AcademicYearService {
   final ApiService _apiService;
@@ -10,7 +10,7 @@ class AcademicYearService {
 
   Future<AcademicYearModel> getCurrentYear() async {
     try {
-      final response = await _apiService.get(ConstantApi.academic_years);
+      final response = await _apiService.get(ConstantApi.academicYears);
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         return AcademicYearModel.fromJson(response.data['data']);

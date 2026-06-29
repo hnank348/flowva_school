@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flowva_school/services/api_service.dart';
-import '../../models/user_model.dart';
+import '../../models/teacher/user_model.dart';
 import '../constant_api.dart';
 
 class ProfileService {

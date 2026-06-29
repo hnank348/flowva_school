@@ -1,10 +1,10 @@
-import 'package:flowva_school/view/profile_view.dart';
+import 'package:flowva_school/view/mutual/profile_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../cubit/theme/theme_cubit.dart';
-import '../cubit/theme/theme_state.dart';
+import '../../cubit/theme/theme_cubit.dart';
+import '../../cubit/theme/theme_state.dart';
 
 class SettingsView extends StatelessWidget {
   // 🚀 استقبال التوكن مباشرة هنا لقطع الاعتماد على الـ Context المعزول نهائياً

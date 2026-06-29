@@ -1,7 +1,7 @@
-import 'package:flowva_school/view/supervisor/attendance_view.dart';
+import 'package:flowva_school/view/supervisor/attendance/attendance_view.dart';
 import 'package:flowva_school/view/supervisor/exam_schedule_view.dart';
 import 'package:flowva_school/view/supervisor/statistics_view.dart';
-import 'package:flowva_school/view/settings_view.dart';
+import 'package:flowva_school/view/mutual/settings_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubit/supervisor/cubit_supervisor/navigation_cubit.dart';

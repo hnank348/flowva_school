@@ -1,8 +1,8 @@
-import '../models/student.dart';
-import '../models/classroom.dart';
-import '../models/activity.dart';
-import '../models/schedule.dart';
-import '../models/message.dart';
+import '../models/teacher/student.dart';
+import '../models/teacher/classroom.dart';
+import '../models/teacher/activity.dart';
+import '../models/teacher/schedule.dart';
+import '../models/teacher/message.dart';
 
 class MockData {
   static List<Student> getStudents() {

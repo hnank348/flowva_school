@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../cubit/supervisor/cubit_supervisor/teachers_attendance_cubit.dart';
+import '../../../cubit/supervisor/cubit_supervisor/teachers_attendance_cubit.dart';
 
 class TeachersAttendanceView extends StatelessWidget {
   const TeachersAttendanceView({super.key});

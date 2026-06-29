@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubit/supervisor/classes/classes_cubit.dart';
 import '../../data/mock_data.dart';
-import '../../models/student.dart';
-import '../../models/activity.dart';
+import '../../models/teacher/student.dart';
+import '../../models/teacher/activity.dart';
 // removed unused import
 import 'create_exam_view.dart';
 import 'performance_reports_view.dart';
 import 'notifications_view.dart';
-import '../settings_view.dart';
+import '../mutual/settings_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});

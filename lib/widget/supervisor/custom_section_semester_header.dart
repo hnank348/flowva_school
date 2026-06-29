@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../cubit/supervisor/classes/classes_cubit.dart';
-import '../../../cubit/supervisor/classes/classes_state.dart';
-import '../../../cubit/current_semester/current_semester_cubit.dart';
-import '../../../cubit/current_semester/current_semester_state.dart';
+import 'package:flowva_school/cubit/current_semester/current_semester_cubit.dart';
+import 'package:flowva_school/cubit/current_semester/current_semester_state.dart';
 
-class ScheduleHeaderWidget extends StatelessWidget {
-  final ClassesLoaded classState;
-  final ClassesCubit classesCubit;
+class CustomModernHeader extends StatelessWidget {
+  final dynamic selectedSection;
+  final List<dynamic> sections;
   final ValueChanged<dynamic> onSectionChanged;
   final VoidCallback? onExportPdfPressed;
 
-  const ScheduleHeaderWidget({
+  const CustomModernHeader({
     super.key,
-    required this.classState,
-    required this.classesCubit,
+    required this.selectedSection,
+    required this.sections,
     required this.onSectionChanged,
     this.onExportPdfPressed,
   });
@@ -23,9 +21,6 @@ class ScheduleHeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final activeSections = classState.classDetails.sections;
-    final selectedSection = classState.selectedSection;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -47,6 +42,7 @@ class ScheduleHeaderWidget extends StatelessWidget {
         textDirection: TextDirection.rtl,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // 📑 القسم الأيمن: قائمة اختيار الشعبة المنسدلة + شارة الفصل الدراسي الديناميكية
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,6 +52,7 @@ class ScheduleHeaderWidget extends StatelessWidget {
                   textDirection: TextDirection.rtl,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // 🏷️ نص العنوان الثابت بلون هادئ ومميز عن الاختيارات
                     Text(
                       'جدول شعبة: ',
                       style: TextStyle(
@@ -66,6 +63,7 @@ class ScheduleHeaderWidget extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
 
+                    // 🌟 القائمة المنسدلة المصلحة بالكامل داخل الويدجت الأساسي
                     IntrinsicWidth(
                       child: DropdownButtonDirectionality(
                         textDirection: TextDirection.rtl,
@@ -76,43 +74,43 @@ class ScheduleHeaderWidget extends StatelessWidget {
                             padding: const EdgeInsets.only(right: 4.0),
                             child: Icon(
                               Icons.arrow_drop_down_rounded,
-                              color: colorScheme.primary,
-                              size: 24,
+                              color: colorScheme.primary, // لون السهم التركواز من الثيم
+                              size: 22,
                             ),
                           ),
                           borderRadius: BorderRadius.circular(16),
                           dropdownColor: isDark ? colorScheme.surfaceContainer : colorScheme.surfaceContainerLow,
                           isDense: true,
 
+                          // 🛠️ الإصلاح الجذري هنا: بناء العنصر المختار حالياً باستخدام الترتيب (Index) الفعلي للشعبة لفرض اللون بشكل سليم
                           selectedItemBuilder: (BuildContext context) {
-                            return activeSections.map<Widget>((section) {
-                              return Align(
+                            return sections.map<Widget>((section) {
+                              return Container(
                                 alignment: Alignment.centerRight,
                                 child: Text(
-                                  selectedSection?.name ?? 'غير محدد',
+                                  section.name, // 🌟 نمرر اسم الشعبة الفردي من الـ map ليتعرف فلاتر على الـ Index بدقة
                                   style: TextStyle(
                                     fontFamily: 'Cairo',
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
-                                    color: colorScheme.primary,
+                                    color: colorScheme.primary, // 🎨 فرض لون الثيم التركواز صراحة لمنع اختفائه باللايت مود
                                   ),
                                 ),
                               );
                             }).toList();
                           },
-
-                          items: activeSections.map((section) {
+                          items: sections.map((section) {
                             return DropdownMenuItem<dynamic>(
                               value: section,
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                padding: const EdgeInsets.symmetric(horizontal: 4.0),
                                 child: Text(
                                   section.name,
                                   style: TextStyle(
                                     fontFamily: 'Cairo',
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
-                                    color: colorScheme.primary,
+                                    color: colorScheme.primary, // 🎨 تلوين العناصر داخل القائمة المفتوحة أيضاً
                                   ),
                                 ),
                               ),
@@ -130,7 +128,7 @@ class ScheduleHeaderWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
 
-                // 📅 شارة الفصل الدراسي الحية التلقائية من الـ Cubit المشترك
+                // 📅 شارة الفصل الدراسي التلقائية الحية والمستمعة للـ Cubit
                 BlocBuilder<CurrentSemesterCubit, CurrentSemesterState>(
                   builder: (context, semesterState) {
                     String currentSemesterName = 'جاري التحميل...';
@@ -169,7 +167,7 @@ class ScheduleHeaderWidget extends StatelessWidget {
             ),
           ),
 
-          // ⚙️ زر تصدير PDF
+          // ⚙️ القسم الأيسر: زر تصدير PDF
           OutlinedButton.icon(
             onPressed: onExportPdfPressed ?? () {},
             icon: Icon(Icons.picture_as_pdf_rounded, size: 14, color: colorScheme.onSurface),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/mock_data.dart';
-import '../../models/message.dart';
+import '../../models/teacher/message.dart';
 
 class ChatView extends StatefulWidget {
   const ChatView({super.key});

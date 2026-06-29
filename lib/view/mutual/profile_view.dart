@@ -5,9 +5,9 @@ import 'package:intl/intl.dart' as intl;
 import 'package:flowva_school/cubit/profile/profile_cubit.dart';
 import 'package:flowva_school/cubit/profile/profile_state.dart';
 
-import '../models/user_model.dart';
-import '../services/api_service.dart' as services;
-import '../services/auth/profile_service.dart';
+import '../../models/teacher/user_model.dart';
+import '../../services/api_service.dart' as services;
+import '../../services/auth/profile_service.dart';
 
 class ProfileView extends StatelessWidget {
   // 🚀 استقبال التوكن مباشرة هنا لقطع الاعتماد على الـ Context المعزول
