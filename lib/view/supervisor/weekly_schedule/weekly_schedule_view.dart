@@ -9,7 +9,10 @@ import '../../../cubit/supervisor/classes/classes_state.dart';
 import '../../../cubit/supervisor/schedule/schedule_state.dart';
 import '../../../cubit/current_semester/current_semester_cubit.dart';
 import '../../../cubit/current_semester/current_semester_state.dart';
+import '../../../cubit/locale/locale_cubit.dart';
+import '../../../cubit/locale/locale_state.dart';
 import '../../../models/supervisor/schedule_session_model.dart';
+import '../../../app_localizations.dart';
 
 import 'schedule_header_widget.dart';
 import 'schedule_table_widget.dart';
@@ -17,7 +20,6 @@ import 'schedule_table_widget.dart';
 class WeeklyScheduleView extends StatelessWidget {
   const WeeklyScheduleView({super.key});
 
-  // 🔄 ميثود الجلب الأساسية والمحدثة
   void _triggerFetchSchedule(
       BuildContext context,
       int sectionId,
@@ -37,140 +39,140 @@ class WeeklyScheduleView extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Container(
-      color: colorScheme.surface,
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      child: BlocBuilder<ClassesCubit, ClassesState>(
-        builder: (context, classState) {
-          return BlocBuilder<ScheduleCubit, ScheduleState>(
-            builder: (context, scheduleState) {
-              return BlocBuilder<CurrentSemesterCubit, CurrentSemesterState>(
-                builder: (context, semesterState) {
+    return BlocBuilder<LocaleCubit, LocaleState>(
+      builder: (context, localeState) {
+        return Directionality(
+          textDirection: localeState.textDirection, // 🌍 تطبيق التوجه الصحيح بناءً على حالة الكيوبيت المشترك للغات
+          child: Container(
+            color: colorScheme.surface,
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: BlocBuilder<ClassesCubit, ClassesState>(
+              builder: (context, classState) {
+                return BlocBuilder<ScheduleCubit, ScheduleState>(
+                  builder: (context, scheduleState) {
+                    return BlocBuilder<CurrentSemesterCubit, CurrentSemesterState>(
+                      builder: (context, semesterState) {
 
-                  // 🌟 جلب الـ ID الخاص بالفصل الدراسي الحالي بشكل ديناميكي وحي من الكيوبيت المشترك
-                  int currentSemesterId = 1;
-                  if (semesterState is CurrentSemesterSuccess) {
-                    currentSemesterId = semesterState.currentSemester.id;
-                  }
-
-                  // 🚀 الإقلاع الأول المستقر والأمن تماماً
-                  final scheduleCubit = context.read<ScheduleCubit>();
-                  if (classState is ClassesLoaded && classState.selectedSection != null) {
-                    if (scheduleCubit.state is ScheduleInitial) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (context.mounted) {
-                          _triggerFetchSchedule(
-                            context,
-                            classState.selectedSection!.id,
-                            classState.selectedSection!.name,
-                            currentSemesterId,
-                          );
+                        int currentSemesterId = 1;
+                        if (semesterState is CurrentSemesterSuccess) {
+                          currentSemesterId = semesterState.currentSemester.id;
                         }
-                      });
-                    }
-                  }
 
-                  // تحضير بيانات الجلسات النشطة
-                  List<ScheduleSessionModel> activeSessions = [];
-                  if (scheduleState is ScheduleLoaded) {
-                    activeSessions = scheduleState.sessions;
-                  }
-
-                  int activeSectionId = 0;
-                  String activeClassName = "";
-                  if (classState is ClassesLoaded && classState.selectedSection != null) {
-                    activeSectionId = classState.selectedSection!.id;
-                    activeClassName = classState.selectedSection!.name;
-                  }
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 12),
-
-                      // 🏷️ الهيدر الحديث المتكامل بعد الإصلاح
-                      Builder(
-                        builder: (context) {
-                          if (classState is ClassesLoading) {
-                            return SizedBox(
-                              height: 38,
-                              child: Center(
-                                child: LinearProgressIndicator(
-                                  color: colorScheme.primary,
-                                ),
-                              ),
-                            );
-                          } else if (classState is ClassesError) {
-                            return Center(
-                              child: Text(
-                                classState.message,
-                                style: TextStyle(fontFamily: 'Cairo', color: colorScheme.error, fontSize: 12),
-                              ),
-                            );
-                          } else if (classState is ClassesLoaded) {
-                            return ScheduleHeaderWidget(
-                              classState: classState,
-                              classesCubit: context.read<ClassesCubit>(),
-                              // ✅ تم إزالة البارامتر القديم لأنه أصبح يُقرأ داخلياً عبر BlocBuilder تلقائياً
-                              onSectionChanged: (newSection) {
-                                context.read<ClassesCubit>().selectSection(newSection);
-
+                        final scheduleCubit = context.read<ScheduleCubit>();
+                        if (classState is ClassesLoaded && classState.selectedSection != null) {
+                          if (scheduleCubit.state is ScheduleInitial) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (context.mounted) {
                                 _triggerFetchSchedule(
                                   context,
-                                  newSection.id,
-                                  newSection.name,
+                                  classState.selectedSection!.id,
+                                  classState.selectedSection!.name,
                                   currentSemesterId,
                                 );
-                              },
-                              onExportPdfPressed: () {
-                                // أكشن الـ PDF
-                              },
-                            );
+                              }
+                            });
                           }
-                          return const SizedBox();
-                        },
-                      ),
+                        }
 
-                      const SizedBox(height: 12),
+                        List<ScheduleSessionModel> activeSessions = [];
+                        if (scheduleState is ScheduleLoaded) {
+                          activeSessions = scheduleState.sessions;
+                        }
 
-                      // 📅 جدول الحصص الأسبوعي التفاعلي
-                      Expanded(
-                        child: Builder(
-                          builder: (context) {
-                            if (scheduleState is ScheduleLoading) {
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  color: colorScheme.primary,
-                                ),
-                              );
-                            } else if (scheduleState is ScheduleError) {
-                              return Center(
-                                child: Text(
-                                  scheduleState.message,
-                                  style: TextStyle(fontFamily: 'Cairo', color: colorScheme.error),
-                                ),
-                              );
-                            }
+                        int activeSectionId = 0;
+                        String activeClassName = "";
+                        if (classState is ClassesLoaded && classState.selectedSection != null) {
+                          activeSectionId = classState.selectedSection!.id;
+                          activeClassName = classState.selectedSection!.name;
+                        }
 
-                            // ✨ تحديث الـ ValueKey ليعتمد بشكل وثيق على الـ Section والـ Semester
-                            return ScheduleTableWidget(
-                              key: ValueKey('${activeSectionId}_$currentSemesterId'),
-                              sessions: activeSessions,
-                              sectionId: activeSectionId,
-                              className: activeClassName,
-                              semesterId: currentSemesterId,
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-          );
-        },
-      ),
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const SizedBox(height: 12),
+
+                            Builder(
+                              builder: (context) {
+                                if (classState is ClassesLoading) {
+                                  return SizedBox(
+                                    height: 38,
+                                    child: Center(
+                                      child: LinearProgressIndicator(
+                                        color: colorScheme.primary,
+                                      ),
+                                    ),
+                                  );
+                                } else if (classState is ClassesError) {
+                                  return Center(
+                                    child: Text(
+                                      classState.message,
+                                      style: TextStyle(fontFamily: 'Cairo', color: colorScheme.error, fontSize: 12),
+                                    ),
+                                  );
+                                } else if (classState is ClassesLoaded) {
+                                  return ScheduleHeaderWidget(
+                                    classState: classState,
+                                    classesCubit: context.read<ClassesCubit>(),
+                                    onSectionChanged: (newSection) {
+                                      context.read<ClassesCubit>().selectSection(newSection);
+
+                                      _triggerFetchSchedule(
+                                        context,
+                                        newSection.id,
+                                        newSection.name,
+                                        currentSemesterId,
+                                      );
+                                    },
+                                    onExportPdfPressed: () {},
+                                  );
+                                }
+                                return const SizedBox();
+                              },
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            Expanded(
+                              child: Builder(
+                                builder: (context) {
+                                  if (scheduleState is ScheduleLoading) {
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        color: colorScheme.primary,
+                                      ),
+                                    );
+                                  } else if (scheduleState is ScheduleError) {
+                                    return Center(
+                                      child: Text(
+                                        scheduleState.message,
+                                        style: TextStyle(fontFamily: 'Cairo', color: colorScheme.error),
+                                      ),
+                                    );
+                                  }
+
+                                  // ✨ تمرير الـ Key واللغة لضمان التحديث اللحظي للجدول بالكامل
+                                  return ScheduleTableWidget(
+                                    key: ValueKey('${activeSectionId}_${currentSemesterId}_${localeState.currentLanguage}'),
+                                    sessions: activeSessions,
+                                    sectionId: activeSectionId,
+                                    className: activeClassName,
+                                    semesterId: currentSemesterId,
+                                    currentLanguage: localeState.currentLanguage,
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }

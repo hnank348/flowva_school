@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flowva_school/cubit/supervisor/cubit_supervisor/student_attendance_cubit.dart';
 import 'package:flowva_school/models/supervisor/student_attendance_model.dart';
+import '../../../../app_localizations.dart';
 import 'student_attendance_card.dart';
 
-// ─── فلتر محلي بدون Cubit ─── نوع بسيط
 enum _AttendanceFilter { all, present, absent, late, excused }
 
 class StudentsAttendanceGrid extends StatefulWidget {
@@ -25,13 +25,16 @@ class StudentsAttendanceGrid extends StatefulWidget {
 class _StudentsAttendanceGridState extends State<StudentsAttendanceGrid> {
   _AttendanceFilter _filter = _AttendanceFilter.all;
 
-  static const _filterItems = [
-    (filter: _AttendanceFilter.all, label: 'الكل', color: Color(0xFF64748B)),
-    (filter: _AttendanceFilter.present, label: 'حاضر', color: Color(0xFF0F766E)),
-    (filter: _AttendanceFilter.absent, label: 'غائب', color: Color(0xFFDC2626)),
-    (filter: _AttendanceFilter.late, label: 'تأخير', color: Color(0xFFD97706)),
-    (filter: _AttendanceFilter.excused, label: 'إذن', color: Color(0xFF7C3AED)),
-  ];
+  // فك الارتباط المباشر بالنصوص لتجهيز الفلاتر برمجياً وترجمتها داخل الـ build حياً
+  List<({_AttendanceFilter filter, String labelKey, Color color})> _getFilterItems() {
+    return [
+      (filter: _AttendanceFilter.all, labelKey: 'filter_all', color: const Color(0xFF64748B)),
+      (filter: _AttendanceFilter.present, labelKey: 'attendance_present', color: const Color(0xFF0F766E)),
+      (filter: _AttendanceFilter.absent, labelKey: 'attendance_absent', color: const Color(0xFFDC2626)),
+      (filter: _AttendanceFilter.late, labelKey: 'attendance_late', color: const Color(0xFFD97706)),
+      (filter: _AttendanceFilter.excused, labelKey: 'attendance_excused', color: const Color(0xFF7C3AED)),
+    ];
+  }
 
   StudentAttendanceStatus? get _requiredStatus {
     switch (_filter) {
@@ -52,8 +55,7 @@ class _StudentsAttendanceGridState extends State<StudentsAttendanceGrid> {
     final required = _requiredStatus;
     if (required == null) return widget.students;
     return widget.students.where((s) {
-      final status = widget.attendanceMap[s.id.toString()]
-          ?? StudentAttendanceStatus.present;
+      final status = widget.attendanceMap[s.id.toString()] ?? StudentAttendanceStatus.present;
       return status == required;
     }).toList();
   }
@@ -64,6 +66,7 @@ class _StudentsAttendanceGridState extends State<StudentsAttendanceGrid> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final hPad = widget.isTablet ? 20.0 : 14.0;
     final filteredList = _filtered;
+    final filterItems = _getFilterItems();
 
     return Column(
       children: [
@@ -74,16 +77,15 @@ class _StudentsAttendanceGridState extends State<StudentsAttendanceGrid> {
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.symmetric(horizontal: hPad),
             physics: const BouncingScrollPhysics(),
-            itemCount: _filterItems.length,
+            itemCount: filterItems.length,
             separatorBuilder: (_, __) => const SizedBox(width: 8),
             itemBuilder: (context, i) {
-              final item = _filterItems[i];
+              final item = filterItems[i];
               final isSelected = _filter == item.filter;
               final count = item.filter == _AttendanceFilter.all
                   ? widget.students.length
                   : widget.students.where((s) {
-                final st = widget.attendanceMap[s.id.toString()]
-                    ?? StudentAttendanceStatus.present;
+                final st = widget.attendanceMap[s.id.toString()] ?? StudentAttendanceStatus.present;
                 return st == _requiredStatusFor(item.filter);
               }).length;
 
@@ -95,15 +97,12 @@ class _StudentsAttendanceGridState extends State<StudentsAttendanceGrid> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? item.color.withOpacity(isDark ? 0.2 : 0.1)
-                        : (isDark
-                        ? colorScheme.surfaceContainer
-                        : Colors.white),
+                        : (isDark ? colorScheme.surfaceContainer : Colors.white),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: isSelected
                           ? item.color.withOpacity(isDark ? 0.6 : 0.8)
-                          : colorScheme.outlineVariant
-                          .withOpacity(isDark ? 0.3 : 0.5),
+                          : colorScheme.outlineVariant.withOpacity(isDark ? 0.3 : 0.5),
                       width: isSelected ? 1.2 : 0.8,
                     ),
                   ),
@@ -111,28 +110,19 @@ class _StudentsAttendanceGridState extends State<StudentsAttendanceGrid> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        item.label,
+                        context.tr(item.labelKey),
                         style: TextStyle(
                           fontFamily: 'Cairo',
                           fontSize: 12,
-                          fontWeight: isSelected
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                          color: isSelected
-                              ? item.color
-                              : colorScheme.onSurfaceVariant
-                              .withOpacity(0.7),
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                          color: isSelected ? item.color : colorScheme.onSurfaceVariant.withOpacity(0.7),
                         ),
                       ),
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 1),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                         decoration: BoxDecoration(
-                          color: isSelected
-                              ? item.color.withOpacity(0.15)
-                              : colorScheme.onSurfaceVariant
-                              .withOpacity(0.08),
+                          color: isSelected ? item.color.withOpacity(0.15) : colorScheme.onSurfaceVariant.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
@@ -141,10 +131,7 @@ class _StudentsAttendanceGridState extends State<StudentsAttendanceGrid> {
                             fontFamily: 'Cairo',
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
-                            color: isSelected
-                                ? item.color
-                                : colorScheme.onSurfaceVariant
-                                .withOpacity(0.6),
+                            color: isSelected ? item.color : colorScheme.onSurfaceVariant.withOpacity(0.6),
                           ),
                         ),
                       ),
@@ -165,13 +152,10 @@ class _StudentsAttendanceGridState extends State<StudentsAttendanceGrid> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.filter_list_off_rounded,
-                    size: 36,
-                    color:
-                    colorScheme.onSurfaceVariant.withOpacity(0.3)),
+                Icon(Icons.filter_list_off_rounded, size: 36, color: colorScheme.onSurfaceVariant.withOpacity(0.3)),
                 const SizedBox(height: 10),
                 Text(
-                  'لا يوجد طلاب بهذه الحالة',
+                  context.tr('filter_empty_students'),
                   style: TextStyle(
                     fontFamily: 'Cairo',
                     fontSize: 13,
@@ -183,20 +167,13 @@ class _StudentsAttendanceGridState extends State<StudentsAttendanceGrid> {
           )
               : LayoutBuilder(
             builder: (context, constraints) {
-              final int cols = constraints.maxWidth > 900
-                  ? 3
-                  : 2;
-              // ✅ ارتفاع ثابت للكارد بدل نسبة — يمنع الـ overflow
+              final int cols = constraints.maxWidth > 900 ? 3 : 2;
               const double cardHeight = 112;
 
               return GridView.builder(
-                padding: EdgeInsets.symmetric(
-                  horizontal: hPad,
-                  vertical: 4.0,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 4.0),
                 physics: const BouncingScrollPhysics(),
-                gridDelegate:
-                SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: cols,
                   mainAxisExtent: cardHeight,
                   crossAxisSpacing: 10,
@@ -205,9 +182,7 @@ class _StudentsAttendanceGridState extends State<StudentsAttendanceGrid> {
                 itemCount: filteredList.length,
                 itemBuilder: (context, index) {
                   final student = filteredList[index];
-                  final status =
-                      widget.attendanceMap[student.id.toString()]
-                          ?? StudentAttendanceStatus.present;
+                  final status = widget.attendanceMap[student.id.toString()] ?? StudentAttendanceStatus.present;
                   return StudentAttendanceCard(
                     student: student,
                     currentStatus: status,

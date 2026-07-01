@@ -13,7 +13,6 @@ class ScheduleSessionModel {
   final String? status;
   final String? createdAt;
 
-  // الكائنات المدمجة لعرض النصوص بالواجهة
   final ApiSubjectModel? subject;
   final ApiTeacherModel? teacher;
 
@@ -76,7 +75,7 @@ class ScheduleSessionModel {
 class ApiSubjectModel {
   final int id;
   final String name;
-  final String nameAr; // 🎯 تمت إضافته هنا ليطابق رد السيرفر ويختفي الخطأ بالواجهة
+  final String nameAr;
   final String? code;
 
   ApiSubjectModel({required this.id, required this.name, required this.nameAr, this.code});
@@ -85,7 +84,7 @@ class ApiSubjectModel {
     return ApiSubjectModel(
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
-      nameAr: json['name_ar'] ?? '', // تفكيك الاسم العربي القادم من الباكيند
+      nameAr: json['name_ar'] ?? '',
       code: json['code'],
     );
   }

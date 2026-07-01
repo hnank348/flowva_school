@@ -6,7 +6,10 @@ import 'package:flowva_school/cubit/supervisor/classes/classes_state.dart';
 import 'package:flowva_school/cubit/supervisor/submit/submit_attendance_cubit.dart';
 import 'package:flowva_school/cubit/current_year/current_year_cubit.dart';
 import 'package:flowva_school/cubit/current_year/current_year_state.dart';
+import 'package:flowva_school/cubit/locale/locale_cubit.dart';
+import 'package:flowva_school/cubit/locale/locale_state.dart';
 
+import '../../../../app_localizations.dart';
 import '../../../../cubit/current_semester/current_semester_cubit.dart';
 import '../../../../cubit/current_semester/current_semester_state.dart';
 import 'section_selector_header.dart';
@@ -19,9 +22,8 @@ class StudentAttendanceView extends StatelessWidget {
   const StudentAttendanceView({super.key, this.classesCubit});
 
   void _fetchAttendance(BuildContext context, int sectionId) {
-    // قراءة حالة الفصل الدراسي الحالية
     final semesterState = context.read<CurrentSemesterCubit>().state;
-    int semesterId = 1; // fallback عادلة
+    int semesterId = 1;
 
     if (semesterState is CurrentSemesterSuccess) {
       semesterId = semesterState.currentSemester.id;
@@ -37,17 +39,16 @@ class StudentAttendanceView extends StatelessWidget {
     final attendanceState = context.read<StudentAttendanceCubit>().state;
     final classState      = context.read<ClassesCubit>().state;
     final yearState       = context.read<CurrentYearCubit>().state;
-    final semesterState   = context.read<CurrentSemesterCubit>().state; // قراءة الترم الجديد
+    final semesterState   = context.read<CurrentSemesterCubit>().state;
 
     if (attendanceState is! StudentAttendanceSuccess) return;
     if (classState is! ClassesLoaded) return;
-    if (yearState is! CurrentYearSuccess) return; // التأكد من نجاح السنة
-    if (semesterState is! CurrentSemesterSuccess) return; // التأكد من نجاح الترم
+    if (yearState is! CurrentYearSuccess) return;
+    if (semesterState is! CurrentSemesterSuccess) return;
 
     final section = classState.selectedSection;
     if (section == null) return;
 
-    // البيانات حية وديناميكية 100% من الكيوبيتس الخاصة بها
     final academicYearId = yearState.currentYear.id;
     final semesterId     = semesterState.currentSemester.id;
 
@@ -68,9 +69,8 @@ class StudentAttendanceView extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark      = Theme.of(context).brightness == Brightness.dark;
 
-    // جلب اسم الترم حياً لعرضه في الهيدر بشكل صحيح ومراقب
     final semesterState = context.watch<CurrentSemesterCubit>().state;
-    String semesterName = 'جاري التحميل...';
+    String semesterName = context.tr('attendance_loading_text');
     if (semesterState is CurrentSemesterSuccess) {
       semesterName = semesterState.currentSemester.name;
     }
@@ -84,18 +84,14 @@ class StudentAttendanceView extends StatelessWidget {
               SnackBar(
                 content: Row(
                   children: [
-                    const Icon(Icons.check_circle_rounded,
-                        color: Colors.white, size: 18),
+                    const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
                     const SizedBox(width: 8),
-                    Text(submitState.message,
-                        style: const TextStyle(
-                            fontFamily: 'Cairo', fontSize: 13)),
+                    Text(submitState.message, style: const TextStyle(fontFamily: 'Cairo', fontSize: 13)),
                   ],
                 ),
                 backgroundColor: const Color(0xFF0F766E),
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 margin: const EdgeInsets.all(16),
                 duration: const Duration(seconds: 3),
               ),
@@ -108,155 +104,131 @@ class StudentAttendanceView extends StatelessWidget {
               SnackBar(
                 content: Row(
                   children: [
-                    const Icon(Icons.error_outline_rounded,
-                        color: Colors.white, size: 18),
+                    const Icon(Icons.error_outline_rounded, color: Colors.white, size: 18),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(submitState.errorMessage,
-                          style: const TextStyle(
-                              fontFamily: 'Cairo', fontSize: 13)),
+                      child: Text(submitState.errorMessage, style: const TextStyle(fontFamily: 'Cairo', fontSize: 13)),
                     ),
                   ],
                 ),
                 backgroundColor: const Color(0xFFDC2626),
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 margin: const EdgeInsets.all(16),
                 duration: const Duration(seconds: 4),
               ),
             );
           }
         },
-        child: BlocBuilder<ClassesCubit, ClassesState>(
-          builder: (context, classState) {
-            return BlocBuilder<StudentAttendanceCubit, StudentAttendanceState>(
-              builder: (context, attendanceState) {
-                if (classState is ClassesLoaded &&
-                    classState.selectedSection != null &&
-                    attendanceState is StudentAttendanceInitial) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _fetchAttendance(
-                        context, classState.selectedSection!.id);
-                  });
-                }
+        child: BlocBuilder<LocaleCubit, LocaleState>(
+          builder: (context, localeState) {
+            return Directionality(
+              textDirection: localeState.textDirection,
+              child: BlocBuilder<ClassesCubit, ClassesState>(
+                builder: (context, classState) {
+                  return BlocBuilder<StudentAttendanceCubit, StudentAttendanceState>(
+                    builder: (context, attendanceState) {
+                      if (classState is ClassesLoaded &&
+                          classState.selectedSection != null &&
+                          attendanceState is StudentAttendanceInitial) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          _fetchAttendance(context, classState.selectedSection!.id);
+                        });
+                      }
 
-                final hasStudents = attendanceState is StudentAttendanceSuccess;
+                      final hasStudents = attendanceState is StudentAttendanceSuccess;
 
-                return Scaffold(
-                  backgroundColor: isDark
-                      ? colorScheme.surface
-                      : const Color(0xFFF8FAFC),
-                  appBar: AppBar(
-                    title: const Text(
-                      'حضور وغياب الطلاب',
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    centerTitle: true,
-                    elevation: 0,
-                    leading: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 18),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                        bottomLeft:  Radius.circular(24),
-                        bottomRight: Radius.circular(24),
-                      ),
-                    ),
-                    actions: [
-                      if (hasStudents)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8, right: 12),
-                          child: BlocBuilder<SubmitAttendanceCubit,
-                              SubmitAttendanceState>(
-                            builder: (context, submitState) {
-                              final isLoading =
-                              submitState is SubmitAttendanceLoading;
-                              return GestureDetector(
-                                onTap: isLoading
-                                    ? null
-                                    : () => _submitAttendance(context),
-                                child: AnimatedContainer(
-                                  duration:
-                                  const Duration(milliseconds: 200),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 7),
-                                  decoration: BoxDecoration(
-                                    color: isLoading
-                                        ? colorScheme.primary.withOpacity(0.5)
-                                        : colorScheme.primary,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: isLoading
-                                      ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                      : const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.check_rounded,
-                                          color: Colors.white,
-                                          size: 15),
-                                      SizedBox(width: 5),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                    ],
-                  ),
-                  body: SafeArea(
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 16),
-                        Padding(
-                          padding:
-                          EdgeInsets.symmetric(horizontal: hPad),
-                          child: SectionSelectorHeader(
-                            classState:        classState,
-                            semesterName:      semesterName, // ممرر ديناميكياً من الباكيند حياً
-                            onSectionChanged:  (id) =>
-                                _fetchAttendance(context, id),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        if (hasStudents) ...[
-                          Padding(
-                            padding:
-                            EdgeInsets.symmetric(horizontal: hPad),
-                            child: AttendanceSummaryBar(
-                              attendanceMap:
-                              (attendanceState)
-                                  .attendanceMap,
+                      return Scaffold(
+                        backgroundColor: isDark ? colorScheme.surface : const Color(0xFFF8FAFC),
+                        appBar: AppBar(
+                          title: Text(
+                            context.tr('attendance_view_title'),
+                            style: const TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 10),
-                        ],
-                        Expanded(
-                          child: _buildBody(
-                            attendanceState,
-                            colorScheme,
-                            isTablet,
+                          centerTitle: true,
+                          elevation: 0,
+                          leading: IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                              bottomLeft:  Radius.circular(24),
+                              bottomRight: Radius.circular(24),
+                            ),
+                          ),
+                          actions: [
+                            if (hasStudents)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                child: BlocBuilder<SubmitAttendanceCubit, SubmitAttendanceState>(
+                                  builder: (context, submitState) {
+                                    final isLoading = submitState is SubmitAttendanceLoading;
+                                    return GestureDetector(
+                                      onTap: isLoading ? null : () => _submitAttendance(context),
+                                      child: AnimatedContainer(
+                                        duration: const Duration(milliseconds: 200),
+                                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                                        decoration: BoxDecoration(
+                                          color: isLoading ? colorScheme.primary.withOpacity(0.5) : colorScheme.primary,
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: isLoading
+                                            ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                        )
+                                            : const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.check_rounded, color: Colors.white, size: 15),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                          ],
+                        ),
+                        body: SafeArea(
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 16),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: hPad),
+                                child: SectionSelectorHeader(
+                                  classState:        classState,
+                                  semesterName:      semesterName,
+                                  onSectionChanged:  (id) => _fetchAttendance(context, id),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              if (hasStudents) ...[
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: hPad),
+                                  child: AttendanceSummaryBar(
+                                    attendanceMap: (attendanceState).attendanceMap,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                              ],
+                              Expanded(
+                                child: _buildBody(attendanceState, colorScheme, isTablet),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                      );
+                    },
+                  );
+                },
+              ),
             );
           },
         ),
@@ -264,15 +236,10 @@ class StudentAttendanceView extends StatelessWidget {
     );
   }
 
-  Widget _buildBody(
-      StudentAttendanceState state,
-      ColorScheme colorScheme,
-      bool isTablet,
-      ) {
+  Widget _buildBody(StudentAttendanceState state, ColorScheme colorScheme, bool isTablet) {
     if (state is StudentAttendanceLoading) {
       return Center(
-        child: CircularProgressIndicator(
-            color: colorScheme.primary, strokeWidth: 2.5),
+        child: CircularProgressIndicator(color: colorScheme.primary, strokeWidth: 2.5),
       );
     }
 
@@ -283,16 +250,11 @@ class StudentAttendanceView extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline_rounded,
-                  size: 40,
-                  color: colorScheme.error.withOpacity(0.5)),
+              Icon(Icons.error_outline_rounded, size: 40, color: colorScheme.error.withOpacity(0.5)),
               const SizedBox(height: 12),
               Text(
                 state.errorMessage,
-                style: TextStyle(
-                    fontFamily: 'Cairo',
-                    color: colorScheme.error,
-                    fontSize: 13),
+                style: TextStyle(fontFamily: 'Cairo', color: colorScheme.error, fontSize: 13),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -303,8 +265,7 @@ class StudentAttendanceView extends StatelessWidget {
 
     if (state is StudentAttendanceSuccess) {
       return StudentsAttendanceGrid(
-        key: ValueKey(
-            state.students.isNotEmpty ? state.students.first.id : 0),
+        key: ValueKey(state.students.isNotEmpty ? state.students.first.id : 0),
         students:      state.students,
         attendanceMap: state.attendanceMap,
         isTablet:      isTablet,

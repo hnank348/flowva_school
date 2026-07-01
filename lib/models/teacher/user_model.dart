@@ -2,6 +2,8 @@ class UserModel {
   final int id;
   final String firstName;
   final String lastName;
+  final String firstNameAr;
+  final String lastNameAr;
   final String email;
   final String? phone;
   final String? avatarUrl;
@@ -11,6 +13,8 @@ class UserModel {
     required this.id,
     required this.firstName,
     required this.lastName,
+    required this.firstNameAr,
+    required this.lastNameAr,
     required this.email,
     this.phone,
     this.avatarUrl,
@@ -33,6 +37,8 @@ class UserModel {
       id: json['id'] as int,
       firstName: json['first_name'] ?? '',
       lastName: json['last_name'] ?? '',
+      firstNameAr: json['first_name_ar'] ?? '',
+      lastNameAr: json['last_name_ar'] ?? '',
       email: json['email'] ?? '',
       phone: json['phone'],
       avatarUrl: cleanAvatarUrl(json['avatar']),
@@ -41,4 +47,5 @@ class UserModel {
   }
 
   String get fullName => "$firstName $lastName".trim();
+  String get fullNameAr => "$firstNameAr $lastNameAr".trim();
 }

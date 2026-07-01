@@ -18,12 +18,10 @@ import 'package:flowva_school/services/auth/profile_service.dart';
 import 'package:flowva_school/cubit/profile/profile_cubit.dart';
 import 'package:flowva_school/services/supervisor/student_attendance_service.dart';
 import 'package:flowva_school/cubit/supervisor/cubit_supervisor/student_attendance_cubit.dart';
-
-// ✅ الـ Cubit الجديد لإرسال الحضور
 import 'package:flowva_school/services/supervisor/submit_attendance_service.dart';
 import 'package:flowva_school/cubit/supervisor/submit/submit_attendance_cubit.dart';
+import 'package:flowva_school/cubit/current_semester/current_semester_cubit.dart';
 
-import 'cubit/current_semester/current_semester_cubit.dart';
 
 class AppProviders {
   static List<BlocProvider> getProviders(String userToken) {
@@ -36,15 +34,15 @@ class AppProviders {
       BlocProvider<ClassesCubit>(
         create: (_) => ClassesCubit(
           classesService: ClassesService(apiService),
-          userToken: userToken,
+          userToken:      userToken,
         )..fetchClassesAndSections(),
       ),
 
       BlocProvider<ScheduleCubit>(
         create: (_) => ScheduleCubit(
-          scheduleService:  ScheduleService(apiService),
-          semesterService:  SemesterService(apiService),
-          userToken:        userToken,
+          scheduleService: ScheduleService(apiService),
+          semesterService: SemesterService(apiService),
+          userToken:       userToken,
         ),
       ),
 
@@ -69,7 +67,6 @@ class AppProviders {
         ),
       ),
 
-      // ✅ Cubit إرسال الحضور للسيرفر
       BlocProvider<SubmitAttendanceCubit>(
         create: (_) => SubmitAttendanceCubit(
           SubmitAttendanceService(apiService),
@@ -77,7 +74,10 @@ class AppProviders {
       ),
 
       BlocProvider<ExamScheduleCubit>(create: (_) => ExamScheduleCubit()),
-      BlocProvider<ThemeCubit>(create:        (_) => ThemeCubit()),
+
+      // ✅ ThemeCubit هنا للـ routes اللي تحت AppProviders
+      // الـ ThemeCubit الرئيسي في main.dart هو المصدر الحقيقي
+      BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()),
 
       BlocProvider<ProfileCubit>(
         create: (_) => ProfileCubit(
@@ -90,6 +90,7 @@ class AppProviders {
           AcademicYearService(apiService),
         )..fetchCurrentYear(),
       ),
+
       BlocProvider<CurrentSemesterCubit>(
         create: (_) => CurrentSemesterCubit(
           SemesterService(apiService),

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/cubit/supervisor/cubit_supervisor/student_attendance_cubit.dart';
 import 'package:flowva_school/models/supervisor/student_attendance_model.dart';
+import 'package:flowva_school/cubit/locale/locale_cubit.dart';
+import 'package:flowva_school/cubit/locale/locale_state.dart';
+import '../../../../app_localizations.dart';
 
 class StudentAttendanceCard extends StatelessWidget {
   final StudentAttendanceModel student;
@@ -39,134 +42,142 @@ class StudentAttendanceCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark      = Theme.of(context).brightness == Brightness.dark;
     final info        = _info;
-    final name        = student.fullNameAr.isNotEmpty ? student.fullNameAr : student.fullName;
     final sid         = student.id.toString();
     final avatarBg    = isDark ? info.bgDark : info.bg;
 
-    // ✅ نجلب الـ cubit هنا داخل build حيث الـ context صالح
     final cubit = context.read<StudentAttendanceCubit>();
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final w          = constraints.maxWidth;
-        final avatarSize = w < 160 ? 28.0 : 34.0;
-        final nameFz     = w < 160 ? 10.0 : 12.0;
-        final idFz       = w < 160 ?  9.0 : 10.0;
-        final chipH      = w < 160 ? 26.0 : 30.0;
-        final chipFz     = w < 160 ?  9.0 : 10.0;
-        final vPad       = w < 160 ?  7.0 : 10.0;
-        final hPadCard   = w < 160 ?  8.0 : 12.0;
-        final gap        = w < 160 ?  7.0 : 10.0;
+    return BlocBuilder<LocaleCubit, LocaleState>(
+      builder: (context, localeState) {
+        final isArabic = localeState.currentLanguage == 'AR';
 
-        return Container(
-          decoration: BoxDecoration(
-            color: isDark ? colorScheme.surfaceContainer : Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: colorScheme.outlineVariant.withOpacity(isDark ? 0.25 : 0.5),
-              width: 0.8,
-            ),
-          ),
-          clipBehavior: Clip.hardEdge,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // شريط اللون العلوي
-              Container(height: 3, color: info.accent),
+        // ✨ دعم ذكي لاسم الطالب: إذا كان التطبيق عربي يفضل الاسم العربي، وإلا يقرأ الإنجليزي
+        final name = isArabic
+            ? (student.fullNameAr.isNotEmpty ? student.fullNameAr : student.fullName)
+            : (student.fullName.isNotEmpty ? student.fullName : student.fullNameAr);
 
-              Padding(
-                padding: EdgeInsets.fromLTRB(hPadCard, vPad, hPadCard, vPad),
+        return Directionality(
+          textDirection: localeState.textDirection,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final w          = constraints.maxWidth;
+              final avatarSize = w < 160 ? 28.0 : 34.0;
+              final nameFz     = w < 160 ? 10.0 : 12.0;
+              final idFz       = w < 160 ?  9.0 : 10.0;
+              final chipH      = w < 160 ? 26.0 : 30.0;
+              final chipFz     = w < 160 ?  9.0 : 10.0;
+              final vPad       = w < 160 ?  7.0 : 10.0;
+              final hPadCard   = w < 160 ?  8.0 : 12.0;
+              final gap        = w < 160 ?  7.0 : 10.0;
+
+              return Container(
+                decoration: BoxDecoration(
+                  color: isDark ? colorScheme.surfaceContainer : Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: colorScheme.outlineVariant.withOpacity(isDark ? 0.25 : 0.5),
+                    width: 0.8,
+                  ),
+                ),
+                clipBehavior: Clip.hardEdge,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ─── اسم الطالب ───
-                    Row(
-                      textDirection: TextDirection.rtl,
-                      children: [
-                        Container(
-                          width:  avatarSize,
-                          height: avatarSize,
-                          decoration: BoxDecoration(color: avatarBg, shape: BoxShape.circle),
-                          alignment: Alignment.center,
-                          child: Text(
-                            _initials(name),
-                            style: TextStyle(
-                              fontFamily: 'Cairo',
-                              fontSize: nameFz - 1,
-                              fontWeight: FontWeight.w700,
-                              color: info.accent,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: w < 160 ? 6 : 9),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            textDirection: TextDirection.rtl,
-                            mainAxisSize: MainAxisSize.min,
+                    Container(height: 3, color: info.accent),
+
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(hPadCard, vPad, hPadCard, vPad),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // ─── اسم الطالب ───
+                          Row(
                             children: [
-                              Text(
-                                name,
-                                style: TextStyle(
-                                  fontFamily: 'Cairo',
-                                  fontSize: nameFz,
-                                  fontWeight: FontWeight.w600,
-                                  color: colorScheme.onSurface,
+                              Container(
+                                width:  avatarSize,
+                                height: avatarSize,
+                                decoration: BoxDecoration(color: avatarBg, shape: BoxShape.circle),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  _initials(name),
+                                  style: TextStyle(
+                                    fontFamily: 'Cairo',
+                                    fontSize: nameFz - 1,
+                                    fontWeight: FontWeight.w700,
+                                    color: info.accent,
+                                  ),
                                 ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
                               ),
-                              Text(
-                                'ID: ${student.id}',
-                                style: TextStyle(
-                                  fontFamily: 'Cairo',
-                                  fontSize: idFz,
-                                  color: colorScheme.onSurfaceVariant.withOpacity(0.55),
+                              SizedBox(width: w < 160 ? 6 : 9),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      name,
+                                      style: TextStyle(
+                                        fontFamily: 'Cairo',
+                                        fontSize: nameFz,
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                    Text(
+                                      'ID: ${student.id}',
+                                      style: TextStyle(
+                                        fontFamily: 'Cairo',
+                                        fontSize: idFz,
+                                        color: colorScheme.onSurfaceVariant.withOpacity(0.55),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
 
-                    SizedBox(height: gap),
+                          SizedBox(height: gap),
 
-                    // ─── أزرار الحالة — نمرر الـ cubit مباشرة ───
-                    Row(
-                      textDirection: TextDirection.rtl,
-                      children: [
-                        _StatusChip(cubit: cubit, studentId: sid, label: 'حاضر',
-                            activeColor: _present.accent, activeBg: _present.bg,
-                            buttonStatus: StudentAttendanceStatus.present,
-                            currentStatus: currentStatus, height: chipH, fontSize: chipFz,
-                            isDark: isDark, colorScheme: colorScheme),
-                        const SizedBox(width: 3),
-                        _StatusChip(cubit: cubit, studentId: sid, label: 'غائب',
-                            activeColor: _absent.accent, activeBg: _absent.bg,
-                            buttonStatus: StudentAttendanceStatus.absent,
-                            currentStatus: currentStatus, height: chipH, fontSize: chipFz,
-                            isDark: isDark, colorScheme: colorScheme),
-                        const SizedBox(width: 3),
-                        _StatusChip(cubit: cubit, studentId: sid, label: 'تأخير',
-                            activeColor: _late.accent, activeBg: _late.bg,
-                            buttonStatus: StudentAttendanceStatus.late,
-                            currentStatus: currentStatus, height: chipH, fontSize: chipFz,
-                            isDark: isDark, colorScheme: colorScheme),
-                        const SizedBox(width: 3),
-                        _StatusChip(cubit: cubit, studentId: sid, label: 'إذن',
-                            activeColor: _excused.accent, activeBg: _excused.bg,
-                            buttonStatus: StudentAttendanceStatus.excused,
-                            currentStatus: currentStatus, height: chipH, fontSize: chipFz,
-                            isDark: isDark, colorScheme: colorScheme),
-                      ],
+                          // ─── أزرار الحالة المترجمة ديناميكياً ───
+                          Row(
+                            children: [
+                              _StatusChip(cubit: cubit, studentId: sid, label: context.tr('attendance_present'),
+                                  activeColor: _present.accent, activeBg: _present.bg,
+                                  buttonStatus: StudentAttendanceStatus.present,
+                                  currentStatus: currentStatus, height: chipH, fontSize: chipFz,
+                                  isDark: isDark, colorScheme: colorScheme),
+                              const SizedBox(width: 3),
+                              _StatusChip(cubit: cubit, studentId: sid, label: context.tr('attendance_absent'),
+                                  activeColor: _absent.accent, activeBg: _absent.bg,
+                                  buttonStatus: StudentAttendanceStatus.absent,
+                                  currentStatus: currentStatus, height: chipH, fontSize: chipFz,
+                                  isDark: isDark, colorScheme: colorScheme),
+                              const SizedBox(width: 3),
+                              _StatusChip(cubit: cubit, studentId: sid, label: context.tr('attendance_late'),
+                                  activeColor: _late.accent, activeBg: _late.bg,
+                                  buttonStatus: StudentAttendanceStatus.late,
+                                  currentStatus: currentStatus, height: chipH, fontSize: chipFz,
+                                  isDark: isDark, colorScheme: colorScheme),
+                              const SizedBox(width: 3),
+                              _StatusChip(cubit: cubit, studentId: sid, label: context.tr('attendance_excused'),
+                                  activeColor: _excused.accent, activeBg: _excused.bg,
+                                  buttonStatus: StudentAttendanceStatus.excused,
+                                  currentStatus: currentStatus, height: chipH, fontSize: chipFz,
+                                  isDark: isDark, colorScheme: colorScheme),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
+              );
+            },
           ),
         );
       },

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flowva_school/cubit/supervisor/cubit_supervisor/student_attendance_cubit.dart';
+import '../../../../app_localizations.dart';
 
 class AttendanceSummaryBar extends StatelessWidget {
   final Map<String, StudentAttendanceStatus> attendanceMap;
@@ -15,23 +16,28 @@ class AttendanceSummaryBar extends StatelessWidget {
       switch (s) {
         case StudentAttendanceStatus.present:
           present++;
+          break;
         case StudentAttendanceStatus.absent:
           absent++;
+          break;
         case StudentAttendanceStatus.late:
           late++;
+          break;
         case StudentAttendanceStatus.excused:
           excused++;
+          break;
       }
     }
 
+    // 🌍 جلب النصوص المترجمة بناءً على لغة التطبيق الحالية
     final items = [
-      (label: 'حاضر', count: present, color: const Color(0xFF0F766E),
+      (label: context.tr('attendance_present'), count: present, color: const Color(0xFF0F766E),
       bg: isDark ? const Color(0xFF134E4A) : const Color(0xFFCCFBF1)),
-      (label: 'غائب', count: absent, color: const Color(0xFFDC2626),
+      (label: context.tr('attendance_absent'), count: absent, color: const Color(0xFFDC2626),
       bg: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2)),
-      (label: 'تأخير', count: late, color: const Color(0xFFD97706),
+      (label: context.tr('attendance_late'), count: late, color: const Color(0xFFD97706),
       bg: isDark ? const Color(0xFF78350F) : const Color(0xFFFEF3C7)),
-      (label: 'إذن', count: excused, color: const Color(0xFF7C3AED),
+      (label: context.tr('attendance_excused'), count: excused, color: const Color(0xFF7C3AED),
       bg: isDark ? const Color(0xFF4C1D95) : const Color(0xFFEDE9FE)),
     ];
 

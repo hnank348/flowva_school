@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../../models/supervisor/schedule_session_model.dart';
 import 'edit_session_bottom_sheet.dart';
+import '../../../app_localizations.dart';
 
 class ScheduleTableWidget extends StatelessWidget {
   final List<ScheduleSessionModel> sessions;
   final int sectionId;
   final String className;
   final int semesterId;
+  final String currentLanguage; // 🌍 نمرر اللغة الحالية لضمان دقة الفحص والترجمة الحية
 
   const ScheduleTableWidget({
     super.key,
@@ -14,62 +16,65 @@ class ScheduleTableWidget extends StatelessWidget {
     required this.sectionId,
     required this.className,
     required this.semesterId,
+    required this.currentLanguage,
   });
 
-  ScheduleSessionModel? _findSession(String day, int period) {
+  // 🔄 فحص الأيام بشكل مرن يدعم ما يرسله السيرفر (سواء أرسلها كـ الاسم أو اليوم بالكامل)
+  ScheduleSessionModel? _findSession(String dayKey, int period) {
     try {
       return sessions.firstWhere(
-            (s) =>
-        s.dayOfWeek.trim().toLowerCase() == day.trim().toLowerCase() &&
-            s.periodNumber == period &&
-            s.semesterId == semesterId,
+            (s) {
+          final dbDay = s.dayOfWeek.trim().toLowerCase();
+          final targetDay = dayKey.trim().toLowerCase();
+
+          // دعم الفحص باللغة الإنجليزية أو العربية المعادة من السيرفر
+          bool isMatchingDay = dbDay == targetDay;
+          if (targetDay == 'sunday') isMatchingDay = isMatchingDay || dbDay == 'الأحد' || dbDay == 'الاحد';
+          if (targetDay == 'monday') isMatchingDay = isMatchingDay || dbDay == 'الاثنين' || dbDay == 'الإثنين';
+          if (targetDay == 'tuesday') isMatchingDay = isMatchingDay || dbDay == 'الثلاثاء';
+          if (targetDay == 'wednesday') isMatchingDay = isMatchingDay || dbDay == 'الأربعاء' || dbDay == 'الاربعاء';
+          if (targetDay == 'thursday') isMatchingDay = isMatchingDay || dbDay == 'الخميس';
+
+          return isMatchingDay && s.periodNumber == period && s.semesterId == semesterId;
+        },
       );
     } catch (_) {
       return null;
     }
   }
 
-  Color _getSubjectBackgroundColor(BuildContext context, String? subjectName) {
+  // 🎨 تم التعديل لفحص اللغتين معاً داخل الموديل لضمان استقرار الألوان بناء على جدول المواد والأساتذة
+  Color _getSubjectBackgroundColor(BuildContext context, ApiSubjectModel? subject) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    if (subjectName == null) return isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
-    final name = subjectName.toLowerCase();
+    if (subject == null) return isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
 
-    if (name.contains('رياضيات') || name.contains('math')) {
-      return isDark ? const Color(0xFF07263E) : const Color(0xFFBAE6FD);
-    }
-    if (name.contains('عربي') || name.contains('arabic')) {
-      return isDark ? const Color(0xFF062D17) : const Color(0xFFBBF7D0);
-    }
-    if (name.contains('علوم') || name.contains('science')) {
-      return isDark ? const Color(0xFF25103F) : const Color(0xFFE9D5FF);
-    }
-    if (name.contains('إنجليزي') || name.contains('english')) {
-      return isDark ? const Color(0xFF3B0717) : const Color(0xFFFECDD3);
-    }
-    if (name.contains('رياضة') || name.contains('sport')) {
-      return isDark ? const Color(0xFF07263E) : const Color(0xFFBAE6FD);
-    }
+    final nameEn = subject.name.toLowerCase();
+    final nameAr = subject.nameAr;
+
+    if (nameEn.contains('math') || nameAr.contains('رياضيات')) return isDark ? const Color(0xFF07263E) : const Color(0xFFBAE6FD);
+    if (nameEn.contains('arabic') || nameAr.contains('عربي') || nameEn.contains('language')) return isDark ? const Color(0xFF062D17) : const Color(0xFFBBF7D0);
+    if (nameEn.contains('science') || nameAr.contains('علوم')) return isDark ? const Color(0xFF25103F) : const Color(0xFFE9D5FF);
+    if (nameEn.contains('english') || nameAr.contains('إنجليزي') || nameAr.contains('انجليزي')) return isDark ? const Color(0xFF3B0717) : const Color(0xFFFECDD3);
+    if (nameEn.contains('sport') || nameAr.contains('رياضة')) return isDark ? const Color(0xFF07263E) : const Color(0xFFBAE6FD);
+    if (nameEn.contains('islamic') || nameAr.contains('إسلامية') || nameAr.contains('اسلامية') || nameEn.contains('studies')) return isDark ? const Color(0xFF064E3B) : const Color(0xFFCCFBF1);
+    if (nameEn.contains('social') || nameAr.contains('اجتماعيات') || nameAr.contains('اجتماعية')) return isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2);
 
     return isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
   }
 
-  Color _getSubjectTextColor(BuildContext context, String? subjectName) {
+  Color _getSubjectTextColor(BuildContext context, ApiSubjectModel? subject) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    if (subjectName == null) return isDark ? const Color(0xFF94A3B8) : const Color(0xFF334155);
-    final name = subjectName.toLowerCase();
+    if (subject == null) return isDark ? const Color(0xFF94A3B8) : const Color(0xFF334155);
 
-    if (name.contains('رياضيات') || name.contains('math')) {
-      return isDark ? const Color(0xFF38BDF8) : const Color(0xFF0C4A6E);
-    }
-    if (name.contains('عربي') || name.contains('arabic')) {
-      return isDark ? const Color(0xFF4ADE80) : const Color(0xFF14532D);
-    }
-    if (name.contains('علوم') || name.contains('science')) {
-      return isDark ? const Color(0xFFC084FC) : const Color(0xFF581C87);
-    }
-    if (name.contains('إنجليزي') || name.contains('english')) {
-      return isDark ? const Color(0xFFFB7185) : const Color(0xFF881337);
-    }
+    final nameEn = subject.name.toLowerCase();
+    final nameAr = subject.nameAr;
+
+    if (nameEn.contains('math') || nameAr.contains('رياضيات')) return isDark ? const Color(0xFF38BDF8) : const Color(0xFF0C4A6E);
+    if (nameEn.contains('arabic') || nameAr.contains('عربي') || nameEn.contains('language')) return isDark ? const Color(0xFF4ADE80) : const Color(0xFF14532D);
+    if (nameEn.contains('science') || nameAr.contains('علوم')) return isDark ? const Color(0xFFC084FC) : const Color(0xFF581C87);
+    if (nameEn.contains('english') || nameAr.contains('إنجليزي') || nameAr.contains('انجليزي')) return isDark ? const Color(0xFFFB7185) : const Color(0xFF881337);
+    if (nameEn.contains('islamic') || nameAr.contains('إسلامية') || nameAr.contains('اسلامية') || nameEn.contains('studies')) return isDark ? const Color(0xFF2DD4BF) : const Color(0xFF115E59);
+    if (nameEn.contains('social') || nameAr.contains('اجتماعيات') || nameAr.contains('اجتماعية')) return isDark ? const Color(0xFFF87171) : const Color(0xFF991B1B);
 
     return isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A);
   }
@@ -78,7 +83,7 @@ class ScheduleTableWidget extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     if (isDark) return Theme.of(context).colorScheme.surfaceContainerHigh;
 
-    switch (day) {
+    switch (day.toLowerCase()) {
       case 'sunday': return const Color(0xFFF8FAFC);
       case 'monday': return const Color(0xFFEDF2F7);
       case 'tuesday': return const Color(0xFFE6FFFA);
@@ -91,7 +96,7 @@ class ScheduleTableWidget extends StatelessWidget {
   Color _getDayTextColor(BuildContext context, String day) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     if (isDark) return Theme.of(context).colorScheme.onSurface;
-    switch (day) {
+    switch (day.toLowerCase()) {
       case 'monday': return const Color(0xFF2D3748);
       case 'tuesday': return const Color(0xFF047481);
       case 'wednesday': return const Color(0xFF553C9A);
@@ -153,7 +158,7 @@ class ScheduleTableWidget extends StatelessWidget {
           Icon(Icons.coffee_rounded, size: 15, color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706)),
           const SizedBox(width: 6),
           Text(
-            'اسـتـراحـة',
+            context.tr('table_rest_text'),
             style: TextStyle(
               color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309),
               fontSize: 11,
@@ -172,9 +177,14 @@ class ScheduleTableWidget extends StatelessWidget {
     final session = _findSession(day, period);
 
     if (session != null) {
-      final subjectName = session.subject?.name;
-      final bgColor = _getSubjectBackgroundColor(context, subjectName);
-      final textColor = _getSubjectTextColor(context, subjectName);
+      // 🌍 جلب الاسم الصحيح بناءً على لغة واجهة التطبيق الحالية
+      final isArabic = currentLanguage == 'ar';
+      final subjectName = isArabic
+          ? (session.subject?.nameAr.isNotEmpty == true ? session.subject?.nameAr : session.subject?.name)
+          : (session.subject?.name.isNotEmpty == true ? session.subject?.name : session.subject?.nameAr);
+
+      final bgColor = _getSubjectBackgroundColor(context, session.subject);
+      final textColor = _getSubjectTextColor(context, session.subject);
 
       return Container(
         margin: const EdgeInsets.all(5),
@@ -194,10 +204,10 @@ class ScheduleTableWidget extends StatelessWidget {
             onTap: () => EditSessionBottomSheet.show(
               context,
               sessionId: session.id,
-              currentSubjectId: session.subject?.id, // 🚀 مرر الـ id الخاص بالمادة
-              currentTeacherId: session.teacher?.id, // 🚀 مرر الـ id الخاص بالاستاذ
-              currentSubject: subjectName ?? 'مادة غير معرفة',
-              currentTeacher: session.teacher?.fullName ?? session.teacher?.fullName ?? 'بدون معلم',
+              currentSubjectId: session.subject?.id,
+              currentTeacherId: session.teacher?.id,
+              currentSubject: subjectName ?? context.tr('table_unknown_subject'),
+              currentTeacher: session.teacher?.fullName ?? context.tr('table_no_teacher'),
               currentRoom: session.roomNumber,
               sectionId: sectionId,
               className: className,
@@ -209,13 +219,16 @@ class ScheduleTableWidget extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
               decoration: BoxDecoration(
                 color: bgColor,
-                border: Border(right: BorderSide(color: textColor.withOpacity(0.5), width: 4)),
+                border: Border(
+                  right: isArabic ? BorderSide.none : BorderSide(color: textColor.withOpacity(0.5), width: 4),
+                  left: isArabic ? BorderSide(color: textColor.withOpacity(0.5), width: 4) : BorderSide.none,
+                ),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    subjectName ?? 'مادة غير معرفة',
+                    subjectName ?? context.tr('table_unknown_subject'),
                     style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 12, fontFamily: 'Cairo'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -224,11 +237,10 @@ class ScheduleTableWidget extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.person_outline_rounded, size: 11, color: textColor.withOpacity(0.7)),
-                      const SizedBox(width: 3),
+                      // 🌟 تم إزالة أيقونة الأستاذ بنجاح بناءً على طلبك
                       Expanded(
                         child: Text(
-                          session.teacher?.fullName ?? session.teacher?.fullName ?? 'بدون معلم',
+                          session.teacher?.fullName ?? context.tr('table_no_teacher'),
                           style: TextStyle(color: textColor.withOpacity(0.8), fontSize: 9, fontFamily: 'Cairo', fontWeight: FontWeight.w600),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -245,7 +257,7 @@ class ScheduleTableWidget extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      'قاعة ${session.roomNumber}',
+                      '${context.tr('table_room')} ${session.roomNumber}',
                       style: TextStyle(color: textColor, fontSize: 8, fontWeight: FontWeight.bold, fontFamily: 'Cairo'),
                     ),
                   ),
@@ -267,7 +279,7 @@ class ScheduleTableWidget extends StatelessWidget {
         child: InkWell(
           onTap: () => EditSessionBottomSheet.show(
             context,
-            sessionId: null, // 🚀 نمرر null لأن الحصة فارغة (إضافة جديدة كلياً)
+            sessionId: null,
             currentSubject: '',
             currentTeacher: '',
             currentRoom: '',
@@ -312,6 +324,14 @@ class ScheduleTableWidget extends StatelessWidget {
     );
   }
 
+  List<Widget> _buildTableRowCells({required Widget timeCell, required List<Widget> dayCells}) {
+    if (currentLanguage == 'ar') {
+      return [...dayCells.reversed, timeCell];
+    } else {
+      return [timeCell, ...dayCells];
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -348,13 +368,8 @@ class ScheduleTableWidget extends StatelessWidget {
                   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                   children: [
                     TableRow(
-                      children: [
-                        _buildDayHeader(context, 'الخميس', 'thursday'),
-                        _buildDayHeader(context, 'الأربعاء', 'wednesday'),
-                        _buildDayHeader(context, 'الثلاثاء', 'tuesday'),
-                        _buildDayHeader(context, 'الاثنين', 'monday'),
-                        _buildDayHeader(context, 'الأحد', 'sunday'),
-                        Container(
+                      children: _buildTableRowCells(
+                        timeCell: Container(
                           margin: const EdgeInsets.all(4),
                           padding: const EdgeInsets.symmetric(vertical: 12.0),
                           decoration: BoxDecoration(
@@ -363,50 +378,115 @@ class ScheduleTableWidget extends StatelessWidget {
                             border: Border.all(color: isDark ? colorScheme.outlineVariant.withOpacity(0.4) : Colors.transparent),
                           ),
                           child: Text(
-                            'الوقت',
+                            context.tr('table_header_time'),
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white, fontFamily: 'Cairo'),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white, fontFamily: 'Cairo'),
                           ),
                         ),
-                      ],
+                        dayCells: [
+                          _buildDayHeader(context, context.tr('day_sunday'), 'sunday'),
+                          _buildDayHeader(context, context.tr('day_monday'), 'monday'),
+                          _buildDayHeader(context, context.tr('day_tuesday'), 'tuesday'),
+                          _buildDayHeader(context, context.tr('day_wednesday'), 'wednesday'),
+                          _buildDayHeader(context, context.tr('day_thursday'), 'thursday'),
+                        ],
+                      ),
                     ),
                     TableRow(
-                      children: [
-                        _buildDynamicCell(context, 'thursday', 1), _buildDynamicCell(context, 'wednesday', 1), _buildDynamicCell(context, 'tuesday', 1), _buildDynamicCell(context, 'monday', 1), _buildDynamicCell(context, 'sunday', 1),
-                        _buildTimeCell(context, 'الحصة الأولى', '8:15 - 7:30'),
-                      ],
+                      children: _buildTableRowCells(
+                        timeCell: _buildTimeCell(context, context.tr('period_1'), '8:15 - 7:30'),
+                        dayCells: [
+                          _buildDynamicCell(context, 'sunday', 1),
+                          _buildDynamicCell(context, 'monday', 1),
+                          _buildDynamicCell(context, 'tuesday', 1),
+                          _buildDynamicCell(context, 'wednesday', 1),
+                          _buildDynamicCell(context, 'thursday', 1),
+                        ],
+                      ),
                     ),
                     TableRow(
-                      children: [
-                        _buildDynamicCell(context, 'thursday', 2), _buildDynamicCell(context, 'wednesday', 2), _buildDynamicCell(context, 'tuesday', 2), _buildDynamicCell(context, 'monday', 2), _buildDynamicCell(context, 'sunday', 2),
-                        _buildTimeCell(context, 'الحصة الثانية', '9:05 - 8:20'),
-                      ],
-                    ),
-                    TableRow(children: [_buildRestCell(context), _buildRestCell(context), _buildRestCell(context), _buildRestCell(context), _buildRestCell(context), _buildTimeCell(context, 'استراحة ١', '9:35 - 9:05')]),
-                    TableRow(
-                      children: [
-                        _buildDynamicCell(context, 'thursday', 3), _buildDynamicCell(context, 'wednesday', 3), _buildDynamicCell(context, 'tuesday', 3), _buildDynamicCell(context, 'monday', 3), _buildDynamicCell(context, 'sunday', 3),
-                        _buildTimeCell(context, 'الحصة الثالثة', '10:20 - 9:35'),
-                      ],
-                    ),
-                    TableRow(
-                      children: [
-                        _buildDynamicCell(context, 'thursday', 4), _buildDynamicCell(context, 'wednesday', 4), _buildDynamicCell(context, 'tuesday', 4), _buildDynamicCell(context, 'monday', 4), _buildDynamicCell(context, 'sunday', 4),
-                        _buildTimeCell(context, 'الحصة الرابعة', '11:05 - 10:20'),
-                      ],
-                    ),
-                    TableRow(children: [_buildRestCell(context), _buildRestCell(context), _buildRestCell(context), _buildRestCell(context), _buildRestCell(context), _buildTimeCell(context, 'استراحة ٢', '11:30 - 11:05')]),
-                    TableRow(
-                      children: [
-                        _buildDynamicCell(context, 'thursday', 5), _buildDynamicCell(context, 'wednesday', 5), _buildDynamicCell(context, 'tuesday', 5), _buildDynamicCell(context, 'monday', 5), _buildDynamicCell(context, 'sunday', 5),
-                        _buildTimeCell(context, 'الحصة الخامسة', '12:15 - 11:30'),
-                      ],
+                      children: _buildTableRowCells(
+                        timeCell: _buildTimeCell(context, context.tr('period_2'), '9:05 - 8:20'),
+                        dayCells: [
+                          _buildDynamicCell(context, 'sunday', 2),
+                          _buildDynamicCell(context, 'monday', 2),
+                          _buildDynamicCell(context, 'tuesday', 2),
+                          _buildDynamicCell(context, 'wednesday', 2),
+                          _buildDynamicCell(context, 'thursday', 2),
+                        ],
+                      ),
                     ),
                     TableRow(
-                      children: [
-                        _buildDynamicCell(context, 'thursday', 6), _buildDynamicCell(context, 'wednesday', 6), _buildDynamicCell(context, 'tuesday', 6), _buildDynamicCell(context, 'monday', 6), _buildDynamicCell(context, 'sunday', 6),
-                        _buildTimeCell(context, 'الحصة السادسة', '1:00 - 12:15'),
-                      ],
+                      children: _buildTableRowCells(
+                        timeCell: _buildTimeCell(context, '${context.tr('table_rest_text')} ١', '9:35 - 9:05'),
+                        dayCells: [
+                          _buildRestCell(context),
+                          _buildRestCell(context),
+                          _buildRestCell(context),
+                          _buildRestCell(context),
+                          _buildRestCell(context),
+                        ],
+                      ),
+                    ),
+                    TableRow(
+                      children: _buildTableRowCells(
+                        timeCell: _buildTimeCell(context, context.tr('period_3'), '10:20 - 9:35'),
+                        dayCells: [
+                          _buildDynamicCell(context, 'sunday', 3),
+                          _buildDynamicCell(context, 'monday', 3),
+                          _buildDynamicCell(context, 'tuesday', 3),
+                          _buildDynamicCell(context, 'wednesday', 3),
+                          _buildDynamicCell(context, 'thursday', 3),
+                        ],
+                      ),
+                    ),
+                    TableRow(
+                      children: _buildTableRowCells(
+                        timeCell: _buildTimeCell(context, context.tr('period_4'), '11:05 - 10:20'),
+                        dayCells: [
+                          _buildDynamicCell(context, 'sunday', 4),
+                          _buildDynamicCell(context, 'monday', 4),
+                          _buildDynamicCell(context, 'tuesday', 4),
+                          _buildDynamicCell(context, 'wednesday', 4),
+                          _buildDynamicCell(context, 'thursday', 4),
+                        ],
+                      ),
+                    ),
+                    TableRow(
+                      children: _buildTableRowCells(
+                        timeCell: _buildTimeCell(context, '${context.tr('table_rest_text')} ٢', '11:30 - 11:05'),
+                        dayCells: [
+                          _buildRestCell(context),
+                          _buildRestCell(context),
+                          _buildRestCell(context),
+                          _buildRestCell(context),
+                          _buildRestCell(context),
+                        ],
+                      ),
+                    ),
+                    TableRow(
+                      children: _buildTableRowCells(
+                        timeCell: _buildTimeCell(context, context.tr('period_5'), '12:15 - 11:30'),
+                        dayCells: [
+                          _buildDynamicCell(context, 'sunday', 5),
+                          _buildDynamicCell(context, 'monday', 5),
+                          _buildDynamicCell(context, 'tuesday', 5),
+                          _buildDynamicCell(context, 'wednesday', 5),
+                          _buildDynamicCell(context, 'thursday', 5),
+                        ],
+                      ),
+                    ),
+                    TableRow(
+                      children: _buildTableRowCells(
+                        timeCell: _buildTimeCell(context, context.tr('period_6'), '1:00 - 12:15'),
+                        dayCells: [
+                          _buildDynamicCell(context, 'sunday', 6),
+                          _buildDynamicCell(context, 'monday', 6),
+                          _buildDynamicCell(context, 'tuesday', 6),
+                          _buildDynamicCell(context, 'wednesday', 6),
+                          _buildDynamicCell(context, 'thursday', 6),
+                        ],
+                      ),
                     ),
                   ],
                 ),
