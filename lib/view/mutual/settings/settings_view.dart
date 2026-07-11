@@ -3,7 +3,7 @@ import 'package:flowva_school/view/mutual/settings/settings_tiles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flowva_school/view/mutual/profile_view.dart';
+import 'package:flowva_school/view/mutual/profile/profile_view.dart';
 import 'package:flowva_school/cubit/theme/theme_cubit.dart';
 import 'package:flowva_school/cubit/theme/theme_state.dart';
 import 'package:flowva_school/cubit/locale/locale_cubit.dart';
@@ -11,6 +11,7 @@ import 'package:flowva_school/cubit/locale/locale_state.dart';
 
 import '../../../app_localizations.dart';
 import 'language_picker_bottom_sheet.dart';
+import 'logout_tile.dart';
 
 class SettingsView extends StatelessWidget {
   final String userToken;

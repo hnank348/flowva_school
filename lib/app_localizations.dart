@@ -3,8 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/cubit/locale/locale_cubit.dart';
 import 'package:flowva_school/cubit/locale/locale_state.dart';
 
-/// اختصار الوصول للترجمة من أي Widget
-/// الاستخدام: context.tr('attendance_title')
+///  context.tr('attendance_title')
 extension AppLocalizations on BuildContext {
   String tr(String key) {
     final strings = read<LocaleCubit>().state.localizedStrings;
@@ -21,7 +20,6 @@ extension AppLocalizations on BuildContext {
       read<LocaleCubit>().state.currentLanguage == 'AR';
 }
 
-/// Widget مساعد يعيد البناء عند تغيير اللغة
 class TranslatedText extends StatelessWidget {
   final String translationKey;
   final TextStyle? style;

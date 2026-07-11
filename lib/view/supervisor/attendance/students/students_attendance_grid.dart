@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flowva_school/cubit/supervisor/cubit_supervisor/student_attendance_cubit.dart';
+import 'package:flowva_school/cubit/supervisor/student/student_attendance_cubit.dart';
 import 'package:flowva_school/models/supervisor/student_attendance_model.dart';
 import '../../../../app_localizations.dart';
 import 'student_attendance_card.dart';

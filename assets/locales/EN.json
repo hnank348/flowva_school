@@ -81,5 +81,12 @@
   "profile_not_specified": "Not specified",
   "profile_default_user": "User",
   "profile_role_supervisor": "Supervisor",
-  "profile_retry": "Retry"
+  "profile_retry": "Retry",
+  "profile_btn_cancel": "Cancel",
+  "profile_btn_save": "Save Changes",
+  "profile_btn_edit": "Edit Profile",
+  "logout_confirm_title": "Logout",
+  "logout_confirm_body": "Are you sure you want to log out of the application?",
+  "logout_cancel": "Cancel",
+  "logout_confirm_btn": "Logout"
 }

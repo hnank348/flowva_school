@@ -16,17 +16,21 @@ import 'package:flowva_school/cubit/supervisor/state_supervisor/exam_schedule_st
 import 'package:flowva_school/cubit/theme/theme_cubit.dart';
 import 'package:flowva_school/services/auth/profile_service.dart';
 import 'package:flowva_school/cubit/profile/profile_cubit.dart';
+import 'package:flowva_school/cubit/profile/profile_update_cubit.dart';
 import 'package:flowva_school/services/supervisor/student_attendance_service.dart';
-import 'package:flowva_school/cubit/supervisor/cubit_supervisor/student_attendance_cubit.dart';
+import 'package:flowva_school/cubit/supervisor/student/student_attendance_cubit.dart';
 import 'package:flowva_school/services/supervisor/submit_attendance_service.dart';
 import 'package:flowva_school/cubit/supervisor/submit/submit_attendance_cubit.dart';
 import 'package:flowva_school/cubit/current_semester/current_semester_cubit.dart';
-
+import 'package:flowva_school/services/auth/logout_service.dart';
+import 'package:flowva_school/cubit/logout/logout_cubit.dart';
 
 class AppProviders {
   static List<BlocProvider> getProviders(String userToken) {
-    final apiService = ApiService();
+    final apiService    = ApiService();
     apiService.forceUpdateToken(userToken);
+
+    final profileService = ProfileService(apiService);
 
     return [
       BlocProvider<NavigationCubit>(create: (_) => NavigationCubit()),
@@ -74,15 +78,18 @@ class AppProviders {
       ),
 
       BlocProvider<ExamScheduleCubit>(create: (_) => ExamScheduleCubit()),
-
-      // ✅ ThemeCubit هنا للـ routes اللي تحت AppProviders
-      // الـ ThemeCubit الرئيسي في main.dart هو المصدر الحقيقي
       BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()),
 
       BlocProvider<ProfileCubit>(
-        create: (_) => ProfileCubit(
-          ProfileService(apiService),
-        )..fetchUserProfile(token: userToken),
+        create: (_) => ProfileCubit(profileService)
+          ..fetchUserProfile(token: userToken),
+      ),
+
+      BlocProvider<ProfileUpdateCubit>(
+        create: (ctx) => ProfileUpdateCubit(
+          profileService,
+          ctx.read<ProfileCubit>(),
+        ),
       ),
 
       BlocProvider<CurrentYearCubit>(
@@ -95,6 +102,10 @@ class AppProviders {
         create: (_) => CurrentSemesterCubit(
           SemesterService(apiService),
         )..fetchCurrentSemester(),
+      ),
+
+      BlocProvider<LogoutCubit>(
+        create: (_) => LogoutCubit(LogoutService(apiService)),
       ),
     ];
   }

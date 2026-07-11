@@ -48,7 +48,7 @@ class LoginScreen extends StatelessWidget {
             if (userType == "admin") {
               nextView = MainLayoutView(userToken: token);
             } else {
-              nextView = const TeacherDashboard();
+              nextView = TeacherDashboard(userToken: token);
             }
 
             Navigator.pushReplacement(

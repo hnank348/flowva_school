@@ -2,7 +2,7 @@ import 'package:flowva_school/view/supervisor/attendance/students/student_attend
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/cubit/supervisor/classes/classes_cubit.dart';
-import 'package:flowva_school/cubit/supervisor/cubit_supervisor/student_attendance_cubit.dart';
+import 'package:flowva_school/cubit/supervisor/student/student_attendance_cubit.dart';
 import 'package:flowva_school/cubit/supervisor/submit/submit_attendance_cubit.dart';
 import 'package:flowva_school/cubit/current_semester/current_semester_cubit.dart';
 import 'package:flowva_school/cubit/locale/locale_cubit.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// ─── 1️⃣ عنوان القسم ───
+// ─── 1 عنوان القسم ───
 class SectionLabel extends StatelessWidget {
   final String label;
   const SectionLabel({super.key, required this.label});
@@ -23,7 +23,7 @@ class SectionLabel extends StatelessWidget {
   }
 }
 
-// ─── 2️⃣ حاوية مجموعة الخيارات (Settings Group) ───
+//  حاوية مجموعة الخيارات (Settings Group) ───
 class SettingsGroup extends StatelessWidget {
   final List<Widget> children;
   final bool isDark;
@@ -53,7 +53,6 @@ class SettingsGroup extends StatelessWidget {
   }
 }
 
-// ─── 3️⃣ شارة اللغة الحالية (Badge Pill) ───
 class BadgePill extends StatelessWidget {
   final String label;
   final ColorScheme colorScheme;

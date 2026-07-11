@@ -12,7 +12,6 @@ import '../../../cubit/current_semester/current_semester_state.dart';
 import '../../../cubit/locale/locale_cubit.dart';
 import '../../../cubit/locale/locale_state.dart';
 import '../../../models/supervisor/schedule_session_model.dart';
-import '../../../app_localizations.dart';
 
 import 'schedule_header_widget.dart';
 import 'schedule_table_widget.dart';

@@ -6,7 +6,6 @@ class SubmitAttendanceService {
 
   SubmitAttendanceService(this._apiService);
 
-  /// تسجيل حضور طالب واحد
   Future<SubmitAttendanceResponse> submitOne(
       SubmitAttendanceRequest request) async {
     try {
@@ -34,7 +33,7 @@ class SubmitAttendanceService {
     required int sectionId,
     required int academicYearId,
     required int semesterId,
-    required Map<String, int> statusMap, // studentId.toString() → statusId
+    required Map<String, int> statusMap,
     required String date,
     required String checkInTime,
   }) async {

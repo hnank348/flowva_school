@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../cubit/logout/logout_cubit.dart';
 import '../../cubit/supervisor/classes/classes_cubit.dart';
 import '../../data/mock_data.dart';
 import '../../models/teacher/student.dart';
@@ -11,7 +12,21 @@ import 'notifications_view.dart';
 import '../mutual/settings/settings_view.dart';
 
 class HomeView extends StatelessWidget {
-  const HomeView({super.key});
+  const HomeView({super.key, required this.userToken});
+  final String userToken;
+
+  void _openSettings(BuildContext context) {
+    final logoutCubit = context.read<LogoutCubit>();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BlocProvider.value(
+          value: logoutCubit,
+          child: SettingsView(userToken: userToken),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,19 +102,14 @@ class HomeView extends StatelessWidget {
                                 },
                               ),
                               IconButton(
-                                icon: Icon(
+                                icon: const Icon(
                                   Icons.settings_outlined,
-                                  color: colorScheme.onPrimary,
+                                  color: Colors.white,
+                                  size: 22,
                                 ),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                           SettingsView(userToken: context.read<ClassesCubit>().userToken,),
-                                    ),
-                                  );
-                                },
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.all(6),
+                                onPressed: () => _openSettings(context),
                               ),
                             ],
                           ),

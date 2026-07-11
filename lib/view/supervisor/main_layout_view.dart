@@ -2,6 +2,7 @@ import 'package:flowva_school/view/supervisor/attendance/attendance_view.dart';
 import 'package:flowva_school/view/supervisor/exam_schedule_view.dart';
 import 'package:flowva_school/view/supervisor/statistics_view.dart';
 import 'package:flowva_school/view/mutual/settings/settings_view.dart';
+import 'package:flowva_school/cubit/logout/logout_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubit/supervisor/cubit_supervisor/navigation_cubit.dart';
@@ -20,6 +21,19 @@ class MainLayoutView extends StatelessWidget {
 
   const MainLayoutView({super.key, required this.userToken});
 
+  void _openSettings(BuildContext context) {
+    final logoutCubit = context.read<LogoutCubit>();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BlocProvider.value(
+          value: logoutCubit,
+          child: SettingsView(userToken: userToken),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -32,7 +46,6 @@ class MainLayoutView extends StatelessWidget {
       const StatisticsView(),
     ];
 
-    // 🌍 إضافة BlocBuilder للغة لإعادة بناء الواجهة بالكامل وتغيير النصوص والاتجاهات حياً
     return BlocBuilder<LocaleCubit, LocaleState>(
       builder: (context, localeState) {
         final isArabic = localeState.currentLanguage == 'AR';
@@ -47,10 +60,7 @@ class MainLayoutView extends StatelessWidget {
                   preferredSize: const Size.fromHeight(145),
                   child: Container(
                     padding: const EdgeInsets.only(
-                      top: 8,
-                      bottom: 14,
-                      right: 16,
-                      left: 16,
+                      top: 8, bottom: 14, right: 16, left: 16,
                     ),
                     decoration: BoxDecoration(
                       gradient: isDark
@@ -119,13 +129,11 @@ class MainLayoutView extends StatelessWidget {
                                             ? Image.network(
                                           avatarUrl,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return Icon(
-                                              Icons.person,
-                                              color: colorScheme.primary,
-                                              size: 42,
-                                            );
-                                          },
+                                          errorBuilder: (_, __, ___) => Icon(
+                                            Icons.person,
+                                            color: colorScheme.primary,
+                                            size: 42,
+                                          ),
                                         )
                                             : Center(
                                           child: Icon(
@@ -177,7 +185,6 @@ class MainLayoutView extends StatelessWidget {
                                               } else if (yearState is CurrentYearError) {
                                                 yearContent = context.tr('main_year_error');
                                               }
-
                                               return Text(
                                                 '${context.tr('main_academic_year')} $yearContent',
                                                 maxLines: 1,
@@ -204,7 +211,6 @@ class MainLayoutView extends StatelessWidget {
 
                           const SizedBox(width: 16),
 
-                          // ⚙️ طرف الأزرار (الإعدادات والإشعارات - ينتقل للحافة المقابلة تلقائياً)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 8),
                             child: Row(
@@ -218,12 +224,7 @@ class MainLayoutView extends StatelessWidget {
                                   ),
                                   constraints: const BoxConstraints(),
                                   padding: const EdgeInsets.all(6),
-                                  onPressed: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (c) => SettingsView(userToken: userToken),
-                                    ),
-                                  ),
+                                  onPressed: () => _openSettings(context),
                                 ),
                                 const SizedBox(width: 4),
                                 Stack(

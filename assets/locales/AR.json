@@ -81,6 +81,15 @@
   "profile_not_specified": "غير محدد",
   "profile_default_user": "مستخدم",
   "profile_role_supervisor": "مشرف",
-  "profile_retry": "إعادة المحاولة"
+  "profile_retry": "إعادة المحاولة",
+  "profile_btn_cancel": "إالغاء",
+  "profile_btn_save": "حفظ التعديل",
+  "profile_btn_edit": "تعديل الملف الشخصي",
+  "logout_confirm_title": "تسجيل الخروج",
+  "logout_confirm_body": "هل أنت متأكد من أنك تريد تسجيل الخروج من التطبيق؟",
+  "logout_cancel": "إلغاء",
+  "logout_confirm_btn": "خروج"
+
+
 
 }

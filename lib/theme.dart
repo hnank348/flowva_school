@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'app_theme.dart';
 
 class AppTheme {
-  // ☀️ الثيم الفاتح
+  //  الثيم الفاتح
   static ThemeData light() {
     return ThemeData(
       brightness: Brightness.light,
@@ -30,7 +30,7 @@ class AppTheme {
     );
   }
 
-  // 🌙 الثيم الداكن
+  //  الثيم الداكن
   static ThemeData dark() {
     return ThemeData(
       brightness: Brightness.dark,

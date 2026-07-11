@@ -8,7 +8,6 @@ class StudentAttendanceService {
 
   StudentAttendanceService(this._apiService);
 
-  /// جلب طلاب شعبة معينة من السيرفر
   Future<List<StudentAttendanceModel>> getStudentsBySection({
     required int sectionId,
     required String token,
