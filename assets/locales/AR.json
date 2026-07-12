@@ -88,8 +88,15 @@
   "logout_confirm_title": "تسجيل الخروج",
   "logout_confirm_body": "هل أنت متأكد من أنك تريد تسجيل الخروج من التطبيق؟",
   "logout_cancel": "إلغاء",
-  "logout_confirm_btn": "خروج"
-
+  "logout_confirm_btn": "خروج",
+  "filter_empty_teachers": "لا يوجد معلمين في هذه الحالة",
+  "btn_retry": "إعلدة المحاولة",
+  "attendance_save": "حفظ",
+  "teachers_attendance_title": "حضور المعلمين",
+  "attendance_active": "نشط",
+  "attendance_inactive": "غير نشط",
+  "attendance_vacation": "إجازة",
+  "attendance_transferred": "انتقل"
 
 
 }

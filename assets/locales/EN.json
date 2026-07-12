@@ -88,5 +88,18 @@
   "logout_confirm_title": "Logout",
   "logout_confirm_body": "Are you sure you want to log out of the application?",
   "logout_cancel": "Cancel",
-  "logout_confirm_btn": "Logout"
+  "logout_confirm_btn": "Logout",
+  "filter_empty_teachers": "No teachers found for this status",
+  "btn_retry": "Retry",
+  "attendance_save": "Save ",
+  "teachers_attendance_title": "Teachers Attendance",
+  "attendance_active": "Active",
+  "attendance_inactive": "Inactive",
+  "attendance_vacation": "Vacation",
+  "attendance_transferred": "Transferred"
+
+
+
+
+
 }

@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/cubit/current_semester/current_semester_cubit.dart';
 import 'package:flowva_school/cubit/current_semester/current_semester_state.dart';
 
+import '../../app_localizations.dart';
+
 class CustomModernHeader extends StatelessWidget {
   final dynamic selectedSection;
   final List<dynamic> sections;
@@ -42,7 +44,6 @@ class CustomModernHeader extends StatelessWidget {
         textDirection: TextDirection.rtl,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // 📑 القسم الأيمن: قائمة اختيار الشعبة المنسدلة + شارة الفصل الدراسي الديناميكية
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,9 +53,8 @@ class CustomModernHeader extends StatelessWidget {
                   textDirection: TextDirection.rtl,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // 🏷️ نص العنوان الثابت بلون هادئ ومميز عن الاختيارات
                     Text(
-                      'جدول شعبة: ',
+                      context.tr('header_section_label'),
                       style: TextStyle(
                         fontFamily: 'Cairo',
                         fontSize: 14,
@@ -63,7 +63,6 @@ class CustomModernHeader extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
 
-                    // 🌟 القائمة المنسدلة المصلحة بالكامل داخل الويدجت الأساسي
                     IntrinsicWidth(
                       child: DropdownButtonDirectionality(
                         textDirection: TextDirection.rtl,

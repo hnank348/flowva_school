@@ -15,4 +15,5 @@ class ConstantApi {
   static const String academicYears     = '$baseApi/academic-years/current';
   static const String semestersCurrent  = '$baseApi/semesters/current';
   static const String studentAttendance = '$baseApi/v1/student-attendance';
+  static const String teacherAttendance = '$baseApi/v1/teacher-attendance';
 }

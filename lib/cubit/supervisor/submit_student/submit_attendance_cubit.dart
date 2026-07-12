@@ -1,11 +1,9 @@
-import 'package:flowva_school/cubit/supervisor/submit/submit_attendance_state.dart';
+import 'package:flowva_school/cubit/supervisor/submit_student/submit_attendance_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/cubit/supervisor/student/student_attendance_state.dart';
-import 'package:flowva_school/models/supervisor/submit_attendance_model.dart';
 import 'package:flowva_school/models/supervisor/student_attendance_model.dart';
 import 'package:flowva_school/services/supervisor/submit_attendance_service.dart';
 
-export 'package:flowva_school/cubit/supervisor/submit/submit_attendance_state.dart';
 
 class SubmitAttendanceCubit extends Cubit<SubmitAttendanceState> {
   final SubmitAttendanceService _service;

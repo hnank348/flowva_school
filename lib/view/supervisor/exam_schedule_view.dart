@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubit/supervisor/state_supervisor/exam_schedule_state.dart';
+import 'package:flowva_school/cubit/supervisor/classes/classes_cubit.dart';
+import 'package:flowva_school/cubit/supervisor/classes/classes_state.dart';
+
+import '../../widget/supervisor/custom_section_semester_header.dart';
 
 class ExamScheduleView extends StatelessWidget {
   const ExamScheduleView({super.key});
-
-  final List<String> supervisorClasses = const ['الصف الثالث - أ', 'الصف الثالث - ب', 'الصف الرابع - أ'];
 
   void _showEditExamBottomSheet(BuildContext context, {String? subject, String? time, String? date, String? day}) {
     final subjectController = TextEditingController(text: subject ?? '');
@@ -162,122 +164,120 @@ class ExamScheduleView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return BlocBuilder<ExamScheduleCubit, ExamScheduleState>(
-      builder: (context, state) {
-        return Container(
-          color: colorScheme.surface,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 12),
+    // 1️⃣ الاستماع لحالة الغرف/الشعب القادمة من الباك اند
+    return BlocBuilder<ClassesCubit, ClassesState>(
+      builder: (context, classState) {
 
-              Directionality(
-                textDirection: TextDirection.rtl,
-                child: SizedBox(
-                  height: 38,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: supervisorClasses.length,
-                    itemBuilder: (context, index) {
-                      final currentClass = supervisorClasses[index];
-                      final isSelected = currentClass == state.selectedClass;
+        // التعامل مع حالة التحميل من السيرفر
+        if (classState is ClassesLoading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
 
-                      return Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
-                        child: InkWell(
-                          onTap: () => context.read<ExamScheduleCubit>().changeClass(currentClass),
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 18),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? (isDark ? colorScheme.primary : const Color(0xFF234E52))
-                                  : colorScheme.surfaceContainerLow,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: isSelected ? Colors.transparent : colorScheme.outlineVariant),
-                            ),
-                            child: Center(
-                              child: Text(
-                                currentClass,
-                                style: TextStyle(
-                                  color: isSelected ? Colors.white : colorScheme.onSurfaceVariant,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                  fontFamily: 'Cairo',
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+        // التعامل مع حالة الخطأ من السيرفر
+        if (classState is ClassesError) {
+          return Scaffold(
+            body: Center(
+              child: Text(
+                classState.message,
+                style: TextStyle(fontFamily: 'Cairo', color: colorScheme.error),
               ),
+            ),
+          );
+        }
 
-              const SizedBox(height: 16),
+        // في حال تم جلب البيانات بنجاح ClassesLoaded
+        if (classState is ClassesLoaded) {
+          final activeSections = classState.classDetails.sections;
+          final selectedSection = classState.selectedSection;
 
-              Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildTopButton('اعتماد الجدول', const Color(0xFF1E3A8A), Colors.white, icon: Icons.check_circle_outline, onTap: () {}),
-                      const SizedBox(width: 6),
-                      _buildTopButton('إضافة مادة', const Color(0xFF319795), Colors.white, icon: Icons.add, onTap: () => _showEditExamBottomSheet(context)),
-                    ],
-                  ),
-                  Text(
-                    'جدول امتحانات ${state.selectedClass}',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontFamily: 'Cairo'),
-                  ),
-                ],
-              ),
+          return BlocBuilder<ExamScheduleCubit, ExamScheduleState>(
+            builder: (context, examState) {
+              return Container(
+                color: colorScheme.surface,
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 12),
 
-              const SizedBox(height: 14),
+                    CustomModernHeader(
+                      selectedSection: selectedSection,
+                      sections: activeSections,
+                      onSectionChanged: (newSection) {
+                        context.read<ClassesCubit>().selectSection(newSection);
+                        context.read<ExamScheduleCubit>().changeClass(newSection.name);
+                      },
+                      onExportPdfPressed: () {
+                      },
+                    ),
 
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, mainConstraints) {
-                    int crossAxisCount = 1;
-                    if (mainConstraints.maxWidth > 900) {
-                      crossAxisCount = 3;
-                    } else if (mainConstraints.maxWidth > 600) {
-                      crossAxisCount = 2;
-                    }
+                    const SizedBox(height: 16),
 
-                    double childAspectRatio = mainConstraints.maxWidth > 900
-                        ? 2.5
-                        : (mainConstraints.maxWidth > 600 ? 2.2 : 3.4);
-
-                    return GridView.count(
-                      crossAxisCount: crossAxisCount,
-                      childAspectRatio: childAspectRatio,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      physics: const BouncingScrollPhysics(),
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 8,
                       children: [
-                        _buildExamCard(context, 'الرياضيات', '08:00 - 10:00', '2026/06/01', 'الأحد', const Color(0xFF3B82F6)),
-                        _buildExamCard(context, 'اللغة العربية', '08:00 - 10:00', '2026/06/02', 'الاثنين', const Color(0xFF22C55E)),
-                        _buildExamCard(context, 'العلوم العامة', '08:00 - 09:30', '2026/06/03', 'الثلاثاء', const Color(0xFFF97316)),
-                        _buildExamCard(context, 'التربية الإسلامية', '08:00 - 09:30', '2026/06/04', 'الأربعاء', const Color(0xFF06B6D4)),
-                        _buildExamCard(context, 'اللغة الإنجليزية', '08:00 - 10:00', '2026/06/05', 'الخميس', const Color(0xFFEAB308)),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildTopButton('اعتماد الجدول', const Color(0xFF1E3A8A), Colors.white, icon: Icons.check_circle_outline, onTap: () {}),
+                            const SizedBox(width: 6),
+                            _buildTopButton('إضافة مادة', const Color(0xFF319795), Colors.white, icon: Icons.add, onTap: () => _showEditExamBottomSheet(context)),
+                          ],
+                        ),
+                        Text(
+                          'جدول امتحانات ${selectedSection?.name}',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontFamily: 'Cairo'),
+                        ),
                       ],
-                    );
-                  },
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, mainConstraints) {
+                          int crossAxisCount = 1;
+                          if (mainConstraints.maxWidth > 900) {
+                            crossAxisCount = 3;
+                          } else if (mainConstraints.maxWidth > 600) {
+                            crossAxisCount = 2;
+                          }
+
+                          double childAspectRatio = mainConstraints.maxWidth > 900
+                              ? 2.5
+                              : (mainConstraints.maxWidth > 600 ? 2.2 : 3.4);
+
+                          return GridView.count(
+                            crossAxisCount: crossAxisCount,
+                            childAspectRatio: childAspectRatio,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            physics: const BouncingScrollPhysics(),
+                            children: [
+                              _buildExamCard(context, 'الرياضيات', '08:00 - 10:00', '2026/06/01', 'الأحد', const Color(0xFF3B82F6)),
+                              _buildExamCard(context, 'اللغة العربية', '08:00 - 10:00', '2026/06/02', 'الاثنين', const Color(0xFF22C55E)),
+                              _buildExamCard(context, 'العلوم العامة', '08:00 - 09:30', '2026/06/03', 'الثلاثاء', const Color(0xFFF97316)),
+                              _buildExamCard(context, 'التربية الإسلامية', '08:00 - 09:30', '2026/06/04', 'الأربعاء', const Color(0xFF06B6D4)),
+                              _buildExamCard(context, 'اللغة الإنجليزية', '08:00 - 10:00', '2026/06/05', 'الخميس', const Color(0xFFEAB308)),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-        );
+              );
+            },
+          );
+        }
+
+        return const SizedBox();
       },
     );
   }

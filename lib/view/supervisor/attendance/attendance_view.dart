@@ -3,17 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/cubit/supervisor/classes/classes_cubit.dart';
 import 'package:flowva_school/cubit/supervisor/student/student_attendance_cubit.dart';
-import 'package:flowva_school/cubit/supervisor/submit/submit_attendance_cubit.dart';
 import 'package:flowva_school/cubit/current_semester/current_semester_cubit.dart';
 import 'package:flowva_school/cubit/locale/locale_cubit.dart';
 import 'package:flowva_school/cubit/locale/locale_state.dart';
 import '../../../cubit/current_year/current_year_cubit.dart';
 import '../../../app_localizations.dart';
-import 'teachers_attendance_view.dart';
+import '../../../cubit/supervisor/submit_student/submit_attendance_cubit.dart';
+import '../../../cubit/supervisor/submit_teacher/teachers_attendance_cubit.dart';
+import 'teachers/teachers_attendance_view.dart';
 
 class AttendanceView extends StatelessWidget {
   const AttendanceView({super.key});
 
+  // ميثود مساعدة لتمرير الـ Providers لصفحة حضور الطلاب
   void _openStudentAttendance(BuildContext context) {
     final classesCubit         = context.read<ClassesCubit>();
     final attendanceCubit      = context.read<StudentAttendanceCubit>();
@@ -33,6 +35,25 @@ class AttendanceView extends StatelessWidget {
             BlocProvider.value(value: currentSemesterCubit),
           ],
           child: const StudentAttendanceView(),
+        ),
+      ),
+    );
+  }
+
+  // ميثود مساعدة لتمرير الـ Providers لصفحة حضور المعلمين لمنع تكرار الكود وحل مشكلة الـ Context
+  void _openTeacherAttendance(BuildContext context) {
+    final teachersCubit = context.read<TeacherAttendanceCubit>();
+    final submitTeacherCubit = context.read<SubmitTeacherAttendanceCubit>();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: teachersCubit),
+            BlocProvider.value(value: submitTeacherCubit),
+          ],
+          child: const TeachersAttendanceView(),
         ),
       ),
     );
@@ -109,10 +130,7 @@ class AttendanceView extends StatelessWidget {
                                 statsText: context.tr('attendance_teachers_stats'),
                                 progressValue: 0.94,
                                 gradientColors: [const Color(0xFF234E52), colorScheme.primary],
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const TeachersAttendanceView()),
-                                ),
+                                onTap: () => _openTeacherAttendance(context),
                                 isArabic: localeState.currentLanguage == 'AR',
                               ),
                             ),
@@ -142,10 +160,7 @@ class AttendanceView extends StatelessWidget {
                               statsText: context.tr('attendance_teachers_stats'),
                               progressValue: 0.94,
                               gradientColors: [const Color(0xFF234E52), colorScheme.primary],
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const TeachersAttendanceView()),
-                              ),
+                              onTap: () => _openTeacherAttendance(context),
                               isArabic: localeState.currentLanguage == 'AR',
                             ),
                           ],
@@ -220,7 +235,6 @@ class AttendanceView extends StatelessWidget {
                       ),
                     ],
                   ),
-                  // السهم يلتفت تلقائياً بناءً على لغة التطبيق الحالية
                   Icon(
                     isArabic ? Icons.arrow_back_ios_new_rounded : Icons.arrow_forward_ios_rounded,
                     size: 14,

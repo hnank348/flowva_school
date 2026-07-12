@@ -20,10 +20,13 @@ import 'package:flowva_school/cubit/profile/profile_update_cubit.dart';
 import 'package:flowva_school/services/supervisor/student_attendance_service.dart';
 import 'package:flowva_school/cubit/supervisor/student/student_attendance_cubit.dart';
 import 'package:flowva_school/services/supervisor/submit_attendance_service.dart';
-import 'package:flowva_school/cubit/supervisor/submit/submit_attendance_cubit.dart';
 import 'package:flowva_school/cubit/current_semester/current_semester_cubit.dart';
 import 'package:flowva_school/services/auth/logout_service.dart';
 import 'package:flowva_school/cubit/logout/logout_cubit.dart';
+import 'cubit/supervisor/submit_student/submit_attendance_cubit.dart';
+
+import 'package:flowva_school/cubit/supervisor/submit_teacher/teachers_attendance_cubit.dart';
+import 'package:flowva_school/services/supervisor/teacher_attendance_service.dart';
 
 class AppProviders {
   static List<BlocProvider> getProviders(String userToken) {
@@ -31,6 +34,7 @@ class AppProviders {
     apiService.forceUpdateToken(userToken);
 
     final profileService = ProfileService(apiService);
+    final teacherAttendanceService = TeacherAttendanceService(apiService); // تعريف الخدمة هنا لمنع التكرار
 
     return [
       BlocProvider<NavigationCubit>(create: (_) => NavigationCubit()),
@@ -106,6 +110,14 @@ class AppProviders {
 
       BlocProvider<LogoutCubit>(
         create: (_) => LogoutCubit(LogoutService(apiService)),
+      ),
+
+      BlocProvider<TeacherAttendanceCubit>(
+        create: (_) => TeacherAttendanceCubit(teacherAttendanceService)..fetchTeachers(),
+      ),
+
+      BlocProvider<SubmitTeacherAttendanceCubit>(
+        create: (_) => SubmitTeacherAttendanceCubit(teacherAttendanceService),
       ),
     ];
   }
