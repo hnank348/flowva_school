@@ -24,6 +24,7 @@ class Button extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
+          minimumSize: const Size(320, 50),
           maximumSize: const Size(330, 50),
           side: BorderSide(
             color: colorOutline ?? color,

@@ -13,6 +13,7 @@ import '../../cubit/current_year/current_year_state.dart';
 import '../../cubit/locale/locale_cubit.dart';
 import '../../cubit/locale/locale_state.dart';
 import '../../app_localizations.dart';
+import '../../notifications/screens/notifications_screen.dart';
 import 'weekly_schedule/weekly_schedule_view.dart';
 import 'custom_bottom_navigation_bar.dart';
 
@@ -238,7 +239,9 @@ class MainLayoutView extends StatelessWidget {
                                       ),
                                       constraints: const BoxConstraints(),
                                       padding: const EdgeInsets.all(6),
-                                      onPressed: () {},
+                                      onPressed: () {Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
+                                        return NotificationsScreen();
+                                      }));},
                                     ),
                                     Positioned(
                                       top: 6,

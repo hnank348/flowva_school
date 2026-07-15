@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:flowva_school/cubit/profile/profile_update_cubit.dart';
 import 'package:flowva_school/cubit/locale/locale_state.dart';
-import 'package:flowva_school/models/teacher/user_model.dart';
+import 'package:flowva_school/models/mutual/user_model.dart';
 import 'package:flowva_school/app_localizations.dart';
 import 'package:flowva_school/widget/button.dart';
 import 'profile_avatar_section.dart';
@@ -145,12 +145,10 @@ class _ProfileCardState extends State<ProfileCard> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
                 side: BorderSide(
-                  color: widget.isDark
-                      ? Colors.white.withOpacity(0.05)
-                      : Colors.black.withOpacity(0.04),
+                  color: cs.outlineVariant.withOpacity(widget.isDark ? 0.4 : 0.5),
                 ),
               ),
-              color: widget.isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              color: cs.surfaceContainer,
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(

@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'package:flowva_school/view/splash/welcome_view.dart';
+import 'package:flowva_school/view/auth/splash/welcome_view.dart';
 import 'package:flutter/material.dart';
 
-import '../../app_theme.dart';
+import '../../../app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

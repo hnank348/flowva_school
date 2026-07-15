@@ -41,7 +41,7 @@ class WeeklyScheduleView extends StatelessWidget {
     return BlocBuilder<LocaleCubit, LocaleState>(
       builder: (context, localeState) {
         return Directionality(
-          textDirection: localeState.textDirection, // 🌍 تطبيق التوجه الصحيح بناءً على حالة الكيوبيت المشترك للغات
+          textDirection: localeState.textDirection,
           child: Container(
             color: colorScheme.surface,
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -111,7 +111,7 @@ class WeeklyScheduleView extends StatelessWidget {
                                 } else if (classState is ClassesLoaded) {
                                   return ScheduleHeaderWidget(
                                     classState: classState,
-                                    classesCubit: context.read<ClassesCubit>(),
+                                    // ✅ تمت إزالة classesCubit لأنه لم يعد موجوداً بالويدجت الموحّد
                                     onSectionChanged: (newSection) {
                                       context.read<ClassesCubit>().selectSection(newSection);
 
@@ -149,7 +149,6 @@ class WeeklyScheduleView extends StatelessWidget {
                                     );
                                   }
 
-                                  // ✨ تمرير الـ Key واللغة لضمان التحديث اللحظي للجدول بالكامل
                                   return ScheduleTableWidget(
                                     key: ValueKey('${activeSectionId}_${currentSemesterId}_${localeState.currentLanguage}'),
                                     sessions: activeSessions,

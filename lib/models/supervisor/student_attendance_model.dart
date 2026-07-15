@@ -6,6 +6,7 @@ class StudentAttendanceModel {
   final String lastName;
   final String fullNameAr;
   final String fullName;
+  final String? notes; // ✅ جديد
 
   StudentAttendanceModel({
     required this.id,
@@ -15,6 +16,8 @@ class StudentAttendanceModel {
     required this.lastName,
     required this.firstName,
     required this.fullName,
+    this.notes,
+
   });
 
   factory StudentAttendanceModel.fromJson(Map<String, dynamic> json) {
@@ -30,6 +33,7 @@ class StudentAttendanceModel {
       lastName: lName,
       fullNameAr: '$fNameAr $lNameAr'.trim(),
       fullName: '$fName $lName'.trim(),
+      notes:      json['notes'],
     );
   }
 }

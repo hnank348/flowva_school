@@ -10,7 +10,6 @@ class TeachersService {
 
   Future<List<TeacherModel>> getTeachers({required String token}) async {
     try {
-      // 🚀 تم تمرير الـ token هنا كمتغير مباشر
       final response = await _apiService.get(
         ConstantApi.teachers,
       );

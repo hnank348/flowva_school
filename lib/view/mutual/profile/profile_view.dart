@@ -20,6 +20,7 @@ class ProfileView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs     = Theme.of(context).colorScheme;
 
     return BlocProvider<ProfileCubit>(
       create: (_) {
@@ -34,8 +35,8 @@ class ProfileView extends StatelessWidget {
             ctx.read<ProfileCubit>(),
           ),
           child: Scaffold(
-            backgroundColor:
-            isDark ? const Color(0xFF121212) : const Color(0xFFF5F7F9),
+            // ✅ استخدمنا لون الثيم الموحّد بدل الألوان الثابتة #121212 / #F5F7F9
+            backgroundColor: cs.surface,
             appBar: _buildAppBar(context, isDark),
             body: SafeArea(
               child: BlocBuilder<LocaleCubit, LocaleState>(
@@ -126,7 +127,7 @@ class _ErrorBody extends StatelessWidget {
             const SizedBox(height: 16),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontFamily: 'Cairo', fontSize: 13)),
+                style: TextStyle(fontFamily: 'Cairo', fontSize: 13, color: cs.onSurface)),
             const SizedBox(height: 20),
             Button(
               text:      context.tr('profile_retry'),

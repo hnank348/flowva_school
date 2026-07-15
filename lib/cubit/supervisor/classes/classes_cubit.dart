@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../models/supervisor/class_details_model.dart';
 import '../../../services/supervisor/classes_service.dart'; // استيراد سيرفس الصفوف المفصولة
 import 'classes_state.dart';
 

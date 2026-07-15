@@ -1,213 +1,100 @@
 import 'package:flutter/material.dart';
 import 'package:flowva_school/cubit/supervisor/student/student_attendance_cubit.dart';
 import 'package:flowva_school/models/supervisor/student_attendance_model.dart';
-import '../../../../app_localizations.dart';
+import 'package:flowva_school/models/supervisor/student_attendance_record_model.dart';
+import '../../../../widget/supervisor/attendance_grid.dart';
+import '../../../../widget/supervisor/attendance_types.dart';
 import 'student_attendance_card.dart';
+import 'student_attendance_record_card.dart';
 
-enum _AttendanceFilter { all, present, absent, late, excused }
-
-class StudentsAttendanceGrid extends StatefulWidget {
-  final List<StudentAttendanceModel> students;
-  final Map<String, StudentAttendanceStatus> attendanceMap;
+class StudentsAttendanceGrid extends StatelessWidget {
+  final List<StudentAttendanceModel>? students;
+  final Map<String, StudentAttendanceStatus>? attendanceMap;
+  final Map<String, String?>? noteMap;
+  final List<StudentAttendanceRecord>? records;
+  final Map<int, StudentAttendanceStatus>? editMap;
   final bool isTablet;
+  final bool isViewMode;
 
-  const StudentsAttendanceGrid({
+  const StudentsAttendanceGrid.record({
     super.key,
-    required this.students,
-    required this.attendanceMap,
+    required List<StudentAttendanceModel> this.students,
+    required Map<String, StudentAttendanceStatus> this.attendanceMap,
+    this.noteMap,
     required this.isTablet,
-  });
+  })  : records = null,
+        editMap = null,
+        isViewMode = false;
 
-  @override
-  State<StudentsAttendanceGrid> createState() => _StudentsAttendanceGridState();
-}
+  const StudentsAttendanceGrid.view({
+    super.key,
+    required List<StudentAttendanceRecord> this.records,
+    required Map<int, StudentAttendanceStatus> this.editMap,
+    required this.isTablet,
+  })  : students = null,
+        attendanceMap = null,
+        noteMap = null,
+        isViewMode = true;
 
-class _StudentsAttendanceGridState extends State<StudentsAttendanceGrid> {
-  _AttendanceFilter _filter = _AttendanceFilter.all;
+  static final _filters = [
+    AttendanceFilterConfig<StudentAttendanceStatus>(
+        labelKey: 'filter_all', color: const Color(0xFF64748B)),
+    AttendanceFilterConfig<StudentAttendanceStatus>(
+        labelKey: 'attendance_present',
+        color: const Color(0xFF2DD4BF),
+        status: StudentAttendanceStatus.present),
+    AttendanceFilterConfig<StudentAttendanceStatus>(
+        labelKey: 'attendance_absent',
+        color: const Color(0xFFF87171),
+        status: StudentAttendanceStatus.absent),
+    AttendanceFilterConfig<StudentAttendanceStatus>(
+        labelKey: 'attendance_late',
+        color: const Color(0xFFFBBF24),
+        status: StudentAttendanceStatus.late),
+    AttendanceFilterConfig<StudentAttendanceStatus>(
+        labelKey: 'attendance_excused',
+        color: const Color(0xFFA78BFA),
+        status: StudentAttendanceStatus.excused),
+  ];
 
-  // فك الارتباط المباشر بالنصوص لتجهيز الفلاتر برمجياً وترجمتها داخل الـ build حياً
-  List<({_AttendanceFilter filter, String labelKey, Color color})> _getFilterItems() {
-    return [
-      (filter: _AttendanceFilter.all, labelKey: 'filter_all', color: const Color(0xFF64748B)),
-      (filter: _AttendanceFilter.present, labelKey: 'attendance_present', color: const Color(0xFF0F766E)),
-      (filter: _AttendanceFilter.absent, labelKey: 'attendance_absent', color: const Color(0xFFDC2626)),
-      (filter: _AttendanceFilter.late, labelKey: 'attendance_late', color: const Color(0xFFD97706)),
-      (filter: _AttendanceFilter.excused, labelKey: 'attendance_excused', color: const Color(0xFF7C3AED)),
-    ];
-  }
-
-  StudentAttendanceStatus? get _requiredStatus {
-    switch (_filter) {
-      case _AttendanceFilter.present:
-        return StudentAttendanceStatus.present;
-      case _AttendanceFilter.absent:
-        return StudentAttendanceStatus.absent;
-      case _AttendanceFilter.late:
-        return StudentAttendanceStatus.late;
-      case _AttendanceFilter.excused:
-        return StudentAttendanceStatus.excused;
-      case _AttendanceFilter.all:
-        return null;
+  StudentAttendanceStatus _recordToStatus(StudentAttendanceRecord r) {
+    switch (r.statusId) {
+      case 2: return StudentAttendanceStatus.absent;
+      case 3: return StudentAttendanceStatus.late;
+      case 4: return StudentAttendanceStatus.excused;
+      default: return StudentAttendanceStatus.present;
     }
-  }
-
-  List<StudentAttendanceModel> get _filtered {
-    final required = _requiredStatus;
-    if (required == null) return widget.students;
-    return widget.students.where((s) {
-      final status = widget.attendanceMap[s.id.toString()] ?? StudentAttendanceStatus.present;
-      return status == required;
-    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final hPad = widget.isTablet ? 20.0 : 14.0;
-    final filteredList = _filtered;
-    final filterItems = _getFilterItems();
-
-    return Column(
-      children: [
-        // ─── شريط الفلترة ───
-        SizedBox(
-          height: 36,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: hPad),
-            physics: const BouncingScrollPhysics(),
-            itemCount: filterItems.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (context, i) {
-              final item = filterItems[i];
-              final isSelected = _filter == item.filter;
-              final count = item.filter == _AttendanceFilter.all
-                  ? widget.students.length
-                  : widget.students.where((s) {
-                final st = widget.attendanceMap[s.id.toString()] ?? StudentAttendanceStatus.present;
-                return st == _requiredStatusFor(item.filter);
-              }).length;
-
-              return GestureDetector(
-                onTap: () => setState(() => _filter = item.filter),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? item.color.withOpacity(isDark ? 0.2 : 0.1)
-                        : (isDark ? colorScheme.surfaceContainer : Colors.white),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected
-                          ? item.color.withOpacity(isDark ? 0.6 : 0.8)
-                          : colorScheme.outlineVariant.withOpacity(isDark ? 0.3 : 0.5),
-                      width: isSelected ? 1.2 : 0.8,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        context.tr(item.labelKey),
-                        style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: isSelected ? item.color : colorScheme.onSurfaceVariant.withOpacity(0.7),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: isSelected ? item.color.withOpacity(0.15) : colorScheme.onSurfaceVariant.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '$count',
-                          style: TextStyle(
-                            fontFamily: 'Cairo',
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: isSelected ? item.color : colorScheme.onSurfaceVariant.withOpacity(0.6),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
+    if (isViewMode) {
+      return AttendanceGrid<StudentAttendanceRecord, StudentAttendanceStatus>(
+        items: records!,
+        statusOf: (r) => editMap![r.id] ?? _recordToStatus(r),
+        filters: _filters,
+        isTablet: isTablet,
+        mainAxisExtent: 145,
+        emptyTextKey: 'filter_empty_students',
+        itemBuilder: (context, record, status) => StudentAttendanceRecordCard(
+          record: record,
         ),
-
-        const SizedBox(height: 10),
-
-        // ─── الـ Grid ───
-        Expanded(
-          child: filteredList.isEmpty
-              ? Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.filter_list_off_rounded, size: 36, color: colorScheme.onSurfaceVariant.withOpacity(0.3)),
-                const SizedBox(height: 10),
-                Text(
-                  context.tr('filter_empty_students'),
-                  style: TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: 13,
-                    color: colorScheme.onSurfaceVariant.withOpacity(0.5),
-                  ),
-                ),
-              ],
-            ),
-          )
-              : LayoutBuilder(
-            builder: (context, constraints) {
-              final int cols = constraints.maxWidth > 900 ? 3 : 2;
-              const double cardHeight = 112;
-
-              return GridView.builder(
-                padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 4.0),
-                physics: const BouncingScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: cols,
-                  mainAxisExtent: cardHeight,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                ),
-                itemCount: filteredList.length,
-                itemBuilder: (context, index) {
-                  final student = filteredList[index];
-                  final status = widget.attendanceMap[student.id.toString()] ?? StudentAttendanceStatus.present;
-                  return StudentAttendanceCard(
-                    student: student,
-                    currentStatus: status,
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  StudentAttendanceStatus? _requiredStatusFor(_AttendanceFilter f) {
-    switch (f) {
-      case _AttendanceFilter.present:
-        return StudentAttendanceStatus.present;
-      case _AttendanceFilter.absent:
-        return StudentAttendanceStatus.absent;
-      case _AttendanceFilter.late:
-        return StudentAttendanceStatus.late;
-      case _AttendanceFilter.excused:
-        return StudentAttendanceStatus.excused;
-      case _AttendanceFilter.all:
-        return null;
+      );
     }
+
+    return AttendanceGrid<StudentAttendanceModel, StudentAttendanceStatus>(
+      items: students!,
+      statusOf: (s) =>
+      attendanceMap![s.id.toString()] ?? StudentAttendanceStatus.present,
+      filters: _filters,
+      isTablet: isTablet,
+      mainAxisExtent: 138,
+      emptyTextKey: 'filter_empty_students',
+      itemBuilder: (context, student, status) => StudentAttendanceCard(
+        student: student,
+        currentStatus: status,
+        note: noteMap?[student.id.toString()],
+      ),
+    );
   }
 }

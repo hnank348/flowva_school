@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -10,49 +11,46 @@ class CustomBottomNavigationBar extends StatelessWidget {
     required this.onTap,
   });
 
+  static const _icons = [
+    Icons.calendar_view_week_rounded,
+    Icons.assignment_outlined,
+    Icons.how_to_reg_outlined,
+    Icons.bar_chart_outlined,
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final cs     = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       decoration: BoxDecoration(
+        color: cs.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(isDark ? 0.25 : 0.05),
+            blurRadius: 12,
             offset: const Offset(0, -3),
-          )
+          ),
         ],
       ),
-      child: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: onTap,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: colorScheme.primary,
-        unselectedItemColor: colorScheme.onSurfaceVariant.withOpacity(0.6),
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, fontFamily: 'Cairo'),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11, fontFamily: 'Cairo'),
-        backgroundColor: colorScheme.surfaceContainerLow,
-        elevation: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_view_week_rounded),
-            label: 'الجدول الأسبوعي',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment_outlined),
-            label: 'جدول الامتحان',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.how_to_reg_outlined),
-            label: 'الحضور',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart_outlined),
-            label: 'الإحصائيات',
-          ),
-        ],
+      child: CurvedNavigationBar(
+        index:                 currentIndex,
+        height:                52,
+        backgroundColor:       Colors.transparent,
+        color:                 isDark ? cs.surfaceContainer : cs.primary,
+        buttonBackgroundColor: isDark ? cs.primary : Colors.white,
+        animationDuration:     const Duration(milliseconds: 350),
+        animationCurve:        Curves.easeOutCubic,
+        onTap:                 onTap,
+        items: List.generate(_icons.length, (i) {
+          final isSelected = i == currentIndex;
+          final iconColor = isSelected
+              ? (isDark ? Colors.white : cs.primary)
+              : Colors.white.withOpacity(0.85);
+
+          return Icon(_icons[i], size: 20, color: iconColor);
+        }),
       ),
     );
   }

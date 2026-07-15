@@ -5,6 +5,7 @@ class TeacherModel {
   final String fullNameAr;
   final String? gender;
   final String? avatar;
+  final String? notes; // ✅ جديد
 
   const TeacherModel({
     required this.id,
@@ -13,6 +14,7 @@ class TeacherModel {
     required this.fullNameAr,
     this.gender,
     this.avatar,
+    this.notes,
   });
 
   factory TeacherModel.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,7 @@ class TeacherModel {
       fullNameAr: '$firstNameAr $lastNameAr'.trim(),
       gender:     json['gender'],
       avatar:     json['avatar'],
+      notes:      json['notes'], // 🔶 تأكد اسم الحقل بالـ API عندك
     );
   }
 
@@ -35,12 +38,24 @@ class TeacherModel {
     final url = avatar ?? '';
     return url.startsWith('http://') || url.startsWith('https://');
   }
+
+  TeacherModel copyWith({String? notes}) {
+    return TeacherModel(
+      id: id,
+      employeeId: employeeId,
+      fullName: fullName,
+      fullNameAr: fullNameAr,
+      gender: gender,
+      avatar: avatar,
+      notes: notes ?? this.notes,
+    );
+  }
 }
 
 class TeacherAttendanceRequest {
   final int teacherId;
-  final int statusId;      // 1=حاضر | 2=غائب | 3=تأخير | 4=إذن
-  final String date;       // yyyy-MM-dd
+  final int statusId;
+  final String date;
   final String checkInTime;
   final String? checkOutTime;
   final int? lateMinutes;

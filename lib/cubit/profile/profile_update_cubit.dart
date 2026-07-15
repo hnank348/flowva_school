@@ -8,7 +8,7 @@ export 'package:flowva_school/cubit/profile/profile_update_state.dart';
 
 class ProfileUpdateCubit extends Cubit<ProfileUpdateState> {
   final ProfileService _profileService;
-  final ProfileCubit _profileCubit; // ✅ نحدّث الـ ProfileCubit بعد النجاح
+  final ProfileCubit _profileCubit;
 
   ProfileUpdateCubit(this._profileService, this._profileCubit)
       : super(ProfileUpdateInitial());

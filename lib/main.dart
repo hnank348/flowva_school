@@ -1,7 +1,6 @@
 import 'package:flowva_school/cubit/locale/locale_cubit.dart';
 import 'package:flowva_school/cubit/locale/locale_state.dart';
-import 'package:flowva_school/view/auth/login/login_view.dart';
-import 'package:flowva_school/view/splash/splach_view.dart';
+import 'package:flowva_school/view/auth/splash/splach_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/cubit/theme/theme_cubit.dart';
@@ -30,7 +29,6 @@ class SchoolManagementApp extends StatelessWidget {
       providers: [
         BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()),
         BlocProvider<LoginCubit>(create: (_) => LoginCubit()),
-        // ✅ نمرر الـ instance المنشأ مسبقاً بدل إنشاء واحد جديد
         BlocProvider<LocaleCubit>.value(value: localeCubit),
       ],
       child: BlocBuilder<ThemeCubit, ThemeState>(
@@ -38,7 +36,6 @@ class SchoolManagementApp extends StatelessWidget {
           final isDark = themeState is DarkModeState;
 
           return BlocBuilder<LocaleCubit, LocaleState>(
-            // نعيد بناء MaterialApp فقط لما تتغير اللغة
             buildWhen: (prev, curr) =>
             prev.currentLanguage != curr.currentLanguage,
             builder: (context, localeState) {
@@ -46,8 +43,8 @@ class SchoolManagementApp extends StatelessWidget {
                 title: 'نظام إدارة المدرسة',
                 debugShowCheckedModeBanner: false,
                 themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
-                theme: AppTheme.light(),
-                darkTheme: AppTheme.dark(),
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
                 builder: (context, child) => Directionality(
                   textDirection: localeState.textDirection,
                   child: child!,

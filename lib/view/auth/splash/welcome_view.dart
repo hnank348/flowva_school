@@ -1,9 +1,8 @@
 
 import 'package:flowva_school/widget/button.dart';
 import 'package:flutter/material.dart';
-import '../../app_theme.dart';
-import '../auth/login/login_view.dart';
-import '../auth/signup_view.dart';
+import '../../../app_theme.dart';
+import '../login/login_view.dart';
 
 
 class WelcomeView extends StatelessWidget {
@@ -41,7 +40,8 @@ class WelcomeView extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Oswald'
+                  fontFamily: 'Oswald',
+                  color: AppColors.primaryText,
                   )
 
               ),

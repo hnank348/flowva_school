@@ -10,6 +10,8 @@ import 'package:flowva_school/cubit/locale/locale_cubit.dart';
 import 'package:flowva_school/cubit/locale/locale_state.dart';
 
 import '../../../app_localizations.dart';
+import '../../../cubit/change_password/change_password_cubit.dart';
+import 'new_password_view.dart';
 import 'language_picker_bottom_sheet.dart';
 import 'logout_tile.dart';
 
@@ -121,7 +123,14 @@ class SettingsView extends StatelessWidget {
                                       title: context.tr('settings_change_password'),
                                       colorScheme: colorScheme,
                                       isDark:      isDark,
-                                      onTap: () {},
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => ForgetPasswordScreen(userToken: userToken),
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ],
                                 ),

@@ -31,14 +31,14 @@ class ProfileViewFields extends StatelessWidget {
           label: context.tr('profile_full_name'),
           value: displayName.isNotEmpty ? displayName : context.tr('profile_not_specified'),
         ),
-        Divider(height: 24, thickness: 1, color: cs.outlineVariant.withOpacity(0.4)),
+        Divider(height: 24, thickness: 1, color: cs.outlineVariant.withOpacity(0.5)),
         ProfileInfoTile(
           icon:      Icons.phone_android_outlined,
           label:     context.tr('profile_phone_number'),
           value:     phone ?? context.tr('profile_not_added'),
           isMissing: phone == null,
         ),
-        Divider(height: 24, thickness: 1, color: cs.outlineVariant.withOpacity(0.4)),
+        Divider(height: 24, thickness: 1, color: cs.outlineVariant.withOpacity(0.5)),
         ProfileInfoTile(
           icon:  Icons.cake_outlined,
           label: context.tr('profile_birth_date'),
@@ -71,7 +71,7 @@ class ProfileInfoTile extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: cs.primary.withOpacity(0.08),
+            color: cs.primary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, size: 20, color: cs.primary),
@@ -83,14 +83,16 @@ class ProfileInfoTile extends StatelessWidget {
             children: [
               Text(label,
                   style: TextStyle(
-                    fontFamily: 'Cairo', fontSize: 11, fontWeight: FontWeight.w500,
-                    color: cs.onSurfaceVariant.withOpacity(0.7),
+                    fontFamily: 'Cairo', fontSize: 11, fontWeight: FontWeight.w600,
+                    color: cs.onSurfaceVariant,
                   )),
               const SizedBox(height: 3),
               Text(value,
                   style: TextStyle(
-                    fontFamily: 'Cairo', fontSize: 14, fontWeight: FontWeight.w600,
-                    color: isMissing ? cs.onSurfaceVariant.withOpacity(0.4) : cs.onSurface,
+                    fontFamily: 'Cairo', fontSize: 14,
+                    fontWeight: isMissing ? FontWeight.w500 : FontWeight.w600,
+                    fontStyle: isMissing ? FontStyle.italic : FontStyle.normal,
+                    color: isMissing ? cs.onSurfaceVariant : cs.onSurface,
                   ),
                   overflow: TextOverflow.ellipsis),
             ],

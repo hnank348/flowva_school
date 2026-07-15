@@ -203,7 +203,7 @@ class ExamScheduleView extends StatelessWidget {
                   children: [
                     const SizedBox(height: 12),
 
-                    CustomModernHeader(
+                    AttendanceSectionHeader(
                       selectedSection: selectedSection,
                       sections: activeSections,
                       onSectionChanged: (newSection) {
@@ -211,9 +211,9 @@ class ExamScheduleView extends StatelessWidget {
                         context.read<ExamScheduleCubit>().changeClass(newSection.name);
                       },
                       onExportPdfPressed: () {
+                        // TODO: منطق تصدير PDF لجدول الامتحان
                       },
                     ),
-
                     const SizedBox(height: 16),
 
                     Wrap(

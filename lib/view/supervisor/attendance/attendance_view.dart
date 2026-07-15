@@ -15,7 +15,6 @@ import 'teachers/teachers_attendance_view.dart';
 class AttendanceView extends StatelessWidget {
   const AttendanceView({super.key});
 
-  // ميثود مساعدة لتمرير الـ Providers لصفحة حضور الطلاب
   void _openStudentAttendance(BuildContext context) {
     final classesCubit         = context.read<ClassesCubit>();
     final attendanceCubit      = context.read<StudentAttendanceCubit>();
@@ -40,10 +39,9 @@ class AttendanceView extends StatelessWidget {
     );
   }
 
-  // ميثود مساعدة لتمرير الـ Providers لصفحة حضور المعلمين لمنع تكرار الكود وحل مشكلة الـ Context
   void _openTeacherAttendance(BuildContext context) {
-    final teachersCubit = context.read<TeacherAttendanceCubit>();
-    final submitTeacherCubit = context.read<SubmitTeacherAttendanceCubit>();
+    final teachersCubit       = context.read<TeacherAttendanceCubit>();
+    final submitTeacherCubit  = context.read<SubmitTeacherAttendanceCubit>();
 
     Navigator.push(
       context,
@@ -61,111 +59,63 @@ class AttendanceView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
 
     return BlocBuilder<LocaleCubit, LocaleState>(
       builder: (context, localeState) {
+        final isArabic = localeState.currentLanguage == 'AR';
+
         return Directionality(
           textDirection: localeState.textDirection,
           child: Container(
-            color: colorScheme.surface,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            color: cs.surface,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ─── عنوان الإدارة العلوي متجاوب الاتجاه ───
-                Row(
-                  children: [
-                    Container(
-                      width: 4,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      context.tr('attendance_management_title'),
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                        fontFamily: 'Cairo',
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
+                _Header(cs: cs),
+                const SizedBox(height: 20),
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      final bool isWide = constraints.maxWidth > 600;
+                      final isWide = constraints.maxWidth > 600;
+                      final cards = [
+                        _AttendanceEntry(
+                          imagePath: 'assets/Images/student_attendance.png',
+                          title:     context.tr('attendance_students_title'),
+                          subtitle:  context.tr('attendance_students_subtitle'),
+                          accent:    cs.primary,
+                          isArabic:  isArabic,
+                          onTap:     () => _openStudentAttendance(context),
+                        ),
+                        _AttendanceEntry(
+                          imagePath: 'assets/Images/teacher_attendance.png',
+                          title:     context.tr('attendance_teachers_title'),
+                          subtitle:  context.tr('attendance_teachers_subtitle'),
+                          accent:    const Color(0xFF0F766E),
+                          isArabic:  isArabic,
+                          onTap:     () => _openTeacherAttendance(context),
+                        ),
+                      ];
 
                       if (isWide) {
                         return Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: _buildCard(
-                                context,
-                                title: context.tr('attendance_students_title'),
-                                subtitle: context.tr('attendance_students_subtitle'),
-                                icon: Icons.school_rounded,
-                                statsText: context.tr('attendance_students_stats'),
-                                progressValue: 0.85,
-                                gradientColors: [colorScheme.primary, colorScheme.primary.withOpacity(0.7)],
-                                onTap: () => _openStudentAttendance(context),
-                                isArabic: localeState.currentLanguage == 'AR',
-                              ),
-                            ),
+                            Expanded(child: cards[0]),
                             const SizedBox(width: 14),
-                            Expanded(
-                              child: _buildCard(
-                                context,
-                                title: context.tr('attendance_teachers_title'),
-                                subtitle: context.tr('attendance_teachers_subtitle'),
-                                icon: Icons.badge_rounded,
-                                statsText: context.tr('attendance_teachers_stats'),
-                                progressValue: 0.94,
-                                gradientColors: [const Color(0xFF234E52), colorScheme.primary],
-                                onTap: () => _openTeacherAttendance(context),
-                                isArabic: localeState.currentLanguage == 'AR',
-                              ),
-                            ),
-                          ],
-                        );
-                      } else {
-                        return ListView(
-                          physics: const BouncingScrollPhysics(),
-                          children: [
-                            _buildCard(
-                              context,
-                              title: context.tr('attendance_students_title'),
-                              subtitle: context.tr('attendance_students_subtitle'),
-                              icon: Icons.school_rounded,
-                              statsText: context.tr('attendance_students_stats'),
-                              progressValue: 0.85,
-                              gradientColors: [colorScheme.primary, colorScheme.primary.withOpacity(0.7)],
-                              onTap: () => _openStudentAttendance(context),
-                              isArabic: localeState.currentLanguage == 'AR',
-                            ),
-                            const SizedBox(height: 14),
-                            _buildCard(
-                              context,
-                              title: context.tr('attendance_teachers_title'),
-                              subtitle: context.tr('attendance_teachers_subtitle'),
-                              icon: Icons.badge_rounded,
-                              statsText: context.tr('attendance_teachers_stats'),
-                              progressValue: 0.94,
-                              gradientColors: [const Color(0xFF234E52), colorScheme.primary],
-                              onTap: () => _openTeacherAttendance(context),
-                              isArabic: localeState.currentLanguage == 'AR',
-                            ),
+                            Expanded(child: cards[1]),
                           ],
                         );
                       }
+                      return ListView(
+                        physics: const BouncingScrollPhysics(),
+                        children: [
+                          cards[0],
+                          const SizedBox(height: 14),
+                          cards[1],
+                        ],
+                      );
                     },
                   ),
                 ),
@@ -176,115 +126,168 @@ class AttendanceView extends StatelessWidget {
       },
     );
   }
+}
 
-  Widget _buildCard(
-      BuildContext context, {
-        required String title,
-        required String subtitle,
-        required IconData icon,
-        required String statsText,
-        required double progressValue,
-        required List<Color> gradientColors,
-        required VoidCallback onTap,
-        required bool isArabic,
-      }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark      = Theme.of(context).brightness == Brightness.dark;
-    final accent      = isDark ? colorScheme.primary : gradientColors.first;
+// ─── هيدر بسيط ───────────────────────────────────────────────────────────────
 
-    return Card(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5), width: 1.2),
-      ),
-      color: colorScheme.surfaceContainerLow,
+class _Header extends StatelessWidget {
+  final ColorScheme cs;
+  const _Header({required this.cs});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 4, height: 22,
+          decoration: BoxDecoration(
+            color: cs.primary,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            context.tr('attendance_management_title'),
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+              color: cs.onSurface,
+              fontFamily: 'Cairo',
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+
+class _AttendanceEntry extends StatelessWidget {
+  final String imagePath;
+  final String title;
+  final String subtitle;
+  final Color accent;
+  final bool isArabic;
+  final VoidCallback onTap;
+
+  const _AttendanceEntry({
+    required this.imagePath,
+    required this.title,
+    required this.subtitle,
+    required this.accent,
+    required this.isArabic,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs     = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         splashColor: accent.withOpacity(0.08),
-        child: Padding(
-          padding: const EdgeInsets.all(18.0),
+        child: Container(
+          clipBehavior: Clip.hardEdge,
+          decoration: BoxDecoration(
+            color: isDark ? cs.surfaceContainer : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: cs.outlineVariant.withOpacity(isDark ? 0.4 : 0.6),
+              width: 0.8,
+            ),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
+              // ─── الصورة التوضيحية ───
+              AspectRatio(
+                aspectRatio: 16 / 10,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(
+                      imagePath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: accent.withOpacity(0.08),
+                        child: Icon(Icons.image_outlined,
+                            color: accent.withOpacity(0.4), size: 40),
+                      ),
+                    ),
+                    // تدرج خفيف أسفل الصورة لدمجها بالكارد
+                    Positioned(
+                      left: 0, right: 0, bottom: 0,
+                      child: Container(
+                        height: 40,
                         decoration: BoxDecoration(
-                          color: accent.withOpacity(isDark ? 0.15 : 0.08),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(icon, color: accent, size: 24),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              (isDark ? cs.surfaceContainer : Colors.white)
+                                  .withOpacity(0.9),
+                            ],
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                  Icon(
-                    isArabic ? Icons.arrow_back_ios_new_rounded : Icons.arrow_forward_ios_rounded,
-                    size: 14,
-                    color: accent.withOpacity(0.6),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontFamily: 'Cairo',
-                  fontSize: 12,
-                  color: colorScheme.onSurfaceVariant,
-                  height: 1.4,
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-              Divider(color: colorScheme.outlineVariant.withOpacity(0.3), height: 1),
-              const SizedBox(height: 14),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    statsText,
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 11,
-                      color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
+
+              // ─── النص ───
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: cs.onSurface,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: accent.withOpacity(isDark ? 0.18 : 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isArabic
+                                ? Icons.arrow_back_ios_new_rounded
+                                : Icons.arrow_forward_ios_rounded,
+                            size: 12,
+                            color: accent,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  Text(
-                    '${(progressValue * 100).toInt()}%',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: accent,
+                    const SizedBox(height: 6),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 12.5,
+                        color: cs.onSurfaceVariant,
+                        height: 1.5,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: LinearProgressIndicator(
-                  value: progressValue,
-                  backgroundColor: isDark ? colorScheme.surfaceContainerHigh : const Color(0xFFE2E8F0),
-                  valueColor: AlwaysStoppedAnimation<Color>(accent),
-                  minHeight: 6,
+                  ],
                 ),
               ),
             ],

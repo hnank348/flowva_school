@@ -10,7 +10,7 @@ class AcademicYearService {
 
   Future<AcademicYearModel> getCurrentYear() async {
     try {
-      final response = await _apiService.get(ConstantApi.academicYears);
+      final response = await _apiService.get(ConstantApi.currentYear);
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         return AcademicYearModel.fromJson(response.data['data']);
