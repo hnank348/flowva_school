@@ -11,13 +11,13 @@ class AppColors {
   static const Color errorRed = Colors.red;
 
   // ═══════════ Dark (Slate palette - مريحة للعين) ═══════════
-  static const Color darkPrimaryTeal = Color(0xFF2DD4BF);       // تيل فاتح واضح بدون إبهار
-  static const Color darkBackground = Color(0xFF0F172A);        // slate-900 خلفية الشاشة
-  static const Color darkSurface = Color(0xFF16213A);           // هيدر / كونتينر خفيف
-  static const Color darkSurfaceContainer = Color(0xFF1E293B);  // slate-800 كروت الطلاب
-  static const Color darkOutlineColor = Color(0xFF334155);      // slate-700 حدود واضحة
-  static const Color darkSecondaryText = Color(0xFF94A3B8);     // slate-400 نص ثانوي مقروء
-  static const Color darkPrimaryText = Color(0xFFF1F5F9);       // slate-100 نص أساسي مريح (مش أبيض خالص)
+  static const Color darkPrimaryTeal = Color(0xFF2DD4BF);
+  static const Color darkBackground = Color(0xFF0F172A);
+  static const Color darkSurface = Color(0xFF16213A);
+  static const Color darkSurfaceContainer = Color(0xFF1E293B);
+  static const Color darkOutlineColor = Color(0xFF334155);
+  static const Color darkSecondaryText = Color(0xFF94A3B8);
+  static const Color darkPrimaryText = Color(0xFFF1F5F9);
 }
 
 class AppSizes {

@@ -37,10 +37,21 @@ class ApiService {
     log('⚡️ [ApiService] Forced Token Update: Bearer $token');
   }
 
-  Future<Response> get(String path, {Map<String, dynamic>? queryParameters, Options? options}) async {
+  // ✅ أضفنا "data" اختياري لدعم GET مع body (بعض الـ endpoints تستقبل فلاتر كـ JSON body)
+  Future<Response> get(
+      String path, {
+        Map<String, dynamic>? queryParameters,
+        Object? data,
+        Options? options,
+      }) async {
     try {
       log('🔍 GET Request to: $path | Headers: ${_dio.options.headers["Authorization"]}');
-      final response = await _dio.get(path, queryParameters: queryParameters, options: options);
+      final response = await _dio.get(
+        path,
+        queryParameters: queryParameters,
+        data: data,
+        options: options,
+      );
       return response;
     } on DioException catch (e) {
       _handleError(e);
@@ -77,6 +88,30 @@ class ApiService {
       log('📄 Data: ${e.response?.data}');
     } else {
       log('⚠️ Message: ${e.message}');
+    }
+  }
+
+  // أضف هذه الميثودز داخل كلاس ApiService[cite: 14]:
+
+  Future<Response> patch(String path, {Object? data, Options? options}) async {
+    try {
+      log('🩹 PATCH Request to: $path');
+      final response = await _dio.patch(path, data: data, options: options);
+      return response;
+    } on DioException catch (e) {
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  Future<Response> delete(String path, {Object? data, Options? options}) async {
+    try {
+      log('🗑️ DELETE Request to: $path');
+      final response = await _dio.delete(path, data: data, options: options);
+      return response;
+    } on DioException catch (e) {
+      _handleError(e);
+      rethrow;
     }
   }
 }

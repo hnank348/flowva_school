@@ -1,6 +1,6 @@
 class ConstantApi {
-  static const String url              = "127.0.0.1";
-  //static const String url              = "10.214.248.23";
+  //static const String url              = "127.0.0.1";
+  static const String url              = "192.168.10.209";
   static const String baseUrl          = 'http://$url:8000';
   static const String baseApi          = '$baseUrl/api';
   static const String baseApiV1        = '$baseUrl/api/v1';
@@ -33,4 +33,8 @@ class ConstantApi {
 
   static String changePassword(int userId) => '$baseApi/users/$userId/change-password';
 
+  static String sectionExams(int sectionId) => '$baseApi/sections/$sectionId/exams';
+  static const String exams = '$baseApi/exams';
+  static String examById(int examId) => '$baseApi/exams/$examId';
+  static String examStatus(int examId) => '$baseApi/exams/$examId/status';
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "992172359117",
+    "project_id": "flowva-school",
+    "storage_bucket": "flowva-school.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:992172359117:android:4e42de9cf3b9d3b9501884",
+        "android_client_info": {
+          "package_name": "com.example.first_test_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyHEi0yF2892Z9khsdvHe1UpftT_NcpIg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

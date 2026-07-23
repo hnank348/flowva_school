@@ -140,6 +140,11 @@ class NotificationItemCard extends StatelessWidget {
       case NotificationType.schoolEvent: return {'icon': Icons.celebration_rounded, 'color': Colors.green};
       case NotificationType.busUpdate: return {'icon': Icons.directions_bus_rounded, 'color': Colors.teal};
       case NotificationType.importantAlert: return {'icon': Icons.campaign_rounded, 'color': Colors.purple};
+    // ✅ الإضافة فقط:
+      case NotificationType.teacherAbsence: return {'icon': Icons.person_off_rounded, 'color': Colors.deepOrange};
+      case NotificationType.studentIssue: return {'icon': Icons.report_gmailerrorred_rounded, 'color': AppColors.errorRed};
+      case NotificationType.newRegistration: return {'icon': Icons.person_add_alt_1_rounded, 'color': Colors.indigo};
+      case NotificationType.scheduleChange: return {'icon': Icons.event_note_rounded, 'color': Colors.teal};
     }
   }
 }

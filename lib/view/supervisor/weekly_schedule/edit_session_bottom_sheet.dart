@@ -9,6 +9,7 @@ import '../../../cubit/locale/locale_cubit.dart';
 import '../../../cubit/locale/locale_state.dart';
 import '../../../models/supervisor/schedule_session_model.dart';
 import '../../../app_localizations.dart';
+import '../../../widget/custom_confirmation_dialog.dart';
 import 'session_form_fields.dart';
 
 class EditSessionBottomSheet {
@@ -26,7 +27,6 @@ class EditSessionBottomSheet {
         required int periodNumber,
         required int semesterId,
       }) {
-    // نحفظ الـ cubits قبل فتح الـ bottom sheet
     final subjectsCubit  = BlocProvider.of<SubjectsCubit>(context);
     final teachersCubit  = BlocProvider.of<TeachersCubit>(context);
     final scheduleCubit  = BlocProvider.of<ScheduleCubit>(context);
@@ -88,7 +88,6 @@ class EditSessionBottomSheet {
   }
 }
 
-// ─── Form داخلي ─────────────────────────────────────────────────────────────
 class _SessionForm extends StatefulWidget {
   final int? sessionId;
   final int? currentSubjectId;
@@ -189,6 +188,34 @@ class _SessionFormState extends State<_SessionForm> {
     Navigator.pop(widget.sheetContext);
   }
 
+  void _deleteSession() async {
+    if (widget.sessionId == null) return;
+
+    final confirmed = await CustomConfirmationDialog.show(
+      context,
+      titleKey: 'session_delete_dialog_title',
+      bodyKey: 'session_delete_dialog_body',
+      confirmBtnKey: 'session_delete_confirm',
+      cancelBtnKey: 'session_btn_cancel',
+      isDanger: true,
+    );
+
+    if (confirmed == true && mounted) {
+      widget.scheduleCubit.deleteSession(
+        timetableId: widget.sessionId!,
+        sectionId: widget.sectionId,
+        className: widget.className,
+        semesterId: widget.semesterId,
+      );
+      Navigator.pop(widget.sheetContext);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(context.tr('session_delete_success'), style: const TextStyle(fontFamily: 'Cairo')),
+        backgroundColor: const Color(0xFF0F766E),
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
   (String, String) _periodTimes(int period) {
     const times = {
       1: ('07:30:00', '08:15:00'),
@@ -214,14 +241,12 @@ class _SessionFormState extends State<_SessionForm> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ─── مقبض السحب ───
             Center(child: Container(
               width: 45, height: 4.5,
               decoration: BoxDecoration(color: cs.outlineVariant, borderRadius: BorderRadius.circular(10)),
             )),
             const SizedBox(height: 24),
 
-            // ─── عنوان ───
             Row(children: [
               Container(
                 padding: const EdgeInsets.all(8),
@@ -238,10 +263,15 @@ class _SessionFormState extends State<_SessionForm> {
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Cairo'),
                 maxLines: 1, overflow: TextOverflow.ellipsis,
               )),
+              if (!isNew)
+                IconButton(
+                  onPressed: _deleteSession,
+                  icon: Icon(Icons.delete_outline_rounded, color: cs.error, size: 22),
+                  tooltip: context.tr('session_btn_delete'),
+                ),
             ]),
             const SizedBox(height: 24),
 
-            // ─── حقول الفورم ───
             SubjectDropdownField(
               selectedSubjectId: _subjectId,
               isArabic: widget.isArabic,
@@ -257,7 +287,6 @@ class _SessionFormState extends State<_SessionForm> {
             RoomTextField(controller: _roomCtrl),
             const SizedBox(height: 28),
 
-            // ─── أزرار ───
             Row(children: [
               Expanded(flex: 2, child: ElevatedButton(
                 style: ElevatedButton.styleFrom(

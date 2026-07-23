@@ -1,5 +1,5 @@
 import 'package:flowva_school/view/supervisor/attendance/attendance_view.dart';
-import 'package:flowva_school/view/supervisor/exam_schedule_view.dart';
+import 'package:flowva_school/view/supervisor/exam/exam_schedule_view.dart';
 import 'package:flowva_school/view/supervisor/statistics_view.dart';
 import 'package:flowva_school/view/mutual/settings/settings_view.dart';
 import 'package:flowva_school/cubit/logout/logout_cubit.dart';
@@ -14,6 +14,7 @@ import '../../cubit/locale/locale_cubit.dart';
 import '../../cubit/locale/locale_state.dart';
 import '../../app_localizations.dart';
 import '../../notifications/screens/notifications_screen.dart';
+import '../../notifications/screens/supervisor_notifications_screen.dart';
 import 'weekly_schedule/weekly_schedule_view.dart';
 import 'custom_bottom_navigation_bar.dart';
 
@@ -240,7 +241,7 @@ class MainLayoutView extends StatelessWidget {
                                       constraints: const BoxConstraints(),
                                       padding: const EdgeInsets.all(6),
                                       onPressed: () {Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
-                                        return NotificationsScreen();
+                                        return SupervisorNotificationsScreen();
                                       }));},
                                     ),
                                     Positioned(

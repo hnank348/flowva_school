@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/cubit/locale/locale_cubit.dart';
 import 'package:flowva_school/cubit/locale/locale_state.dart';
 
-///  context.tr('attendance_title')
 extension AppLocalizations on BuildContext {
   String tr(String key) {
     final strings = read<LocaleCubit>().state.localizedStrings;

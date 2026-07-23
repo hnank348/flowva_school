@@ -1,10 +1,15 @@
 enum NotificationType {
-  absence,        // تنبيه غياب
-  invoice,        // فاتورة مستحقة
-  results,        // نتائج جديدة
-  schoolEvent,    // حدث مدرسي
-  busUpdate,      // تحديث الباص
-  importantAlert  // إعلان مهم
+  absence,          // تنبيه غياب
+  invoice,          // فاتورة مستحقة
+  results,          // نتائج جديدة
+  schoolEvent,      // حدث مدرسي
+  busUpdate,        // تحديث الباص
+  importantAlert,   // إعلان مهم
+  // ✅ أضيفت لدعم إشعارات المشرف بنفس الموديل (بدون تكرار ملفات)
+  teacherAbsence,   // غياب معلم
+  studentIssue,     // ملاحظة سلوكية
+  newRegistration,  // تسجيل جديد
+  scheduleChange,   // تعديل جدول
 }
 
 class NotificationModel {
@@ -14,7 +19,7 @@ class NotificationModel {
   final String time;
   final bool isRead;
   final NotificationType type;
-  final String? studentName;
+  final String? studentName; // يُستخدم أيضاً كاسم عام (معلم/طالب/صف) لإشعارات المشرف
   final List<String> tags;
 
   const NotificationModel({

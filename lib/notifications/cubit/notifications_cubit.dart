@@ -4,14 +4,21 @@ import '../models/notification_model.dart';
 import 'notifications_state.dart';
 
 class NotificationsCubit extends Cubit<NotificationsState> {
-  NotificationsCubit() : super(NotificationsInitial());
+  // ✅ التعديل الوحيد: نسمح بتمرير بيانات مبدئية مختلفة (مثلاً بيانات المشرف)
+  // بدون كسر أي استخدام قديم — إذا ما تم تمرير شي، يشتغل بنفس السلوك الأصلي
+  final List<NotificationModel>? _seedNotifications;
+
+  NotificationsCubit({List<NotificationModel>? seedNotifications})
+      : _seedNotifications = seedNotifications,
+        super(NotificationsInitial());
 
   List<NotificationModel> _notifications = [];
   FilterType _currentFilter = FilterType.all;
 
   void loadNotifications() {
     emit(NotificationsLoading());
-    _notifications = NotificationsLocalDataSource.getFakeNotifications();
+    _notifications = _seedNotifications ??
+        NotificationsLocalDataSource.getFakeNotifications();
     _updateUiState();
   }
 

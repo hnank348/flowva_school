@@ -123,4 +123,21 @@ class ScheduleService {
       throw Exception(e.toString().replaceAll("Exception: ", ""));
     }
   }
+  // في ملف schedule_service.dart
+
+  Future<void> deleteSession(int timetableId) async {
+    try {
+      final response = await _apiService.delete(
+        '${ConstantApi.timetables}/$timetableId',
+      );
+
+      print('🌐 [ScheduleService - Delete] Response Data: ${response.data}');
+
+      if (response.statusCode != 200 || response.data['success'] != true) {
+        throw Exception(response.data['message'] ?? 'فشل حذف الحصة');
+      }
+    } catch (e) {
+      throw Exception(e.toString().replaceAll("Exception: ", ""));
+    }
+  }
 }

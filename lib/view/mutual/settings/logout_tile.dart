@@ -1,9 +1,11 @@
+// logout_tile.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/cubit/logout/logout_cubit.dart';
 import 'package:flowva_school/cubit/logout/logout_state.dart';
-import 'package:flowva_school/app_localizations.dart';
 import 'package:flowva_school/view/auth/login/login_view.dart';
+
+import '../../../widget/custom_confirmation_dialog.dart'; // تعديل مسار المجلد حسب مشروعك
 
 class LogoutTile extends StatelessWidget {
   final ColorScheme colorScheme;
@@ -17,44 +19,19 @@ class LogoutTile extends StatelessWidget {
     required this.label,
   });
 
-  void _confirmLogout(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          context.tr('logout_confirm_title'),
-          style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          context.tr('logout_confirm_body'),
-          style: const TextStyle(fontFamily: 'Cairo', fontSize: 13),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx),
-            child: Text(
-              context.tr('logout_cancel'),
-              style: TextStyle(fontFamily: 'Cairo', color: colorScheme.onSurfaceVariant),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogCtx);
-              context.read<LogoutCubit>().logout();
-            },
-            child: Text(
-              context.tr('logout_confirm_btn'),
-              style: TextStyle(
-                fontFamily: 'Cairo',
-                color: colorScheme.error,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
+  void _confirmLogout(BuildContext context) async {
+    final confirmed = await CustomConfirmationDialog.show(
+      context,
+      titleKey: 'logout_confirm_title',
+      bodyKey: 'logout_confirm_body',
+      confirmBtnKey: 'logout_confirm_btn',
+      cancelBtnKey: 'logout_cancel',
+      isDanger: true,
     );
+
+    if (confirmed == true && context.mounted) {
+      context.read<LogoutCubit>().logout();
+    }
   }
 
   @override
@@ -79,7 +56,8 @@ class LogoutTile extends StatelessWidget {
               backgroundColor: colorScheme.error,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
               margin: const EdgeInsets.all(16),
             ),
           );
@@ -120,8 +98,11 @@ class LogoutTile extends StatelessWidget {
                           color: colorScheme.error,
                         ),
                       )
-                          : Icon(Icons.logout_rounded,
-                          size: 18, color: colorScheme.error),
+                          : Icon(
+                        Icons.logout_rounded,
+                        size: 18,
+                        color: colorScheme.error,
+                      ),
                     ),
                     const SizedBox(width: 13),
                     Expanded(

@@ -1,19 +1,29 @@
 import 'package:flowva_school/cubit/locale/locale_cubit.dart';
 import 'package:flowva_school/cubit/locale/locale_state.dart';
+import 'package:flowva_school/notifications/local_notification_service.dart';
+import 'package:flowva_school/notifications/push_notifications_service.dart';
 import 'package:flowva_school/view/auth/splash/splach_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/cubit/theme/theme_cubit.dart';
 import 'package:flowva_school/cubit/theme/theme_state.dart';
 import 'package:flowva_school/cubit/login/login_cubit.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ تحميل اللغة المحفوظة قبل runApp
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   final localeCubit = LocaleCubit();
   await localeCubit.init();
+  await Future.wait([
+    PushNotificationsService.init(),
+    LocalNotificationService.init()]);
 
   runApp(SchoolManagementApp(localeCubit: localeCubit));
 }
@@ -27,9 +37,15 @@ class SchoolManagementApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()),
-        BlocProvider<LoginCubit>(create: (_) => LoginCubit()),
-        BlocProvider<LocaleCubit>.value(value: localeCubit),
+        BlocProvider<ThemeCubit>(
+          create: (_) => ThemeCubit(),
+        ),
+        BlocProvider<LoginCubit>(
+          create: (_) => LoginCubit(),
+        ),
+        BlocProvider<LocaleCubit>.value(
+          value: localeCubit,
+        ),
       ],
       child: BlocBuilder<ThemeCubit, ThemeState>(
         builder: (context, themeState) {
@@ -40,9 +56,11 @@ class SchoolManagementApp extends StatelessWidget {
             prev.currentLanguage != curr.currentLanguage,
             builder: (context, localeState) {
               return MaterialApp(
-                title: 'نظام إدارة المدرسة',
+                title: 'Flowva School Management',
                 debugShowCheckedModeBanner: false,
-                themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+                themeMode: isDark
+                    ? ThemeMode.dark
+                    : ThemeMode.light,
                 theme: AppTheme.lightTheme,
                 darkTheme: AppTheme.darkTheme,
                 builder: (context, child) => Directionality(

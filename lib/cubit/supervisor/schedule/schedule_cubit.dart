@@ -108,4 +108,23 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       ));
     }
   }
+  // في ملف schedule_cubit.dart
+
+  Future<void> deleteSession({
+    required int timetableId,
+    required int sectionId,
+    required String className,
+    required int semesterId,
+  }) async {
+    try {
+      await _scheduleService.deleteSession(timetableId);
+      // إعادة جلب جدول الشعبة مباشرة بعد نجاح الحذف
+      fetchWeeklySchedule(sectionId, className, semester: semesterId);
+    } catch (e) {
+      emit(ScheduleError(
+        message: "فشل في حذف الحصة: ${e.toString().replaceAll("Exception: ", "")}",
+        selectedClass: className,
+      ));
+    }
+  }
 }
