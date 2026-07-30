@@ -10,7 +10,6 @@ class SubjectsService {
 
   Future<List<SubjectModel>> getSubjects({required String token}) async {
     try {
-      // 🚀 تم تمرير الـ token هنا كمتغير مباشر لضمان تشفيره بالطلب فورا
       final response = await _apiService.get(
         ConstantApi.subjects,
       );
@@ -18,7 +17,7 @@ class SubjectsService {
       print('🌐 [SubjectsService] Response Data: ${response.data}');
       print('📊 [SubjectsService] Status Code: ${response.statusCode}');
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
         final List<dynamic> rawList = response.data['data'];
 
         return rawList.map((json) => SubjectModel.fromJson(json)).toList();

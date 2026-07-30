@@ -9,6 +9,10 @@ import 'package:flowva_school/cubit/theme/theme_state.dart';
 import 'package:flowva_school/cubit/locale/locale_cubit.dart';
 import 'package:flowva_school/cubit/locale/locale_state.dart';
 
+// استيراد الكيوبت الجديد
+import 'package:flowva_school/notifications/cubit/notification_switch_cubit.dart';
+import 'package:flowva_school/notifications/cubit/notifications_cubit.dart';
+
 import '../../../app_localizations.dart';
 import '../../../cubit/change_password/change_password_cubit.dart';
 import 'new_password_view.dart';
@@ -174,20 +178,31 @@ class SettingsView extends StatelessWidget {
 
                                 const SizedBox(height: 22),
 
-                                // ─── الإشعارات ───
+                                // ─── الإشعارات (مربوط بالـ Cubit 100%) ───
                                 SectionLabel(label: context.tr('settings_notifications')),
                                 const SizedBox(height: 8),
                                 SettingsGroup(
                                   isDark:      isDark,
                                   colorScheme: colorScheme,
                                   children: [
-                                    SwitchTile(
-                                      icon: Icons.notifications_outlined,
-                                      title: context.tr('settings_notifications_toggle'),
-                                      value:       true,
-                                      colorScheme: colorScheme,
-                                      isDark:      isDark,
-                                      onChanged:   (_) {},
+                                    BlocBuilder<NotificationSwitchCubit, bool>(
+                                      builder: (context, isEnabled) {
+                                        return SwitchTile(
+                                          icon: isEnabled
+                                              ? Icons.notifications_active_outlined
+                                              : Icons.notifications_off_outlined,
+                                          title: context.tr('settings_notifications_toggle'),
+                                          value: isEnabled,
+                                          colorScheme: colorScheme,
+                                          isDark: isDark,
+                                          onChanged: (val) {
+                                            context.read<NotificationSwitchCubit>().toggleNotification(val);
+                                            if (val) {
+                                              context.read<NotificationsCubit>().loadNotifications();
+                                            }
+                                          },
+                                        );
+                                      },
                                     ),
                                   ],
                                 ),

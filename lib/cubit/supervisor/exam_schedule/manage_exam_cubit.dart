@@ -9,7 +9,6 @@ class ManageExamCubit extends Cubit<ManageExamState> {
 
   ManageExamCubit(this._service) : super(const ManageExamInitial());
 
-  /// 1. تحديث بيانات الامتحان
   Future<void> updateExam(int examId, UpdateExamRequest request) async {
     emit(const ManageExamLoading());
     try {
@@ -20,7 +19,6 @@ class ManageExamCubit extends Cubit<ManageExamState> {
     }
   }
 
-  /// 2. تغيير الحالة (scheduled / completed / ...)
   Future<void> changeStatus(int examId, String status) async {
     emit(const ManageExamLoading());
     try {
@@ -31,7 +29,6 @@ class ManageExamCubit extends Cubit<ManageExamState> {
     }
   }
 
-  /// 3. حذف الامتحان
   Future<void> deleteExam(int examId) async {
     emit(const ManageExamLoading());
     try {

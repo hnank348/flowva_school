@@ -34,7 +34,7 @@ class SubmitAttendanceService {
     required Map<String, int> statusMap,
     required String date,
     required String checkInTime,
-    Map<String, String?> notesMap = const {}, // ✅ جديد
+    Map<String, String?> notesMap = const {},
   }) async {
     final results = <SubmitAttendanceResponse>[];
 
@@ -51,7 +51,7 @@ class SubmitAttendanceService {
           statusId:       statusId,
           date:           date,
           checkInTime:    checkInTime,
-          notes:          notesMap[sid], // ✅ جديد
+          notes:          notesMap[sid],
         ),
       );
       results.add(response);

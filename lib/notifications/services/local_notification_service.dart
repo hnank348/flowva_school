@@ -17,8 +17,7 @@ class LocalNotificationService {
   static final Dio _dio = Dio();
 
   static void onTap(NotificationResponse notificationResponse) {
-    log(notificationResponse.id?.toString() ?? 'no id');
-    log(notificationResponse.payload?.toString() ?? 'no payload');
+    log('Notification Clicked: ${notificationResponse.id}');
     streamController.add(notificationResponse);
   }
 
@@ -33,10 +32,28 @@ class LocalNotificationService {
       onDidReceiveNotificationResponse: onTap,
       onDidReceiveBackgroundNotificationResponse: onTap,
     );
+
+    // 🔴 إنشاء قناة إشعارات جديدة بـ high_importance_channel لكسر كاش القناة القديمة بـ Importance.max
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'high_importance_channel',
+      'High Importance Notifications',
+      description: 'Channel for high priority notifications',
+      importance: Importance.max,
+      playSound: true,
+      enableVibration: true,
+    );
+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
   }
 
   static Future<void> showBasicNotification(RemoteMessage message) async {
     try {
+      final String title = message.notification?.title ?? message.data['title'] ?? 'إشعار جديد';
+      final String body  = message.notification?.body ?? message.data['body'] ?? '';
+
       final String? imageUrl = message.notification?.android?.imageUrl;
 
       Uint8List? imageBytes;
@@ -58,28 +75,29 @@ class LocalNotificationService {
       }
 
       final AndroidNotificationDetails android = AndroidNotificationDetails(
-        'channel_id',
-        'channel_name',
+        'high_importance_channel',
+        'High Importance Notifications',
+        channelDescription: 'Channel for high priority notifications',
         importance: Importance.max,
         priority: Priority.high,
         styleInformation: styleInformation,
         playSound: true,
-        sound: const RawResourceAndroidNotificationSound(
-          'long_notification_sound',
-        ),
+        enableVibration: true,
       );
 
-      final NotificationDetails details =
-      NotificationDetails(android: android);
+      final NotificationDetails details = NotificationDetails(android: android);
+
+      // ID فريد لكل إشعار لتجنب الاستبدال
+      final int notificationId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
       await flutterLocalNotificationsPlugin.show(
-        id: 0,
-        title: message.notification?.title,
-        body: message.notification?.body,
+        id: notificationId,
+        title: title,
+        body: body,
         notificationDetails: details,
       );
     } catch (e) {
-      log('Error showing notification: $e');
+      log('Error showing local notification: $e');
     }
   }
 }

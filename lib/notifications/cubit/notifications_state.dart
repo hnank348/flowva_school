@@ -7,6 +7,7 @@ abstract class NotificationsState {
 }
 
 class NotificationsInitial extends NotificationsState {}
+
 class NotificationsLoading extends NotificationsState {}
 
 class NotificationsLoaded extends NotificationsState {
@@ -17,6 +18,12 @@ class NotificationsLoaded extends NotificationsState {
   final int readCount;
   final int unreadCount;
 
+  /// يظهر شريط تحميل صغير أثناء التحديث في الخلفية (سحب للتحديث / تعليم كمقروء)
+  final bool isRefreshing;
+
+  /// خطأ عملية جانبية (مثلاً فشل الحذف) بدون إخفاء القائمة
+  final String? actionError;
+
   const NotificationsLoaded({
     required this.filteredNotifications,
     required this.currentFilter,
@@ -24,5 +31,12 @@ class NotificationsLoaded extends NotificationsState {
     required this.importantCount,
     required this.readCount,
     required this.unreadCount,
+    this.isRefreshing = false,
+    this.actionError,
   });
+}
+
+class NotificationsError extends NotificationsState {
+  final String message;
+  const NotificationsError(this.message);
 }

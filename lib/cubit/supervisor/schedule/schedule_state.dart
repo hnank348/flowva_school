@@ -16,12 +16,12 @@ class ScheduleLoading extends ScheduleState {
 class ScheduleLoaded extends ScheduleState {
   final List<ScheduleSessionModel> sessions;
   final String selectedClass;
-  final int selectedSemester;
+  //final int selectedSemester;
   final String? semesterName;
   ScheduleLoaded({
     required this.sessions,
     required this.selectedClass,
-    this.selectedSemester = 1,
+   // this.selectedSemester = 1,
     this.semesterName,
   }) : super(selectedClass: selectedClass);
 }

@@ -17,7 +17,7 @@ class LoginService {
       print('🌐 [LoginService] Response Data: ${response.data}');
       print('📊 [LoginService] Status Code: ${response.statusCode}');
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
         final innerData = response.data['data'];
 
         return {

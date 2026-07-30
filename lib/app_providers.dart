@@ -1,4 +1,3 @@
-// app_providers.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -17,6 +16,7 @@ import 'package:flowva_school/services/supervisor/submit_attendance_service.dart
 import 'package:flowva_school/services/supervisor/subjects_service.dart';
 import 'package:flowva_school/services/supervisor/teacher_attendance_service.dart';
 import 'package:flowva_school/services/supervisor/teachers_service.dart';
+import 'package:flowva_school/notifications/services/notification_service.dart';
 
 // Cubits
 import 'package:flowva_school/cubit/change_password/change_password_cubit.dart';
@@ -28,7 +28,7 @@ import 'package:flowva_school/cubit/profile/profile_update_cubit.dart';
 import 'package:flowva_school/cubit/supervisor/classes/classes_cubit.dart';
 import 'package:flowva_school/cubit/supervisor/cubit_supervisor/navigation_cubit.dart';
 import 'package:flowva_school/cubit/supervisor/exam_schedule/exam_schedule_cubit.dart';
-import 'package:flowva_school/cubit/supervisor/exam_schedule/manage_exam_cubit.dart'; // <-- أضف هذا الاستيراد
+import 'package:flowva_school/cubit/supervisor/exam_schedule/manage_exam_cubit.dart';
 import 'package:flowva_school/cubit/supervisor/schedule/schedule_cubit.dart';
 import 'package:flowva_school/cubit/supervisor/student/student_attendance_cubit.dart';
 import 'package:flowva_school/cubit/supervisor/submit_student/submit_attendance_cubit.dart';
@@ -36,6 +36,9 @@ import 'package:flowva_school/cubit/supervisor/submit_teacher/teachers_attendanc
 import 'package:flowva_school/cubit/supervisor/subjects/subjects_cubit.dart';
 import 'package:flowva_school/cubit/supervisor/teachers/teachers_cubit.dart';
 import 'package:flowva_school/cubit/theme/theme_cubit.dart';
+import 'package:flowva_school/notifications/cubit/notifications_cubit.dart';
+
+import 'notifications/cubit/notification_switch_cubit.dart';
 
 class AppProviders {
   static List<BlocProvider> getProviders(String userToken) {
@@ -46,6 +49,7 @@ class AppProviders {
     final changePasswordService = ChangePasswordService(apiService);
     final examService = ExamService(apiService);
     final semesterService = SemesterService(apiService);
+    final notificationService = NotificationService(apiService);
 
     return [
       BlocProvider<NavigationCubit>(create: (_) => NavigationCubit()),
@@ -113,12 +117,19 @@ class AppProviders {
         create: (_) => SubmitTeacherAttendanceCubit(teacherAttendanceService),
       ),
 
-      // ─── إدارة  ───
       BlocProvider<ExamScheduleCubit>(
         create: (_) => ExamScheduleCubit(examService),
       ),
       BlocProvider<ManageExamCubit>(
         create: (_) => ManageExamCubit(examService),
+      ),
+
+      BlocProvider<NotificationsCubit>(
+        create: (_) => NotificationsCubit(notificationService)..loadNotifications(),
+      ),
+
+      BlocProvider<NotificationSwitchCubit>(
+        create: (_) => NotificationSwitchCubit(),
       ),
     ];
   }

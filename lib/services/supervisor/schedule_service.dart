@@ -21,7 +21,7 @@ class ScheduleService {
 
       print('🌐 [ScheduleService - Fetch] Response Data: ${response.data}');
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
         final rawData = response.data['data'];
 
         if (rawData == null) return [];
@@ -115,7 +115,7 @@ class ScheduleService {
       print('🌐 [ScheduleService - Update] Response Data: ${response.data}');
       print('🌐 [ScheduleService - Update] Response Data: ${response.data}');
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
         return ScheduleSessionModel.fromJson(response.data['data']);
       }
       throw Exception(response.data['message'] ?? 'فشل تعديل الحصة');
@@ -123,7 +123,6 @@ class ScheduleService {
       throw Exception(e.toString().replaceAll("Exception: ", ""));
     }
   }
-  // في ملف schedule_service.dart
 
   Future<void> deleteSession(int timetableId) async {
     try {
@@ -131,9 +130,10 @@ class ScheduleService {
         '${ConstantApi.timetables}/$timetableId',
       );
 
+      print('🌐 [ScheduleService - Delete] Response Data: ${response.statusCode}');
       print('🌐 [ScheduleService - Delete] Response Data: ${response.data}');
 
-      if (response.statusCode != 200 || response.data['success'] != true) {
+      if (response.statusCode != 200 || response.statusCode == 201 || response.data['success'] != true) {
         throw Exception(response.data['message'] ?? 'فشل حذف الحصة');
       }
     } catch (e) {

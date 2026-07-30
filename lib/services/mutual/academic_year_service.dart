@@ -12,7 +12,7 @@ class AcademicYearService {
     try {
       final response = await _apiService.get(ConstantApi.currentYear);
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201&& response.data['success'] == true) {
         return AcademicYearModel.fromJson(response.data['data']);
       } else {
         throw Exception(response.data['message'] ?? 'Failed to load current year');

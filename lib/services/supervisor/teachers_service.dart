@@ -17,7 +17,7 @@ class TeachersService {
       print('🌐 [TeachersService] Response Data: ${response.data}');
       print('📊 [TeachersService] Status Code: ${response.statusCode}');
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
         final List<dynamic> rawList = response.data['data'];
 
         return rawList.map((json) => TeacherModel.fromJson(json)).toList();

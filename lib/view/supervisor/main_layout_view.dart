@@ -13,7 +13,12 @@ import '../../cubit/current_year/current_year_state.dart';
 import '../../cubit/locale/locale_cubit.dart';
 import '../../cubit/locale/locale_state.dart';
 import '../../app_localizations.dart';
-import '../../notifications/screens/notifications_screen.dart';
+
+// Cubits الإشعارات
+import '../../notifications/cubit/notifications_cubit.dart';
+import '../../notifications/cubit/notifications_state.dart';
+import '../../notifications/cubit/notification_switch_cubit.dart'; // 👈 إضافة الكيوبت الجديد هنا
+
 import '../../notifications/screens/supervisor_notifications_screen.dart';
 import 'weekly_schedule/weekly_schedule_view.dart';
 import 'custom_bottom_navigation_bar.dart';
@@ -25,12 +30,32 @@ class MainLayoutView extends StatelessWidget {
 
   void _openSettings(BuildContext context) {
     final logoutCubit = context.read<LogoutCubit>();
+    final notificationsCubit = context.read<NotificationsCubit>();
+    final notificationSwitchCubit = context.read<NotificationSwitchCubit>();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider<LogoutCubit>.value(value: logoutCubit),
+            BlocProvider<NotificationsCubit>.value(value: notificationsCubit),
+            BlocProvider<NotificationSwitchCubit>.value(value: notificationSwitchCubit), // 🔴 تمرير الكيوبت لصفحة الإعدادات
+          ],
+          child: SettingsView(userToken: userToken),
+        ),
+      ),
+    );
+  }
+
+  void _openNotifications(BuildContext context) {
+    final notificationsCubit = context.read<NotificationsCubit>();
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => BlocProvider.value(
-          value: logoutCubit,
-          child: SettingsView(userToken: userToken),
+          value: notificationsCubit,
+          child: const SupervisorNotificationsScreen(),
         ),
       ),
     );
@@ -41,11 +66,19 @@ class MainLayoutView extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final List<Widget> pages = [
-      const WeeklyScheduleView(),
-      const ExamScheduleView(),
-      const AttendanceView(),
-      const StatisticsView(),
+    // ✅ التأكد من تحميل الإشعارات مرّة واحدة فقط إذا كانت الحالة Initial
+    final notificationsCubit = context.read<NotificationsCubit>();
+    if (notificationsCubit.state is NotificationsInitial) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notificationsCubit.loadNotifications();
+      });
+    }
+
+    final List<Widget> pages = const [
+      WeeklyScheduleView(),
+      ExamScheduleView(),
+      AttendanceView(),
+      StatisticsView(),
     ];
 
     return BlocBuilder<LocaleCubit, LocaleState>(
@@ -62,14 +95,21 @@ class MainLayoutView extends StatelessWidget {
                   preferredSize: const Size.fromHeight(145),
                   child: Container(
                     padding: const EdgeInsets.only(
-                      top: 8, bottom: 14, right: 16, left: 16,
+                      top: 8,
+                      bottom: 14,
+                      right: 16,
+                      left: 16,
                     ),
                     decoration: BoxDecoration(
                       gradient: isDark
                           ? null
                           : LinearGradient(
-                        begin: isArabic ? Alignment.topRight : Alignment.topLeft,
-                        end: isArabic ? Alignment.bottomLeft : Alignment.bottomRight,
+                        begin: isArabic
+                            ? Alignment.topRight
+                            : Alignment.topLeft,
+                        end: isArabic
+                            ? Alignment.bottomLeft
+                            : Alignment.bottomRight,
                         colors: [
                           colorScheme.primary,
                           colorScheme.primary.withOpacity(0.8),
@@ -149,7 +189,8 @@ class MainLayoutView extends StatelessWidget {
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
@@ -158,7 +199,9 @@ class MainLayoutView extends StatelessWidget {
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
-                                              color: isDark ? colorScheme.onSurface : Colors.white,
+                                              color: isDark
+                                                  ? colorScheme.onSurface
+                                                  : Colors.white,
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
                                               fontFamily: 'Cairo',
@@ -179,13 +222,17 @@ class MainLayoutView extends StatelessWidget {
                                             ),
                                           ),
                                           const SizedBox(height: 4),
-                                          BlocBuilder<CurrentYearCubit, CurrentYearState>(
+                                          BlocBuilder<CurrentYearCubit,
+                                              CurrentYearState>(
                                             builder: (context, yearState) {
                                               String yearContent = '...';
                                               if (yearState is CurrentYearSuccess) {
-                                                yearContent = yearState.currentYear.name;
-                                              } else if (yearState is CurrentYearError) {
-                                                yearContent = context.tr('main_year_error');
+                                                yearContent =
+                                                    yearState.currentYear.name;
+                                              } else if (yearState
+                                              is CurrentYearError) {
+                                                yearContent =
+                                                    context.tr('main_year_error');
                                               }
                                               return Text(
                                                 '${context.tr('main_academic_year')} $yearContent',
@@ -194,7 +241,8 @@ class MainLayoutView extends StatelessWidget {
                                                 style: TextStyle(
                                                   color: isDark
                                                       ? colorScheme.primary
-                                                      : Colors.white.withOpacity(0.75),
+                                                      : Colors.white
+                                                      .withOpacity(0.75),
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.bold,
                                                   fontFamily: 'Cairo',
@@ -210,9 +258,7 @@ class MainLayoutView extends StatelessWidget {
                               },
                             ),
                           ),
-
                           const SizedBox(width: 16),
-
                           Padding(
                             padding: const EdgeInsets.only(bottom: 8),
                             child: Row(
@@ -229,35 +275,71 @@ class MainLayoutView extends StatelessWidget {
                                   onPressed: () => _openSettings(context),
                                 ),
                                 const SizedBox(width: 4),
-                                Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.notifications_none_rounded,
-                                        color: Colors.white,
-                                        size: 24,
-                                      ),
-                                      constraints: const BoxConstraints(),
-                                      padding: const EdgeInsets.all(6),
-                                      onPressed: () {Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
-                                        return SupervisorNotificationsScreen();
-                                      }));},
-                                    ),
-                                    Positioned(
-                                      top: 6,
-                                      right: isArabic ? 6 : null,
-                                      left: isArabic ? null : 6,
-                                      child: Container(
-                                        width: 6,
-                                        height: 6,
-                                        decoration: BoxDecoration(
-                                          color: colorScheme.error,
-                                          shape: BoxShape.circle,
+                                BlocBuilder<NotificationsCubit,
+                                    NotificationsState>(
+                                  builder: (context, notifState) {
+                                    final unread = notifState is NotificationsLoaded
+                                        ? notifState.unreadCount
+                                        : 0;
+
+                                    return Stack(
+                                      clipBehavior: Clip.none,
+                                      alignment: Alignment.center,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.notifications_none_rounded,
+                                            color: Colors.white,
+                                            size: 24,
+                                          ),
+                                          constraints: const BoxConstraints(),
+                                          padding: const EdgeInsets.all(6),
+                                          onPressed: () =>
+                                              _openNotifications(context),
                                         ),
-                                      ),
-                                    ),
-                                  ],
+                                        if (unread > 0)
+                                          Positioned(
+                                            top: 0,
+                                            right: isArabic ? null : 0,
+                                            left: isArabic ? 0 : null,
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 4,
+                                                vertical: 1,
+                                              ),
+                                              constraints: const BoxConstraints(
+                                                minWidth: 16,
+                                                minHeight: 16,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: colorScheme.error,
+                                                shape: BoxShape.rectangle,
+                                                borderRadius:
+                                                BorderRadius.circular(10),
+                                                border: Border.all(
+                                                  color: isDark
+                                                      ? colorScheme
+                                                      .surfaceContainer
+                                                      : colorScheme.primary,
+                                                  width: 1.5,
+                                                ),
+                                              ),
+                                              alignment: Alignment.center,
+                                              child: Text(
+                                                unread > 99 ? '99+' : '$unread',
+                                                style: TextStyle(
+                                                  color: colorScheme.onError,
+                                                  fontSize: 9,
+                                                  height: 1.2,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'Cairo',
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    );
+                                  },
                                 ),
                               ],
                             ),

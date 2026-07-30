@@ -11,8 +11,6 @@ class ExamService {
 
   ExamService(this._apiService);
 
-  /// جلب جدول امتحانات شعبة معينة بفصل دراسي محدد
-  /// GET /api/sections/{id}/exams  body: {"semester_id": ..}
   Future<List<ExamModel>> getExamsBySection({
     required int sectionId,
     required int semesterId,
@@ -22,6 +20,9 @@ class ExamService {
         ConstantApi.sectionExams(sectionId),
         data: {'semester_id': semesterId},
       );
+
+      print('🌐 [GetExamService] Create Response: ${response.data}');
+      print('📊 [GetExamService] Status Code: ${response.statusCode}');
 
       final data = response.data;
       if (data is Map<String, dynamic> && data['success'] == true) {
@@ -44,8 +45,8 @@ class ExamService {
         data: formData,
       );
 
-      print('🌐 [ExamService] Create Response: ${response.data}');
-      print('📊 [ExamService] Status Code: ${response.statusCode}');
+      print('🌐 [CreateExamService] Create Response: ${response.data}');
+      print('📊 [CreateExamService] Status Code: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data;
@@ -65,7 +66,10 @@ class ExamService {
         data: formData,
       );
 
-      if (response.statusCode == 200) {
+      print('🌐 [UpdateExamService] Create Response: ${response.data}');
+      print('📊 [UpdateExamService] Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data;
         if (data is Map<String, dynamic> && data['success'] == true) {
           return ExamModel.fromJson(data['data']);
@@ -77,7 +81,6 @@ class ExamService {
     }
   }
 
-  /// 2. تغيير حالة الامتحان (PATCH /api/exams/{id}/status)
   Future<void> changeExamStatus(int examId, String status) async {
     try {
       final formData = FormData.fromMap({'status': status});
@@ -86,7 +89,10 @@ class ExamService {
         data: formData,
       );
 
-      if (response.statusCode == 200) {
+      print('🌐 [ChangeExamStatus] Create Response: ${response.data}');
+      print('📊 [ChangeExamStatus] Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data;
         if (data is Map<String, dynamic> && data['success'] == true) return;
       }
@@ -96,12 +102,13 @@ class ExamService {
     }
   }
 
-  /// 3. حذف امتحان (DELETE /api/exams/{id})
   Future<void> deleteExam(int examId) async {
     try {
       final response = await _apiService.delete(ConstantApi.examById(examId));
 
-      if (response.statusCode == 200) {
+      print('🌐 [DeleteExam] Create Response: ${response.data}');
+      print('📊 [DeleteExam] Status Code: ${response.statusCode}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data;
         if (data is Map<String, dynamic> && data['success'] == true) return;
       }

@@ -21,7 +21,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
     emit(ScheduleLoading(selectedClass: className));
     try {
       int activeSemesterId = semester ?? 1;
-      String activeSemesterName = "Second Semester";
+      String activeSemesterName = "First Semester";
 
       if (semester == null) {
         final currentSemesterData = await _semesterService.getCurrentSemester();
@@ -38,7 +38,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       emit(ScheduleLoaded(
         sessions: sessions,
         selectedClass: className,
-        selectedSemester: activeSemesterId,
+       // selectedSemester: activeSemesterId,
         semesterName: activeSemesterName,
       ));
     } catch (e) {
@@ -108,7 +108,6 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       ));
     }
   }
-  // في ملف schedule_cubit.dart
 
   Future<void> deleteSession({
     required int timetableId,
@@ -118,7 +117,6 @@ class ScheduleCubit extends Cubit<ScheduleState> {
   }) async {
     try {
       await _scheduleService.deleteSession(timetableId);
-      // إعادة جلب جدول الشعبة مباشرة بعد نجاح الحذف
       fetchWeeklySchedule(sectionId, className, semester: semesterId);
     } catch (e) {
       emit(ScheduleError(

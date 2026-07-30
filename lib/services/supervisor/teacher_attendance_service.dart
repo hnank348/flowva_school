@@ -12,7 +12,7 @@ class TeacherAttendanceService {
     try {
       final response = await _apiService.get(ConstantApi.teachers);
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
         final List<dynamic> raw = response.data['data'];
         return raw.map((json) => TeacherModel.fromJson(json)).toList();
       }
@@ -31,7 +31,7 @@ class TeacherAttendanceService {
         queryParameters: {'date': date},
       );
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
         final List<dynamic> raw = response.data['data'] ?? [];
         return raw.map((j) => TeacherAttendanceRecord.fromJson(j)).toList();
       }
@@ -41,22 +41,21 @@ class TeacherAttendanceService {
     }
   }
 
-  /// ✅ تعديل سجل حضور معلم واحد (PUT) - أضفنا notes
   Future<void> updateAttendanceRecord({
     required int attendanceId,
     required int statusId,
-    String? notes, // ✅ جديد
+    String? notes,
   }) async {
     try {
       final response = await _apiService.put(
         ConstantApi.updateTeacherAttendance(attendanceId),
         data: {
           'status_id': statusId,
-          if (notes != null) 'notes': notes, // ✅ جديد
+          if (notes != null) 'notes': notes,
         },
       );
 
-      if (response.statusCode == 200) return;
+      if (response.statusCode == 200 || response.statusCode == 201) return;
       throw Exception(response.data['message'] ?? 'فشل تعديل الحضور');
     } catch (e) {
       throw Exception(e.toString().replaceAll('Exception: ', ''));
@@ -83,7 +82,7 @@ class TeacherAttendanceService {
     required Map<int, int> statusMap, // teacherId → statusId
     required String date,
     required String checkInTime,
-    Map<int, String?> notesMap = const {}, // ✅ جديد
+    Map<int, String?> notesMap = const {},
   }) async {
     for (final teacher in teachers) {
       final statusId = statusMap[teacher.id] ?? 1;
@@ -94,7 +93,7 @@ class TeacherAttendanceService {
           date:        date,
           checkInTime: checkInTime,
           lateMinutes: statusId == 3 ? 0 : null,
-          notes:       notesMap[teacher.id], // ✅ جديد
+          notes:       notesMap[teacher.id],
         ),
       );
     }

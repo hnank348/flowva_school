@@ -17,7 +17,7 @@ class ProfileService {
       print('🌐 [ProfileService] Response Data: ${response.data}');
       print('📊 [ProfileService] Status Code: ${response.statusCode}');
 
-      if (response.statusCode == 200 && response.data != null) {
+      if (response.statusCode == 200 || response.statusCode == 201 && response.data != null) {
         final data = response.data as Map<String, dynamic>;
         if (data['success'] == true && data['data'] != null) {
           return UserModel.fromJson(data['data'] as Map<String, dynamic>);
@@ -70,7 +70,7 @@ class ProfileService {
       print('🌐 [ProfileService] Update Response: ${response.data}');
       print('📊 [ProfileService] Status Code: ${response.statusCode}');
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
         return;
       }
 

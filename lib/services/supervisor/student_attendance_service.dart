@@ -18,7 +18,7 @@ class StudentAttendanceService {
         '${ConstantApi.section}/$sectionId/students',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
         final List<dynamic> raw = response.data['data'];
         return raw.map((j) => StudentAttendanceModel.fromJson(j)).toList();
       }
@@ -37,7 +37,7 @@ class StudentAttendanceService {
         ConstantApi.sectionAttendance(sectionId),
         queryParameters: {'date': date},
       );
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
         final List<dynamic> raw = response.data['data'] ?? [];
         return raw.map((j) => StudentAttendanceRecord.fromJson(j)).toList();
       }
@@ -47,21 +47,20 @@ class StudentAttendanceService {
     }
   }
 
-  /// ✅ أضفنا notes
   Future<void> updateAttendanceRecord({
     required int attendanceId,
     required int statusId,
-    String? notes, // ✅ جديد
+    String? notes,
   }) async {
     try {
       final response = await _apiService.put(
         ConstantApi.updateStudentAttendance(attendanceId),
         data: {
           'status_id': statusId,
-          if (notes != null) 'notes': notes, // ✅ جديد
+          if (notes != null) 'notes': notes,
         },
       );
-      if (response.statusCode == 200) return;
+      if (response.statusCode == 200 || response.statusCode == 201) return;
       throw Exception(response.data['message'] ?? 'فشل تعديل الحضور');
     } catch (e) {
       throw Exception(e.toString().replaceAll('Exception: ', ''));

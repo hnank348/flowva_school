@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/app_theme.dart';
+
 import '../cubit/notifications_cubit.dart';
 import '../cubit/notifications_state.dart';
 import '../widgets/notification_filter_tabs.dart';
@@ -8,108 +9,196 @@ import '../widgets/notification_item_card.dart';
 import '../widgets/notification_statistics_cards.dart';
 import '../widgets/notifications_empty_view.dart';
 
-class NotificationsScreen extends StatelessWidget {
+/// ✅ الشاشة لم تعد تنشئ ApiService/NotificationService بنفسها.
+/// الـ NotificationsCubit يأتي من AppProviders (يحمل توكن اليوزر بعد تسجيل الدخول).
+class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
+
+  @override
+  State<NotificationsScreen> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends State<NotificationsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // نجلب البيانات عند فتح الشاشة فقط إذا لم تُجلب مسبقاً
+    final cubit = context.read<NotificationsCubit>();
+    if (cubit.state is NotificationsInitial) {
+      cubit.loadNotifications();
+    } else {
+      cubit.refresh();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return BlocProvider(
-      create: (context) => NotificationsCubit()..loadNotifications(),
-      child: Directionality(
-        textDirection: TextDirection.rtl, 
-        child: Scaffold(
-          backgroundColor: isDark ? AppColors.darkBackground : AppColors.backgroundColor,
-          body: SafeArea(
-            child: BlocBuilder<NotificationsCubit, NotificationsState>(
-              builder: (context, state) {
-                if (state is NotificationsLoading) {
-                  return const Center(child: CircularProgressIndicator.adaptive());
-                }
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor:
+            isDark ? AppColors.darkBackground : AppColors.backgroundColor,
+        body: SafeArea(
+          child: BlocConsumer<NotificationsCubit, NotificationsState>(
+            listenWhen: (prev, curr) =>
+                curr is NotificationsLoaded && curr.actionError != null,
+            listener: (context, state) {
+              final message = (state as NotificationsLoaded).actionError!;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: AppColors.errorRed,
+                  content: Text(message,
+                      style: const TextStyle(fontFamily: 'Cairo')),
+                ),
+              );
+            },
+            builder: (context, state) {
+              final cubit = context.read<NotificationsCubit>();
 
-                if (state is NotificationsLoaded) {
-                  return ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSizes.paddingMedium),
-                    children: [
-                      const SizedBox(height: 16),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 22),
-                            color: isDark ? Colors.white : AppColors.primaryText,
-                            onPressed: () => Navigator.of(context).pop(),
+              if (state is NotificationsLoading || state is NotificationsInitial) {
+                return const Center(child: CircularProgressIndicator.adaptive());
+              }
+
+              if (state is NotificationsError) {
+                return _ErrorView(
+                  message: state.message,
+                  onRetry: cubit.loadNotifications,
+                );
+              }
+
+              state as NotificationsLoaded;
+
+              return RefreshIndicator.adaptive(
+                onRefresh: cubit.refresh,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.paddingMedium),
+                  children: [
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                              size: 22),
+                          color: isDark ? Colors.white : AppColors.primaryText,
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'مركز الإشعارات',
+                                style: AppStyles.titleStyle.copyWith(
+                                  fontSize: AppSizes.fontSizeSubtitle + 3.0,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppColors.primaryText,
+                                ),
+                              ),
+                              Text(
+                                'جميع التنبيهات والرسائل الخاصة بأبنائك',
+                                style: TextStyle(
+                                  fontFamily: 'Cairo',
+                                  fontSize: 11,
+                                  color: isDark
+                                      ? AppColors.darkSecondaryText
+                                      : AppColors.secondaryText,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'مركز الإشعارات',
-                                  style: AppStyles.titleStyle.copyWith(
-                                    fontSize: AppSizes.fontSizeSubtitle + 3.0,
-                                    color: isDark ? Colors.white : AppColors.primaryText,
-                                  ),
-                                ),
-                                Text(
-                                  'جميع التنبيهات والرسائل الخاصة بأبنائك',
-                                  style: TextStyle(
-                                    fontFamily: 'Cairo',
-                                    fontSize: AppSizes.fontSizeLabel +1.0 ,
-                                    color: isDark ? AppColors.darkSecondaryText : AppColors.secondaryText,
-                                  ),
-                                ),
-                              ],
+                        ),
+                        if (state.unreadCount > 0)
+                          TextButton(
+                            onPressed: cubit.markAllAsRead,
+                            child: const Text(
+                              'تعليم الكل كمقروء',
+                              style: TextStyle(
+                                  fontFamily: 'Cairo',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
-                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    if (state.isRefreshing)
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 8),
+                        child: LinearProgressIndicator(minHeight: 2),
                       ),
-                      
-                      const SizedBox(height: 15),
-                      NotificationStatisticsCards(
-                        total: state.totalCount,
-                        important: state.importantCount,
-                        read: state.readCount,
-                        unread: state.unreadCount,
+                    NotificationStatisticsCards(
+                      total: state.totalCount,
+                      important: state.importantCount,
+                      read: state.readCount,
+                      unread: state.unreadCount,
+                    ),
+                    const SizedBox(height: 16),
+                    NotificationFilterTabs(
+                      selectedFilter: state.currentFilter,
+                      onFilterChanged: cubit.changeFilter,
+                    ),
+                    const SizedBox(height: 16),
+                    if (state.filteredNotifications.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 48),
+                        child: NotificationsEmptyView(),
+                      )
+                    else
+                      ...state.filteredNotifications.map(
+                        (n) => NotificationItemCard(
+                          notification: n,
+                          onMarkAsRead: () => cubit.markAsRead(n.id),
+                          onDelete: () => cubit.deleteNotification(n.id),
+                        ),
                       ),
-                      
-                      const SizedBox(height: 16),
-                      NotificationFilterTabs(
-                        selectedFilter: state.currentFilter,
-                        onFilterChanged: (filter) {
-                          context.read<NotificationsCubit>().changeFilter(filter);
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      state.filteredNotifications.isEmpty
-                          ? const NotificationsEmptyView()
-                          : ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: state.filteredNotifications.length,
-                              itemBuilder: (context, index) {
-                                final notification = state.filteredNotifications[index];
-                                return NotificationItemCard(
-                                  notification: notification,
-                                  onDelete: () {
-                                    context.read<NotificationsCubit>().deleteNotification(notification.id);
-                                  },
-                                  onMarkAsRead: () {
-                                    context.read<NotificationsCubit>().markAsRead(notification.id);
-                                  },
-                                );
-                              },
-                            ),
-                      const SizedBox(height: 24),
-                    ],
-                  );
-                }
-                return const NotificationsEmptyView();
-              },
-            ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              );
+            },
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _ErrorView({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSizes.paddingExtraLarge),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.wifi_off_rounded,
+                size: 56, color: AppColors.errorRed),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontFamily: 'Cairo', fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: const Text('إعادة المحاولة',
+                  style: TextStyle(fontFamily: 'Cairo')),
+            ),
+          ],
         ),
       ),
     );

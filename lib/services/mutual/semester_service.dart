@@ -10,10 +10,9 @@ class SemesterService {
 
   Future<SemesterModel> getCurrentSemester() async {
     try {
-      // استدعاء الـ endpoint الخاص بالفصل الحالي النشط
       final response = await _apiService.get(ConstantApi.semestersCurrent);
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201&& response.data['success'] == true) {
         return SemesterModel.fromJson(response.data['data']);
       } else {
         throw Exception(response.data['message'] ?? 'Failed to load current semester');

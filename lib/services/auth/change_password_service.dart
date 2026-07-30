@@ -26,7 +26,7 @@ class ChangePasswordService {
       print('🌐 [ChangePasswordService] Response: ${response.data}');
       print('📊 [ChangePasswordService] Status: ${response.statusCode}');
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
         return {
           'success': true,
           'message': response.data['message'] ?? 'Password changed successfully',

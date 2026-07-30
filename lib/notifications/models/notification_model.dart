@@ -1,57 +1,53 @@
-enum NotificationType {
-  absence,          // تنبيه غياب
-  invoice,          // فاتورة مستحقة
-  results,          // نتائج جديدة
-  schoolEvent,      // حدث مدرسي
-  busUpdate,        // تحديث الباص
-  importantAlert,   // إعلان مهم
-  // ✅ أضيفت لدعم إشعارات المشرف بنفس الموديل (بدون تكرار ملفات)
-  teacherAbsence,   // غياب معلم
-  studentIssue,     // ملاحظة سلوكية
-  newRegistration,  // تسجيل جديد
-  scheduleChange,   // تعديل جدول
-}
-
 class NotificationModel {
-  final String id;
+  final int id;
+  final int userId;
   final String title;
   final String body;
-  final String time;
+  final String type;
+  final List<String> data;
   final bool isRead;
-  final NotificationType type;
-  final String? studentName; // يُستخدم أيضاً كاسم عام (معلم/طالب/صف) لإشعارات المشرف
-  final List<String> tags;
+  final String? readAt;
+  final String createdAt;
 
   const NotificationModel({
     required this.id,
+    required this.userId,
     required this.title,
     required this.body,
-    required this.time,
-    required this.isRead,
     required this.type,
-    this.studentName,
-    this.tags = const [],
+    required this.data,
+    required this.isRead,
+    required this.readAt,
+    required this.createdAt,
   });
 
-  NotificationModel copyWith({
-    String? id,
-    String? title,
-    String? body,
-    String? time,
-    bool? isRead,
-    NotificationType? type,
-    String? studentName,
-    List<String>? tags,
-  }) {
+  factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      body: body ?? this.body,
-      time: time ?? this.time,
+      id:        json['id'] as int,
+      userId:    json['user_id'] as int? ?? 0,
+      title:     json['title'] ?? '',
+      body:      json['body'] ?? '',
+      type:      json['type'] ?? 'General',
+      data:      (json['data'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList(),
+      isRead:    json['is_read'] == true,
+      readAt:    json['read_at'],
+      createdAt: json['created_at'] ?? '',
+    );
+  }
+
+  NotificationModel copyWith({bool? isRead}) {
+    return NotificationModel(
+      id: id,
+      userId: userId,
+      title: title,
+      body: body,
+      type: type,
+      data: data,
       isRead: isRead ?? this.isRead,
-      type: type ?? this.type,
-      studentName: studentName ?? this.studentName,
-      tags: tags ?? this.tags,
+      readAt: readAt,
+      createdAt: createdAt,
     );
   }
 }

@@ -1,6 +1,6 @@
 class ConstantApi {
   //static const String url              = "127.0.0.1";
-  static const String url              = "192.168.10.209";
+  static const String url              = "192.168.10.210";
   static const String baseUrl          = 'http://$url:8000';
   static const String baseApi          = '$baseUrl/api';
   static const String baseApiV1        = '$baseUrl/api/v1';
@@ -37,4 +37,12 @@ class ConstantApi {
   static const String exams = '$baseApi/exams';
   static String examById(int examId) => '$baseApi/exams/$examId';
   static String examStatus(int examId) => '$baseApi/exams/$examId/status';
+
+  static const String notifications = '$baseApi/Notifications';
+
+  static String markNotificationRead(int id) => '$notifications/$id/read';
+  static const String markAllNotificationsRead = '$notifications/read-all';
+  static String destroyNotification(int id) => '$notifications/$id';
+  static const String unreadNotifications = '$notifications/unread';
+  static const String unreadNotificationsCount = '$notifications/unread-count';
 }

@@ -8,8 +8,8 @@ class ApiService {
   final Dio _dio = Dio(
     BaseOptions(
       baseUrl: ConstantApi.baseApi,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -37,7 +37,6 @@ class ApiService {
     log('⚡️ [ApiService] Forced Token Update: Bearer $token');
   }
 
-  // ✅ أضفنا "data" اختياري لدعم GET مع body (بعض الـ endpoints تستقبل فلاتر كـ JSON body)
   Future<Response> get(
       String path, {
         Map<String, dynamic>? queryParameters,
@@ -91,7 +90,6 @@ class ApiService {
     }
   }
 
-  // أضف هذه الميثودز داخل كلاس ApiService[cite: 14]:
 
   Future<Response> patch(String path, {Object? data, Options? options}) async {
     try {

@@ -1,7 +1,5 @@
 import 'package:flowva_school/cubit/locale/locale_cubit.dart';
 import 'package:flowva_school/cubit/locale/locale_state.dart';
-import 'package:flowva_school/notifications/local_notification_service.dart';
-import 'package:flowva_school/notifications/push_notifications_service.dart';
 import 'package:flowva_school/view/auth/splash/splach_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,6 +8,8 @@ import 'package:flowva_school/cubit/theme/theme_state.dart';
 import 'package:flowva_school/cubit/login/login_cubit.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'notifications/services/local_notification_service.dart';
+import 'notifications/services/push_notifications_service.dart';
 import 'theme.dart';
 
 void main() async {

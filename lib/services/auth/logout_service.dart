@@ -15,7 +15,7 @@ class LogoutService {
       print('🌐 [LogoutService] Response Data: ${response.data}');
       print('📊 [LogoutService] Status Code: ${response.statusCode}');
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
         return {'success': true, 'message': response.data['message'] ?? ''};
       }
 
