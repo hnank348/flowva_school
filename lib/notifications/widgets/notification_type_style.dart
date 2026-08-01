@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flowva_school/app_localizations.dart';
 
 class NotificationTypeStyle {
   final IconData icon;
   final Color color;
-  final bool important; // هل هذا النوع يُحتسب ضمن "التنبيهات المهمة"
+  final bool important;
 
   const NotificationTypeStyle({
     required this.icon,
@@ -12,7 +13,6 @@ class NotificationTypeStyle {
   });
 }
 
-/// ✅ نقطة التوسعة الوحيدة — عند ظهور نوع جديد من السيرفر، فقط أضف حالة هنا
 NotificationTypeStyle resolveNotificationTypeStyle(String type) {
   switch (type.toLowerCase().trim()) {
     case 'announcement':
@@ -48,16 +48,22 @@ NotificationTypeStyle resolveNotificationTypeStyle(String type) {
   }
 }
 
-/// تحويل createdAt القادم من السيرفر إلى نص عربي مقروء
-String formatNotificationTime(String createdAt) {
+/// تحويل createdAt القادم من السيرفر إلى نص مترجم بناءً على لغة التطبيق
+String formatNotificationTime(String createdAt, BuildContext context) {
   final date = DateTime.tryParse(createdAt)?.toLocal();
   if (date == null) return createdAt;
 
   final diff = DateTime.now().difference(date);
-  if (diff.inSeconds < 60) return 'الآن';
-  if (diff.inMinutes < 60) return 'قبل ${diff.inMinutes} دقيقة';
-  if (diff.inHours < 24) return 'قبل ${diff.inHours} ساعة';
-  if (diff.inDays < 7) return 'قبل ${diff.inDays} يوم';
+  if (diff.inSeconds < 60) return context.tr('notif_time_now');
+  if (diff.inMinutes < 60) {
+    return context.tr('notif_time_minutes_ago').replaceAll('{minutes}', '${diff.inMinutes}');
+  }
+  if (diff.inHours < 24) {
+    return context.tr('notif_time_hours_ago').replaceAll('{hours}', '${diff.inHours}');
+  }
+  if (diff.inDays < 7) {
+    return context.tr('notif_time_days_ago').replaceAll('{days}', '${diff.inDays}');
+  }
 
   String two(int v) => v.toString().padLeft(2, '0');
   return '${two(date.day)}/${two(date.month)}/${date.year}';

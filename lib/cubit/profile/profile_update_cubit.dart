@@ -11,7 +11,23 @@ class ProfileUpdateCubit extends Cubit<ProfileUpdateState> {
   final ProfileCubit _profileCubit;
 
   ProfileUpdateCubit(this._profileService, this._profileCubit)
-      : super(ProfileUpdateInitial());
+      : super(const ProfileUpdateInitial());
+
+  // 🟢 تفعيل أو إلغاء وضع التعديل
+  void toggleEditing(bool isEditing) {
+    emit(ProfileUpdateInitial(
+      isEditing: isEditing,
+      pickedImage: isEditing ? state.pickedImage : null,
+    ));
+  }
+
+  // 🟢 حفظ الصورة المحددة من المعرض بالـ State
+  void setPickedImage(File image) {
+    emit(ProfileUpdateInitial(
+      isEditing: true,
+      pickedImage: image,
+    ));
+  }
 
   Future<void> updateProfile({
     required int userId,
@@ -22,9 +38,9 @@ class ProfileUpdateCubit extends Cubit<ProfileUpdateState> {
     String? lastNameAr,
     String? phone,
     String? dateOfBirth,
-    File? avatar,
   }) async {
-    emit(ProfileUpdateLoading());
+    final currentImage = state.pickedImage;
+    emit(ProfileUpdateLoading(isEditing: state.isEditing, pickedImage: currentImage));
 
     try {
       await _profileService.updateUserProfile(
@@ -35,16 +51,20 @@ class ProfileUpdateCubit extends Cubit<ProfileUpdateState> {
         lastNameAr:   lastNameAr?.isNotEmpty == true ? lastNameAr : null,
         phone:        phone?.isNotEmpty == true ? phone : null,
         dateOfBirth:  dateOfBirth?.isNotEmpty == true ? dateOfBirth : null,
-        avatar:       avatar,
+        avatar:       currentImage,
       );
 
       await _profileCubit.fetchUserProfile(token: userToken);
 
-      emit(ProfileUpdateSuccess('تم تحديث الملف الشخصي بنجاح ✓'));
+      emit(const ProfileUpdateSuccess('تم تحديث الملف الشخصي بنجاح ✓'));
     } catch (e) {
-      emit(ProfileUpdateError(e.toString()));
+      emit(ProfileUpdateError(
+        e.toString().replaceAll('Exception: ', ''),
+        isEditing: true,
+        pickedImage: currentImage,
+      ));
     }
   }
 
-  void reset() => emit(ProfileUpdateInitial());
+  void reset() => emit(const ProfileUpdateInitial());
 }

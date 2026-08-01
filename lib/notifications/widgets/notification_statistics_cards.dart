@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flowva_school/app_theme.dart';
+import 'package:flowva_school/app_localizations.dart';
 
 class NotificationStatisticsCards extends StatelessWidget {
   final int total;
@@ -20,7 +21,7 @@ class NotificationStatisticsCards extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         int crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
-        
+
         return GridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -29,10 +30,10 @@ class NotificationStatisticsCards extends StatelessWidget {
           mainAxisSpacing: AppSizes.paddingSmall,
           childAspectRatio: constraints.maxWidth > 600 ? 2.5 : 2.1,
           children: [
-            _buildStatCard(context, title: 'إجمالي الإشعارات', value: total.toString(), icon: Icons.notifications_rounded, baseColor: Colors.blue),
-            _buildStatCard(context, title: 'تنبيهات مهمة', value: important.toString(), icon: Icons.warning_amber_rounded, baseColor: AppColors.errorRed),
-            _buildStatCard(context, title: 'غير مقروءة', value: unread.toString(), icon: Icons.mark_chat_unread_rounded, baseColor: Colors.orange),
-            _buildStatCard(context, title: 'مقروءة', value: read.toString(), icon: Icons.mark_chat_read_rounded, baseColor: Colors.green),
+            _buildStatCard(context, title: context.tr('notif_stat_total'), value: total.toString(), icon: Icons.notifications_rounded, baseColor: Colors.blue),
+            _buildStatCard(context, title: context.tr('notif_stat_important'), value: important.toString(), icon: Icons.warning_amber_rounded, baseColor: AppColors.errorRed),
+            _buildStatCard(context, title: context.tr('notif_stat_unread'), value: unread.toString(), icon: Icons.mark_chat_unread_rounded, baseColor: Colors.orange),
+            _buildStatCard(context, title: context.tr('notif_stat_read'), value: read.toString(), icon: Icons.mark_chat_read_rounded, baseColor: Colors.green),
           ],
         );
       },

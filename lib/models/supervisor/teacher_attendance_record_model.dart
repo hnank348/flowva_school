@@ -1,3 +1,5 @@
+import '../../services/constant_api.dart';
+
 class TeacherAttendanceRecord {
   final int id;
   final String date;
@@ -15,7 +17,6 @@ class TeacherAttendanceRecord {
   final String statusNameAr;
   final String statusCode;
   final String statusColor;
-
 
   const TeacherAttendanceRecord({
     required this.id,
@@ -39,25 +40,24 @@ class TeacherAttendanceRecord {
   factory TeacherAttendanceRecord.fromJson(Map<String, dynamic> json) {
     final teacher = json['teacher'] as Map<String, dynamic>;
     final status  = json['status']  as Map<String, dynamic>;
+
     return TeacherAttendanceRecord(
-      id:              json['id'] as int,
-      date:            json['date'] ?? '',
-      checkInTime:     json['check_in_time'],
-      checkOutTime:    json['check_out_time'],
-      lateMinutes:     json['late_minutes'] ?? 0,
-      notes:           json['notes'],
-      teacherId:       teacher['id'] as int,
-      employeeId:      teacher['employee_id'] ?? '',
-      teacherFullName: teacher['full_name'] ?? '',
-      teacherAvatar:   teacher['avatar'],
-      statusId:        status['id'] as int,
-      statusName:      status['name'] ?? '',
-      statusNameAr:    status['name_ar'] ?? '',
-      statusCode:      status['code'] ?? '',
-      statusColor:     status['color'] ?? '#64748B',
+      id:                json['id'] as int,
+      date:              json['date'] ?? '',
+      checkInTime:       json['check_in_time'],
+      checkOutTime:      json['check_out_time'],
+      lateMinutes:       json['late_minutes'] ?? 0,
+      notes:             json['notes'],
+      teacherId:         teacher['id'] as int,
+      employeeId:        teacher['employee_id'] ?? '',
+      teacherFullName:   teacher['full_name'] ?? '',
+      teacherAvatar:     ConstantApi.getImageUrl(teacher['avatar']), // 🔴 هنا التعديل
+      statusId:          status['id'] as int,
+      statusName:        status['name'] ?? '',
+      statusNameAr:      status['name_ar'] ?? '',
+      statusCode:        status['code'] ?? '',
+      statusColor:       status['color'] ?? '#64748B',
       teacherFullNameAr: teacher['full_name_ar'] ?? '',
-
-
     );
   }
 }

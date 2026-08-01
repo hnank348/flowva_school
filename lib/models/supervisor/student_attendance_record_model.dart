@@ -1,4 +1,5 @@
-// موديل لسجل الحضور المسترجع من السيرفر (GET)
+import '../../services/constant_api.dart';
+
 class StudentAttendanceRecord {
   final int id;
   final String date;
@@ -33,6 +34,7 @@ class StudentAttendanceRecord {
   factory StudentAttendanceRecord.fromJson(Map<String, dynamic> json) {
     final student = json['student'] as Map<String, dynamic>;
     final status  = json['status']  as Map<String, dynamic>;
+
     return StudentAttendanceRecord(
       id:              json['id'] as int,
       date:            json['date'] ?? '',
@@ -41,7 +43,7 @@ class StudentAttendanceRecord {
       notes:           json['notes'],
       studentId:       student['id'] as int,
       studentFullName: student['full_name'] ?? '',
-      studentAvatar:   student['avatar'],
+      studentAvatar:   ConstantApi.getImageUrl(student['avatar']), // 🔴 هنا التعديل
       statusId:        status['id'] as int,
       statusName:      status['name'] ?? '',
       statusNameAr:    status['name_ar'] ?? '',

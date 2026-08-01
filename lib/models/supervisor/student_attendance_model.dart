@@ -6,7 +6,7 @@ class StudentAttendanceModel {
   final String lastName;
   final String fullNameAr;
   final String fullName;
-  final String? notes; // ✅ جديد
+  final String? notes;
 
   StudentAttendanceModel({
     required this.id,

@@ -33,6 +33,9 @@ class ConstantApi {
 
   static String changePassword(int userId) => '$baseApi/users/$userId/change-password';
 
+  // 🔴 إضافة رابط تعديل الصورة منفصلاً
+  static String updateUserAvatar(int userId) => '$baseApi/users/image/$userId';
+
   static String sectionExams(int sectionId) => '$baseApi/sections/$sectionId/exams';
   static const String exams = '$baseApi/exams';
   static String examById(int examId) => '$baseApi/exams/$examId';
@@ -45,4 +48,24 @@ class ConstantApi {
   static String destroyNotification(int id) => '$notifications/$id';
   static const String unreadNotifications = '$notifications/unread';
   static const String unreadNotificationsCount = '$notifications/unread-count';
+
+  static String? getImageUrl(String? path) {
+    if (path == null || path.isEmpty) return null;
+
+    if (path.contains(':\\') || path.contains('AppData') || path.endsWith('.tmp')) {
+      return null;
+    }
+
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path.replaceAll(RegExp(r'http://[0-9.]+:8000'), baseUrl)
+          .replaceAll(RegExp(r'http://localhost:8000'), baseUrl);
+    }
+
+    String cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    if (cleanPath.startsWith('public/')) {
+      cleanPath = cleanPath.replaceFirst('public/', '');
+    }
+
+    return '$baseUrl/storage/$cleanPath';
+  }
 }

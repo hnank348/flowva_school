@@ -40,6 +40,14 @@ class _TeachersAttendanceBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final cubit = context.read<TeacherAttendanceCubit>();
+
+    // ✅ إعادة الجلب التلقائي عند بداية الشاشة إذا كانت الحالة Initial
+    if (cubit.state is TeacherAttendanceInitial) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        cubit.fetchTeachers();
+      });
+    }
 
     return BlocListener<SubmitTeacherAttendanceCubit,
         SubmitTeacherAttendanceState>(
@@ -47,8 +55,7 @@ class _TeachersAttendanceBody extends StatelessWidget {
         if (state is SubmitTeacherAttendanceSuccess) {
           showAttendanceSnack(context, state.message, const Color(0xFF0F766E));
           context.read<SubmitTeacherAttendanceCubit>().reset();
-          // ✅ بعد التسجيل نعيد الجلب لنعرض وضع التعديل (متل الطلاب تمامًا)
-          context.read<TeacherAttendanceCubit>().fetchTeachers();
+          cubit.fetchTeachers();
         }
         if (state is SubmitTeacherAttendanceError) {
           showAttendanceSnack(context, state.errorMessage, cs.error);
@@ -88,28 +95,29 @@ class _TeachersAttendanceBody extends StatelessWidget {
                         : null,
                   ),
                   body: SafeArea(
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 16),
-                        if (hasData) ...[
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: hPad),
-                            child: TeacherAttendanceSummaryBar(
-                              attendanceMap: isViewMode
-                                  ? (attendanceState)
-                                  .attendanceMap
-                                  : (attendanceState
-                              as TeacherAttendanceSuccess)
-                                  .attendanceMap,
+                    // 🔴 ميزة السحب للتحديث الشاملة
+                    child: RefreshIndicator.adaptive(
+                      onRefresh: () => cubit.fetchTeachers(),
+                      child: CustomScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        slivers: [
+                          if (hasData)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 10),
+                                child: TeacherAttendanceSummaryBar(
+                                  attendanceMap: isViewMode
+                                      ? (attendanceState).attendanceMap
+                                      : (attendanceState as TeacherAttendanceSuccess).attendanceMap,
+                                ),
+                              ),
                             ),
+                          SliverFillRemaining(
+                            hasScrollBody: true,
+                            child: _buildBody(context, attendanceState, cs, isTablet),
                           ),
-                          const SizedBox(height: 10),
                         ],
-                        Expanded(
-                          child:
-                          _buildBody(context, attendanceState, cs, isTablet),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 );
@@ -127,14 +135,16 @@ class _TeachersAttendanceBody extends StatelessWidget {
       ColorScheme cs,
       bool isTablet,
       ) {
-    if (state is TeacherAttendanceLoading) {
+    if (state is TeacherAttendanceLoading || state is TeacherAttendanceInitial) {
       return const AttendanceLoadingIndicator();
     }
 
     if (state is TeacherAttendanceError) {
-      return AttendanceErrorView(
-        message: state.errorMessage,
-        onRetry: () => context.read<TeacherAttendanceCubit>().fetchTeachers(),
+      return Center(
+        child: AttendanceErrorView(
+          message: state.errorMessage,
+          onRetry: () => context.read<TeacherAttendanceCubit>().fetchTeachers(),
+        ),
       );
     }
 
@@ -149,7 +159,6 @@ class _TeachersAttendanceBody extends StatelessWidget {
       );
     }
 
-    // ─── وضع العرض/التعديل ───
     if (state is TeacherAttendanceViewMode) {
       return TeachersAttendanceGrid.view(
         key: ValueKey(

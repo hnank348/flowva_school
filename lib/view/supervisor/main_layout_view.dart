@@ -32,6 +32,7 @@ class MainLayoutView extends StatelessWidget {
     final logoutCubit = context.read<LogoutCubit>();
     final notificationsCubit = context.read<NotificationsCubit>();
     final notificationSwitchCubit = context.read<NotificationSwitchCubit>();
+    final profileCubit = context.read<ProfileCubit>();
 
     Navigator.push(
       context,
@@ -40,12 +41,15 @@ class MainLayoutView extends StatelessWidget {
           providers: [
             BlocProvider<LogoutCubit>.value(value: logoutCubit),
             BlocProvider<NotificationsCubit>.value(value: notificationsCubit),
-            BlocProvider<NotificationSwitchCubit>.value(value: notificationSwitchCubit), // 🔴 تمرير الكيوبت لصفحة الإعدادات
+            BlocProvider<NotificationSwitchCubit>.value(value: notificationSwitchCubit),
+            BlocProvider<ProfileCubit>.value(value: profileCubit), // 👈 تمرير البروفايل كيوبت
           ],
           child: SettingsView(userToken: userToken),
         ),
       ),
-    );
+    ).then((_) {
+      profileCubit.fetchUserProfile(token: userToken);
+    });
   }
 
   void _openNotifications(BuildContext context) {

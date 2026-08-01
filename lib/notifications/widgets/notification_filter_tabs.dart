@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flowva_school/app_theme.dart';
+import 'package:flowva_school/app_localizations.dart';
 
-// ✅ FilterType معرّف داخل الـ state، لازم يُستورد وإلا الملف ما يترجم
 import '../cubit/notifications_state.dart';
 
 class NotificationFilterTabs extends StatelessWidget {
@@ -18,7 +18,7 @@ class NotificationFilterTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final activeColor =
-        isDark ? AppColors.darkPrimaryTeal : AppColors.primaryTeal;
+    isDark ? AppColors.darkPrimaryTeal : AppColors.primaryTeal;
 
     return Container(
       height: 46,
@@ -28,20 +28,20 @@ class NotificationFilterTabs extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _buildTab(FilterType.read, 'المقروءة', isDark, activeColor),
-          _buildTab(FilterType.unread, 'غير المقروءة', isDark, activeColor),
-          _buildTab(FilterType.all, 'الكل', isDark, activeColor),
+          _buildTab(FilterType.read, context.tr('notif_filter_read'), isDark, activeColor),
+          _buildTab(FilterType.unread, context.tr('notif_filter_unread'), isDark, activeColor),
+          _buildTab(FilterType.all, context.tr('notif_filter_all'), isDark, activeColor),
         ],
       ),
     );
   }
 
   Widget _buildTab(
-    FilterType type,
-    String label,
-    bool isDark,
-    Color activeColor,
-  ) {
+      FilterType type,
+      String label,
+      bool isDark,
+      Color activeColor,
+      ) {
     final isSelected = selectedFilter == type;
 
     return Expanded(
@@ -52,7 +52,6 @@ class NotificationFilterTabs extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            // ✅ InkWell بدل GestureDetector => فيه تأثير لمس + وصولية
             borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
             onTap: isSelected ? null : () => onFilterChanged(type),
             child: AnimatedContainer(
@@ -63,10 +62,9 @@ class NotificationFilterTabs extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isSelected ? activeColor : Colors.transparent,
                 borderRadius:
-                    BorderRadius.circular(AppSizes.borderRadiusSmall),
+                BorderRadius.circular(AppSizes.borderRadiusSmall),
               ),
               child: FittedBox(
-                // ✅ يمنع overflow في "غير المقروءة" على الشاشات الصغيرة
                 fit: BoxFit.scaleDown,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -76,14 +74,13 @@ class NotificationFilterTabs extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'Cairo',
                       fontSize: 13,
-                      // ✅ تصحيح: المحدد أثقل من غير المحدد (كان معكوساً)
                       fontWeight:
-                          isSelected ? FontWeight.w800 : FontWeight.w500,
+                      isSelected ? FontWeight.w800 : FontWeight.w500,
                       color: isSelected
                           ? Colors.white
                           : (isDark
-                              ? AppColors.darkSecondaryText
-                              : AppColors.secondaryText),
+                          ? AppColors.darkSecondaryText
+                          : AppColors.secondaryText),
                     ),
                   ),
                 ),

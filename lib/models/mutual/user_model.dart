@@ -1,3 +1,5 @@
+import '../../services/constant_api.dart';
+
 class UserModel {
   final int id;
   final String firstName;
@@ -22,17 +24,6 @@ class UserModel {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
-
-    String? cleanAvatarUrl(String? url) {
-      if (url == null || url.isEmpty) return null;
-
-      if (url.contains(':\\') || url.contains('AppData') || url.endsWith('.tmp')) {
-        return null;
-      }
-
-      return url;
-    }
-
     return UserModel(
       id: json['id'] as int,
       firstName: json['first_name'] ?? '',
@@ -41,7 +32,7 @@ class UserModel {
       lastNameAr: json['last_name_ar'] ?? '',
       email: json['email'] ?? '',
       phone: json['phone'],
-      avatarUrl: cleanAvatarUrl(json['avatar']),
+      avatarUrl: ConstantApi.getImageUrl(json['avatar']), // 🔴 هنا التعديل
       dateOfBirth: json['date_of_birth'],
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/app_theme.dart';
+import 'package:flowva_school/app_localizations.dart';
 
 import '../cubit/notifications_cubit.dart';
 import '../cubit/notifications_state.dart';
@@ -9,160 +10,151 @@ import '../widgets/notification_item_card.dart';
 import '../widgets/notification_statistics_cards.dart';
 import '../widgets/notifications_empty_view.dart';
 
-/// ✅ الشاشة لم تعد تنشئ ApiService/NotificationService بنفسها.
-/// الـ NotificationsCubit يأتي من AppProviders (يحمل توكن اليوزر بعد تسجيل الدخول).
-class NotificationsScreen extends StatefulWidget {
+class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
-
-  @override
-  State<NotificationsScreen> createState() => _NotificationsScreenState();
-}
-
-class _NotificationsScreenState extends State<NotificationsScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // نجلب البيانات عند فتح الشاشة فقط إذا لم تُجلب مسبقاً
-    final cubit = context.read<NotificationsCubit>();
-    if (cubit.state is NotificationsInitial) {
-      cubit.loadNotifications();
-    } else {
-      cubit.refresh();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cubit = context.read<NotificationsCubit>();
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor:
-            isDark ? AppColors.darkBackground : AppColors.backgroundColor,
-        body: SafeArea(
-          child: BlocConsumer<NotificationsCubit, NotificationsState>(
-            listenWhen: (prev, curr) =>
-                curr is NotificationsLoaded && curr.actionError != null,
-            listener: (context, state) {
-              final message = (state as NotificationsLoaded).actionError!;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: AppColors.errorRed,
-                  content: Text(message,
-                      style: const TextStyle(fontFamily: 'Cairo')),
+    // ✅ جلب/تحديث البيانات عند أول بناء للشاشة بدون الحاجة لـ StatefulWidget
+    if (cubit.state is NotificationsInitial) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        cubit.loadNotifications();
+      });
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        cubit.refresh();
+      });
+    }
+
+    return Scaffold(
+      backgroundColor:
+      isDark ? AppColors.darkBackground : AppColors.backgroundColor,
+      body: SafeArea(
+        child: BlocConsumer<NotificationsCubit, NotificationsState>(
+          listenWhen: (prev, curr) =>
+          curr is NotificationsLoaded && curr.actionError != null,
+          listener: (context, state) {
+            final message = (state as NotificationsLoaded).actionError!;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: AppColors.errorRed,
+                content: Text(
+                  message,
+                  style: const TextStyle(fontFamily: 'Cairo'),
                 ),
+              ),
+            );
+          },
+          builder: (context, state) {
+            if (state is NotificationsLoading || state is NotificationsInitial) {
+              return const Center(child: CircularProgressIndicator.adaptive());
+            }
+
+            if (state is NotificationsError) {
+              return _ErrorView(
+                message: state.message,
+                onRetry: cubit.loadNotifications,
               );
-            },
-            builder: (context, state) {
-              final cubit = context.read<NotificationsCubit>();
+            }
 
-              if (state is NotificationsLoading || state is NotificationsInitial) {
-                return const Center(child: CircularProgressIndicator.adaptive());
-              }
+            state as NotificationsLoaded;
 
-              if (state is NotificationsError) {
-                return _ErrorView(
-                  message: state.message,
-                  onRetry: cubit.loadNotifications,
-                );
-              }
-
-              state as NotificationsLoaded;
-
-              return RefreshIndicator.adaptive(
-                onRefresh: cubit.refresh,
-                child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppSizes.paddingMedium),
-                  children: [
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                              size: 22),
-                          color: isDark ? Colors.white : AppColors.primaryText,
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'مركز الإشعارات',
-                                style: AppStyles.titleStyle.copyWith(
-                                  fontSize: AppSizes.fontSizeSubtitle + 3.0,
-                                  color: isDark
-                                      ? Colors.white
-                                      : AppColors.primaryText,
-                                ),
+            return RefreshIndicator.adaptive(
+              onRefresh: cubit.refresh,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.paddingMedium),
+                children: [
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                            size: 22),
+                        color: isDark ? Colors.white : AppColors.primaryText,
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              context.tr('notif_center_title'),
+                              style: AppStyles.titleStyle.copyWith(
+                                fontSize: AppSizes.fontSizeSubtitle + 3.0,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppColors.primaryText,
                               ),
-                              Text(
-                                'جميع التنبيهات والرسائل الخاصة بأبنائك',
-                                style: TextStyle(
-                                  fontFamily: 'Cairo',
-                                  fontSize: 11,
-                                  color: isDark
-                                      ? AppColors.darkSecondaryText
-                                      : AppColors.secondaryText,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (state.unreadCount > 0)
-                          TextButton(
-                            onPressed: cubit.markAllAsRead,
-                            child: const Text(
-                              'تعليم الكل كمقروء',
+                            ),
+                            Text(
+                              context.tr('notif_center_subtitle'),
                               style: TextStyle(
-                                  fontFamily: 'Cairo',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold),
+                                fontFamily: 'Cairo',
+                                fontSize: 11,
+                                color: isDark
+                                    ? AppColors.darkSecondaryText
+                                    : AppColors.secondaryText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (state.unreadCount > 0)
+                        TextButton(
+                          onPressed: cubit.markAllAsRead,
+                          child: Text(
+                            context.tr('notif_mark_all_read'),
+                            style: const TextStyle(
+                              fontFamily: 'Cairo',
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    if (state.isRefreshing)
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 8),
-                        child: LinearProgressIndicator(minHeight: 2),
-                      ),
-                    NotificationStatisticsCards(
-                      total: state.totalCount,
-                      important: state.importantCount,
-                      read: state.readCount,
-                      unread: state.unreadCount,
-                    ),
-                    const SizedBox(height: 16),
-                    NotificationFilterTabs(
-                      selectedFilter: state.currentFilter,
-                      onFilterChanged: cubit.changeFilter,
-                    ),
-                    const SizedBox(height: 16),
-                    if (state.filteredNotifications.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 48),
-                        child: NotificationsEmptyView(),
-                      )
-                    else
-                      ...state.filteredNotifications.map(
-                        (n) => NotificationItemCard(
-                          notification: n,
-                          onMarkAsRead: () => cubit.markAsRead(n.id),
-                          onDelete: () => cubit.deleteNotification(n.id),
                         ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (state.isRefreshing)
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      child: LinearProgressIndicator(minHeight: 2),
+                    ),
+                  NotificationStatisticsCards(
+                    total: state.totalCount,
+                    important: state.importantCount,
+                    read: state.readCount,
+                    unread: state.unreadCount,
+                  ),
+                  const SizedBox(height: 16),
+                  NotificationFilterTabs(
+                    selectedFilter: state.currentFilter,
+                    onFilterChanged: cubit.changeFilter,
+                  ),
+                  const SizedBox(height: 16),
+                  if (state.filteredNotifications.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 48),
+                      child: NotificationsEmptyView(),
+                    )
+                  else
+                    ...state.filteredNotifications.map(
+                          (n) => NotificationItemCard(
+                        notification: n,
+                        onMarkAsRead: () => cubit.markAsRead(n.id),
+                        onDelete: () => cubit.deleteNotification(n.id),
                       ),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              );
-            },
-          ),
+                    ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -195,8 +187,10 @@ class _ErrorView extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: const Text('إعادة المحاولة',
-                  style: TextStyle(fontFamily: 'Cairo')),
+              label: Text(
+                context.tr('btn_retry'),
+                style: const TextStyle(fontFamily: 'Cairo'),
+              ),
             ),
           ],
         ),

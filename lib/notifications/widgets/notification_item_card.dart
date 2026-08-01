@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flowva_school/app_theme.dart';
+import 'package:flowva_school/app_localizations.dart';
 
 import '../models/notification_model.dart';
 import 'notification_type_style.dart';
@@ -35,8 +36,8 @@ class NotificationItemCard extends StatelessWidget {
           color: !notification.isRead
               ? tealColor
               : (isDark
-                  ? AppColors.darkOutlineColor
-                  : AppColors.outlineColor.withOpacity(0.85)),
+              ? AppColors.darkOutlineColor
+              : AppColors.outlineColor.withOpacity(0.85)),
           width: !notification.isRead ? 1.5 : 1.2,
         ),
       ),
@@ -78,9 +79,9 @@ class NotificationItemCard extends StatelessWidget {
                           color: AppColors.errorRed,
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
-                          'مهم',
-                          style: TextStyle(
+                        child: Text(
+                          context.tr('notif_badge_important'),
+                          style: const TextStyle(
                             fontFamily: 'Cairo',
                             color: Colors.white,
                             fontSize: 11,
@@ -103,7 +104,7 @@ class NotificationItemCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  formatNotificationTime(notification.createdAt),
+                  formatNotificationTime(notification.createdAt, context),
                   style: TextStyle(
                     fontFamily: 'Cairo',
                     fontSize: 12,

@@ -35,7 +35,6 @@ class ProfileView extends StatelessWidget {
             ctx.read<ProfileCubit>(),
           ),
           child: Scaffold(
-            // ✅ استخدمنا لون الثيم الموحّد بدل الألوان الثابتة #121212 / #F5F7F9
             backgroundColor: cs.surface,
             appBar: _buildAppBar(context, isDark),
             body: SafeArea(

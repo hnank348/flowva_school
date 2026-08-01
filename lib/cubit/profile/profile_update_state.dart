@@ -1,15 +1,26 @@
-abstract class ProfileUpdateState {}
+import 'dart:io';
 
-class ProfileUpdateInitial extends ProfileUpdateState {}
+abstract class ProfileUpdateState {
+  final bool isEditing;
+  final File? pickedImage;
 
-class ProfileUpdateLoading extends ProfileUpdateState {}
+  const ProfileUpdateState({this.isEditing = false, this.pickedImage});
+}
+
+class ProfileUpdateInitial extends ProfileUpdateState {
+  const ProfileUpdateInitial({super.isEditing, super.pickedImage});
+}
+
+class ProfileUpdateLoading extends ProfileUpdateState {
+  const ProfileUpdateLoading({super.isEditing, super.pickedImage});
+}
 
 class ProfileUpdateSuccess extends ProfileUpdateState {
   final String message;
-  ProfileUpdateSuccess(this.message);
+  const ProfileUpdateSuccess(this.message, {super.isEditing = false, super.pickedImage = null});
 }
 
 class ProfileUpdateError extends ProfileUpdateState {
   final String errorMessage;
-  ProfileUpdateError(this.errorMessage);
+  const ProfileUpdateError(this.errorMessage, {super.isEditing, super.pickedImage});
 }

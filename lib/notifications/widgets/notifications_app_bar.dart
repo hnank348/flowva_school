@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flowva_school/app_localizations.dart';
 
 class NotificationsAppBar extends StatelessWidget implements PreferredSizeWidget {
   const NotificationsAppBar({super.key});
@@ -19,7 +20,7 @@ class NotificationsAppBar extends StatelessWidget implements PreferredSizeWidget
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            'مركز الإشعارات',
+            context.tr('notif_center_title'),
             style: TextStyle(
               fontFamily: 'Cairo',
               fontSize: 18,
@@ -28,7 +29,7 @@ class NotificationsAppBar extends StatelessWidget implements PreferredSizeWidget
             ),
           ),
           Text(
-            'جميع التنبيهات والرسائل الخاصة بأبنائك',
+            context.tr('notif_center_subtitle'),
             style: TextStyle(
               fontFamily: 'Cairo',
               fontSize: 11,

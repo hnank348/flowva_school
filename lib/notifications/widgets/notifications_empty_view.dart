@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flowva_school/app_theme.dart';
+import 'package:flowva_school/app_localizations.dart';
 
 class NotificationsEmptyView extends StatelessWidget {
   const NotificationsEmptyView({super.key});
@@ -16,13 +17,13 @@ class NotificationsEmptyView extends StatelessWidget {
           children: [
             Icon(Icons.notifications_off_outlined, size: 64, color: isDark ? AppColors.darkSecondaryText : AppColors.secondaryText),
             const SizedBox(height: 16),
-            const Text(
-              'صندوق الإشعارات فارغ',
-              style: TextStyle(fontFamily: 'Cairo', fontSize: 15, fontWeight: FontWeight.bold),
+            Text(
+              context.tr('notif_empty_title'),
+              style: const TextStyle(fontFamily: 'Cairo', fontSize: 15, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
-              'ستظهر هنا كافة الإشعارات فور إرسالها من إدارة المدرسة',
+              context.tr('notif_empty_subtitle'),
               textAlign: TextAlign.center,
               style: TextStyle(fontFamily: 'Cairo', fontSize: 12, color: isDark ? AppColors.darkSecondaryText : AppColors.secondaryText),
             ),
