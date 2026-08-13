@@ -7,6 +7,16 @@ class ExamDetailsBottomSheet {
     final cs     = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final subjectTitle = exam.subject != null
+        ? '${exam.subject!.name}${exam.subject!.code.isNotEmpty ? ' (${exam.subject!.code})' : ''}'
+        : context.tr('exam_unspecified');
+
+    final examTypeName = exam.examType != null
+        ? (exam.examType!.nameAr.isNotEmpty ? exam.examType!.nameAr : exam.examType!.name)
+        : context.tr('exam_unspecified');
+
+    final teacherName = exam.teacher?.fullName ?? context.tr('exam_unspecified');
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -45,7 +55,7 @@ class ExamDetailsBottomSheet {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  exam.name,
+                  exam.nameAr.isNotEmpty ? exam.nameAr : exam.name,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Cairo',
@@ -53,13 +63,13 @@ class ExamDetailsBottomSheet {
                   ),
                 ),
                 const SizedBox(height: 20),
-                _row(context, Icons.book_outlined, context.tr('exam_subject_label'), '${exam.subject.name} (${exam.subject.code})'),
-                _row(context, Icons.category_outlined, context.tr('exam_type_label'), exam.examType.nameAr.isNotEmpty ? exam.examType.nameAr : exam.examType.name),
+                _row(context, Icons.book_outlined, context.tr('exam_subject_label'), subjectTitle),
+                _row(context, Icons.category_outlined, context.tr('exam_type_label'), examTypeName),
                 _row(context, Icons.calendar_month_outlined, context.tr('exam_date'), exam.examDate),
                 _row(context, Icons.access_time_rounded, context.tr('table_header_time'), exam.timeRange),
-                _row(context, Icons.meeting_room_outlined, context.tr('exam_room'), exam.room),
+                _row(context, Icons.meeting_room_outlined, context.tr('exam_room'), exam.room.isNotEmpty ? exam.room : '-'),
                 _row(context, Icons.grade_outlined, context.tr('exam_marks_label'), '${exam.totalMarks.toStringAsFixed(0)} / ${exam.passMarks.toStringAsFixed(0)}'),
-                _row(context, Icons.person_outline_rounded, context.tr('exam_teacher_label'), exam.teacher.fullName),
+                _row(context, Icons.person_outline_rounded, context.tr('exam_teacher_label'), teacherName),
                 if (exam.instructions != null && exam.instructions!.isNotEmpty)
                   _row(context, Icons.info_outline_rounded, context.tr('exam_notes_label'), exam.instructions!),
                 const SizedBox(height: 12),

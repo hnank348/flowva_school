@@ -13,7 +13,7 @@ class AttendanceSectionHeader extends StatelessWidget {
 
   final bool showDateBadge;
   final VoidCallback? onExportPdfPressed;
-  final String? labelText; // ✅ جديد - نص قابل للتخصيص حسب الشاشة
+  final String? labelText;
 
   const AttendanceSectionHeader({
     super.key,
@@ -22,13 +22,30 @@ class AttendanceSectionHeader extends StatelessWidget {
     required this.onSectionChanged,
     this.showDateBadge = false,
     this.onExportPdfPressed,
-    this.labelText, // ✅ جديد
+    this.labelText,
   });
+
   String _todayFormatted() {
     final now = DateTime.now();
     final d = now.day.toString().padLeft(2, '0');
     final m = now.month.toString().padLeft(2, '0');
     return '$d/$m/${now.year}';
+  }
+
+  String _getSectionDisplayName(dynamic section) {
+    if (section == null) return '';
+
+    try {
+      return section.fullSectionName;
+    } catch (_) {}
+
+    final className = (section.className ?? '').toString();
+    final sectionName = (section.name ?? '').toString();
+
+    if (className.isNotEmpty) {
+      return '$className - $sectionName';
+    }
+    return sectionName;
   }
 
   @override
@@ -56,24 +73,28 @@ class AttendanceSectionHeader extends StatelessWidget {
                 ),
               ],
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildDropdownRow(context, cs, isDark),
-                      const SizedBox(height: 6),
-                      _buildBadgesRow(context, cs, isDark),
-                    ],
-                  ),
-                ),
-                if (onExportPdfPressed != null) ...[
-                  const SizedBox(width: 8),
-                  _buildExportButton(context, cs),
-                ],
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildDropdownRow(context, cs, isDark),
+                        ),
+                        if (onExportPdfPressed != null) ...[
+                          const SizedBox(width: 8),
+                          _buildExportButton(context, cs),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    _buildBadgesRow(context, cs, isDark),
+                  ],
+                );
+              },
             ),
           ),
         );
@@ -83,64 +104,66 @@ class AttendanceSectionHeader extends StatelessWidget {
 
   Widget _buildDropdownRow(BuildContext context, ColorScheme cs, bool isDark) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           labelText ?? context.tr('header_section_label'),
           style: TextStyle(
             fontFamily: 'Cairo',
-            fontSize: 14,
+            fontSize: 13,
             color: cs.onSurfaceVariant,
           ),
         ),
-        const SizedBox(width: 4),
-        IntrinsicWidth(
-          child: DropdownButton<dynamic>(
-            value: selectedSection,
-            underline: const SizedBox(),
-            icon: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: Icon(Icons.arrow_drop_down_rounded,
-                  color: cs.primary, size: 22),
-            ),
-            borderRadius: BorderRadius.circular(16),
-            dropdownColor:
-            isDark ? cs.surfaceContainer : cs.surfaceContainerLow,
-            isDense: true,
-            selectedItemBuilder: (context) => sections.map<Widget>((section) {
-              return Align(
-                alignment: Alignment.center,
-                child: Text(
-                  section.name,
-                  style: TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: cs.primary,
-                  ),
-                ),
-              );
-            }).toList(),
-            items: sections.map((section) {
-              return DropdownMenuItem<dynamic>(
-                value: section,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        const SizedBox(width: 6),
+        Expanded(
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<dynamic>(
+              value: selectedSection,
+              isExpanded: true,
+              isDense: true,
+              icon: Icon(
+                Icons.arrow_drop_down_rounded,
+                color: cs.primary,
+                size: 22,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              dropdownColor:
+              isDark ? cs.surfaceContainer : cs.surfaceContainerLow,
+              selectedItemBuilder: (context) => sections.map<Widget>((section) {
+                return Align(
+                  alignment: Alignment.centerRight,
                   child: Text(
-                    section.name,
+                    _getSectionDisplayName(section),
                     style: TextStyle(
                       fontFamily: 'Cairo',
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: FontWeight.bold,
                       color: cs.primary,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              );
-            }).toList(),
-            onChanged: (newSection) {
-              if (newSection != null) onSectionChanged(newSection);
-            },
+                );
+              }).toList(),
+              items: sections.map((section) {
+                return DropdownMenuItem<dynamic>(
+                  value: section,
+                  child: Text(
+                    _getSectionDisplayName(section),
+                    style: TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: cs.primary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              }).toList(),
+              onChanged: (newSection) {
+                if (newSection != null) onSectionChanged(newSection);
+              },
+            ),
           ),
         ),
       ],
@@ -148,37 +171,41 @@ class AttendanceSectionHeader extends StatelessWidget {
   }
 
   Widget _buildBadgesRow(BuildContext context, ColorScheme cs, bool isDark) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        BlocBuilder<CurrentSemesterCubit, CurrentSemesterState>(
-          builder: (context, semesterState) {
-            final name = semesterState is CurrentSemesterSuccess
-                ? semesterState.currentSemester.name
-                : context.tr('header_loading');
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          BlocBuilder<CurrentSemesterCubit, CurrentSemesterState>(
+            builder: (context, semesterState) {
+              final name = semesterState is CurrentSemesterSuccess
+                  ? semesterState.currentSemester.name
+                  : context.tr('header_loading');
 
-            return _badge(
-              icon: Icons.school_rounded,
-              label: name,
-              color: cs.primary,
-              bg: cs.primary.withOpacity(isDark ? 0.15 : 0.08),
-              border: cs.primary.withOpacity(0.3),
-            );
-          },
-        ),
-        if (showDateBadge) ...[
-          const SizedBox(width: 8),
-          _badge(
-            icon: Icons.calendar_today_rounded,
-            label: _todayFormatted(),
-            color: cs.onSurfaceVariant,
-            bg: isDark
-                ? cs.surfaceContainer
-                : cs.onSurfaceVariant.withOpacity(0.07),
-            border: cs.outlineVariant.withOpacity(0.5),
+              return _badge(
+                icon: Icons.school_rounded,
+                label: name,
+                color: cs.primary,
+                bg: cs.primary.withOpacity(isDark ? 0.15 : 0.08),
+                border: cs.primary.withOpacity(0.3),
+              );
+            },
           ),
+          if (showDateBadge) ...[
+            const SizedBox(width: 8),
+            _badge(
+              icon: Icons.calendar_today_rounded,
+              label: _todayFormatted(),
+              color: cs.onSurfaceVariant,
+              bg: isDark
+                  ? cs.surfaceContainer
+                  : cs.onSurfaceVariant.withOpacity(0.07),
+              border: cs.outlineVariant.withOpacity(0.5),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 
@@ -229,7 +256,9 @@ class AttendanceSectionHeader extends StatelessWidget {
         ),
       ),
       style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         side: BorderSide(color: cs.outlineVariant),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),

@@ -75,7 +75,7 @@ class TeacherDropdownField extends StatelessWidget {
         }
         if (state is TeachersError) return _FieldError(message: state.errorMessage);
         if (state is TeachersInitial) {
-          context.read<TeachersCubit>().fetchTeachers();
+          context.read<TeachersCubit>().fetchTeachers(tr: context.tr,);
           return _ModernDropdown<int>(
             value: null, hint: context.tr('session_init_teachers'),
             icon: Icons.supervisor_account_rounded, activeColor: const Color(0xFF805AD5),
@@ -108,15 +108,24 @@ class TeacherDropdownField extends StatelessWidget {
 
 // ─── حقل القاعة ─────────────────────────────────────────────────────────────
 class RoomTextField extends StatelessWidget {
-  final TextEditingController controller;
+  final TextEditingController? controller;
+  final String? initialValue;
+  final ValueChanged<String>? onChanged;
 
-  const RoomTextField({super.key, required this.controller});
+  const RoomTextField({
+    super.key,
+    this.controller,
+    this.initialValue,
+    this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return TextFormField(
-      controller: controller,
+      controller:   controller,
+      initialValue: controller == null ? initialValue : null,
+      onChanged:    onChanged,
       style: const TextStyle(fontFamily: 'Cairo', fontSize: 14, fontWeight: FontWeight.w600),
       decoration: InputDecoration(
         labelText:   context.tr('session_label_room'),

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/cubit/profile/profile_update_state.dart';
 import 'package:flowva_school/cubit/profile/profile_cubit.dart';
@@ -13,7 +14,6 @@ class ProfileUpdateCubit extends Cubit<ProfileUpdateState> {
   ProfileUpdateCubit(this._profileService, this._profileCubit)
       : super(const ProfileUpdateInitial());
 
-  // 🟢 تفعيل أو إلغاء وضع التعديل
   void toggleEditing(bool isEditing) {
     emit(ProfileUpdateInitial(
       isEditing: isEditing,
@@ -21,7 +21,6 @@ class ProfileUpdateCubit extends Cubit<ProfileUpdateState> {
     ));
   }
 
-  // 🟢 حفظ الصورة المحددة من المعرض بالـ State
   void setPickedImage(File image) {
     emit(ProfileUpdateInitial(
       isEditing: true,
@@ -32,6 +31,7 @@ class ProfileUpdateCubit extends Cubit<ProfileUpdateState> {
   Future<void> updateProfile({
     required int userId,
     required String userToken,
+    required String Function(String key) tr,
     String? firstName,
     String? firstNameAr,
     String? lastName,
@@ -52,11 +52,12 @@ class ProfileUpdateCubit extends Cubit<ProfileUpdateState> {
         phone:        phone?.isNotEmpty == true ? phone : null,
         dateOfBirth:  dateOfBirth?.isNotEmpty == true ? dateOfBirth : null,
         avatar:       currentImage,
+        tr: context.tr,
       );
 
       await _profileCubit.fetchUserProfile(token: userToken);
 
-      emit(const ProfileUpdateSuccess('تم تحديث الملف الشخصي بنجاح ✓'));
+      emit(ProfileUpdateSuccess(tr('profile_update_success')));
     } catch (e) {
       emit(ProfileUpdateError(
         e.toString().replaceAll('Exception: ', ''),

@@ -29,17 +29,23 @@ class ExamCard extends StatelessWidget {
     Color(0xFF8B5CF6),
   ];
 
-  Color get _accent => _palette[exam.subject.id % _palette.length];
+  Color get _accent {
+    final id = exam.subject?.id ?? exam.id;
+    return _palette[id % _palette.length];
+  }
+
   bool get _isCompleted => exam.status.toLowerCase() == 'completed';
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final rawName = exam.subject?.name ?? (exam.nameAr.isNotEmpty ? exam.nameAr : exam.name);
     final subjectName = resolveName(
       context,
-      nameAr: exam.subject.name,
-      nameEn: exam.subject.name,
+      nameAr: rawName,
+      nameEn: rawName,
     );
 
     return Card(
@@ -59,7 +65,7 @@ class ExamCard extends StatelessWidget {
             children: [
               Container(
                 width: 4.5,
-                height: double.infinity,
+                height: 48,
                 decoration: BoxDecoration(
                   color: _accent,
                   borderRadius: BorderRadius.circular(10),
@@ -96,7 +102,7 @@ class ExamCard extends StatelessWidget {
                         Icon(Icons.meeting_room_outlined, size: 12, color: cs.onSurfaceVariant),
                         const SizedBox(width: 3),
                         Text(
-                          exam.room,
+                          exam.room.isNotEmpty ? exam.room : context.tr('exam_room_unspecified'),
                           style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
                         ),
                       ],

@@ -34,6 +34,7 @@ class _TeachersAttendanceBody extends StatelessWidget {
       teachers: state.teachers,
       attendanceMap: state.attendanceMap,
       noteMap:       state.noteMap,
+      tr: context.tr,
     );
   }
 
@@ -45,7 +46,7 @@ class _TeachersAttendanceBody extends StatelessWidget {
     // ✅ إعادة الجلب التلقائي عند بداية الشاشة إذا كانت الحالة Initial
     if (cubit.state is TeacherAttendanceInitial) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        cubit.fetchTeachers();
+        cubit.fetchTeachers(tr: context.tr,);
       });
     }
 
@@ -55,7 +56,7 @@ class _TeachersAttendanceBody extends StatelessWidget {
         if (state is SubmitTeacherAttendanceSuccess) {
           showAttendanceSnack(context, state.message, const Color(0xFF0F766E));
           context.read<SubmitTeacherAttendanceCubit>().reset();
-          cubit.fetchTeachers();
+          cubit.fetchTeachers(tr: context.tr,);
         }
         if (state is SubmitTeacherAttendanceError) {
           showAttendanceSnack(context, state.errorMessage, cs.error);
@@ -97,7 +98,7 @@ class _TeachersAttendanceBody extends StatelessWidget {
                   body: SafeArea(
                     // 🔴 ميزة السحب للتحديث الشاملة
                     child: RefreshIndicator.adaptive(
-                      onRefresh: () => cubit.fetchTeachers(),
+                      onRefresh: () => cubit.fetchTeachers(tr: context.tr,),
                       child: CustomScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         slivers: [
@@ -143,7 +144,7 @@ class _TeachersAttendanceBody extends StatelessWidget {
       return Center(
         child: AttendanceErrorView(
           message: state.errorMessage,
-          onRetry: () => context.read<TeacherAttendanceCubit>().fetchTeachers(),
+          onRetry: () => context.read<TeacherAttendanceCubit>().fetchTeachers(tr: context.tr,),
         ),
       );
     }

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../cubit/supervisor/classes/classes_cubit.dart';
 import '../../../cubit/supervisor/classes/classes_state.dart';
 import '../../../cubit/supervisor/schedule/schedule_cubit.dart';
+import '../../../cubit/supervisor/schedule/schedule_state.dart';
 import '../../../cubit/supervisor/subjects/subjects_cubit.dart';
 import '../../../cubit/supervisor/teachers/teachers_cubit.dart';
 import '../../../cubit/locale/locale_cubit.dart';
@@ -27,12 +28,18 @@ class EditSessionBottomSheet {
         required int periodNumber,
         required int semesterId,
       }) {
-    final subjectsCubit  = BlocProvider.of<SubjectsCubit>(context);
-    final teachersCubit  = BlocProvider.of<TeachersCubit>(context);
-    final scheduleCubit  = BlocProvider.of<ScheduleCubit>(context);
-    final classesCubit   = BlocProvider.of<ClassesCubit>(context);
-    final localeCubit    = BlocProvider.of<LocaleCubit>(context);
-    final colorScheme    = Theme.of(context).colorScheme;
+    final subjectsCubit = BlocProvider.of<SubjectsCubit>(context);
+    final teachersCubit = BlocProvider.of<TeachersCubit>(context);
+    final scheduleCubit = BlocProvider.of<ScheduleCubit>(context);
+    final classesCubit = BlocProvider.of<ClassesCubit>(context);
+    final localeCubit = BlocProvider.of<LocaleCubit>(context);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    scheduleCubit.initFormData(
+      subjectId: currentSubjectId,
+      teacherId: currentTeacherId,
+      room: currentRoom,
+    );
 
     showModalBottomSheet(
       context: context,
@@ -56,28 +63,28 @@ class EditSessionBottomSheet {
                 decoration: BoxDecoration(
                   color: colorScheme.surfaceContainerLow,
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(32), topRight: Radius.circular(32),
+                    topLeft: Radius.circular(32),
+                    topRight: Radius.circular(32),
                   ),
                 ),
                 padding: EdgeInsets.only(
-                  top: 16, left: 24, right: 24,
+                  top: 16,
+                  left: 24,
+                  right: 24,
                   bottom: MediaQuery.of(sheetCtx).viewInsets.bottom + 24,
                 ),
                 child: _SessionForm(
-                  sessionId:        sessionId,
-                  currentSubjectId: currentSubjectId,
-                  currentTeacherId: currentTeacherId,
-                  currentRoom:      currentRoom,
-                  sectionId:        sectionId,
-                  className:        className,
-                  dayOfWeek:        dayOfWeek,
-                  periodNumber:     periodNumber,
-                  semesterId:       semesterId,
-                  isArabic:         localeState.currentLanguage == 'AR',
-                  sheetContext:     sheetCtx,
-                  scheduleCubit:    scheduleCubit,
-                  classesCubit:     classesCubit,
-                  colorScheme:      colorScheme,
+                  sessionId: sessionId,
+                  sectionId: sectionId,
+                  className: className,
+                  dayOfWeek: dayOfWeek,
+                  periodNumber: periodNumber,
+                  semesterId: semesterId,
+                  isArabic: localeState.currentLanguage == 'AR',
+                  sheetContext: sheetCtx,
+                  scheduleCubit: scheduleCubit,
+                  classesCubit: classesCubit,
+                  colorScheme: colorScheme,
                 ),
               ),
             ),
@@ -88,11 +95,8 @@ class EditSessionBottomSheet {
   }
 }
 
-class _SessionForm extends StatefulWidget {
+class _SessionForm extends StatelessWidget {
   final int? sessionId;
-  final int? currentSubjectId;
-  final int? currentTeacherId;
-  final String currentRoom;
   final int sectionId;
   final String className;
   final String dayOfWeek;
@@ -106,9 +110,6 @@ class _SessionForm extends StatefulWidget {
 
   const _SessionForm({
     required this.sessionId,
-    required this.currentSubjectId,
-    required this.currentTeacherId,
-    required this.currentRoom,
     required this.sectionId,
     required this.className,
     required this.dayOfWeek,
@@ -121,75 +122,66 @@ class _SessionForm extends StatefulWidget {
     required this.colorScheme,
   });
 
-  @override
-  State<_SessionForm> createState() => _SessionFormState();
-}
+  void _submit(BuildContext context) {
+    final state = scheduleCubit.state;
+    final subjectId = state.formSubjectId;
+    final teacherId = state.formTeacherId;
+    final room = state.formRoom;
 
-class _SessionFormState extends State<_SessionForm> {
-  late int? _subjectId;
-  late int? _teacherId;
-  late TextEditingController _roomCtrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _subjectId = widget.currentSubjectId;
-    _teacherId = widget.currentTeacherId;
-    _roomCtrl  = TextEditingController(text: widget.currentRoom);
-  }
-
-  @override
-  void dispose() {
-    _roomCtrl.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    if (_subjectId == null || _teacherId == null) {
+    if (subjectId == null || teacherId == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(context.tr('session_required_error'),
-            style: const TextStyle(fontFamily: 'Cairo')),
+        content: Text(
+          context.tr('session_required_error'),
+          style: const TextStyle(fontFamily: 'Cairo'),
+        ),
       ));
       return;
     }
 
     int academicYearId = 2;
-    final classState = widget.classesCubit.state;
+    final classState = classesCubit.state;
     if (classState is ClassesLoaded) {
       academicYearId = classState.classDetails.academicYearId;
     }
 
-    final times = _periodTimes(widget.periodNumber);
+    final times = _periodTimes(periodNumber);
     final newSession = ScheduleSessionModel(
-      id:           widget.sessionId ?? 0,
-      roomNumber:   _roomCtrl.text,
-      dayOfWeek:    widget.dayOfWeek,
-      periodNumber: widget.periodNumber,
-      startTime:    times.$1,
-      endTime:      times.$2,
+      id: sessionId ?? 0,
+      roomNumber: room,
+      dayOfWeek: dayOfWeek,
+      periodNumber: periodNumber,
+      startTime: times.$1,
+      endTime: times.$2,
     );
 
-    if (widget.sessionId == null) {
-      widget.scheduleCubit.uploadNewSession(
-        sectionId: widget.sectionId, className: widget.className,
-        updatedSession: newSession, subjectId: _subjectId!,
-        teacherId: _teacherId!, academicYearId: academicYearId,
-        semesterId: widget.semesterId,
+    Navigator.pop(sheetContext);
+
+    if (sessionId == null) {
+      scheduleCubit.uploadNewSession(
+        sectionId: sectionId,
+        className: className,
+        updatedSession: newSession,
+        subjectId: subjectId,
+        teacherId: teacherId,
+        academicYearId: academicYearId,
+        semesterId: semesterId,
       );
     } else {
-      widget.scheduleCubit.updateSession(
-        timetableId: widget.sessionId!, sectionId: widget.sectionId,
-        className: widget.className, updatedSession: newSession,
-        subjectId: _subjectId!, teacherId: _teacherId!,
-        academicYearId: academicYearId, semesterId: widget.semesterId,
+      scheduleCubit.updateSession(
+        timetableId: sessionId!,
+        sectionId: sectionId,
+        className: className,
+        updatedSession: newSession,
+        subjectId: subjectId,
+        teacherId: teacherId,
+        academicYearId: academicYearId,
+        semesterId: semesterId,
       );
     }
-
-    Navigator.pop(widget.sheetContext);
   }
 
-  void _deleteSession() async {
-    if (widget.sessionId == null) return;
+  void _deleteSession(BuildContext context) async {
+    if (sessionId == null) return;
 
     final confirmed = await CustomConfirmationDialog.show(
       context,
@@ -200,19 +192,15 @@ class _SessionFormState extends State<_SessionForm> {
       isDanger: true,
     );
 
-    if (confirmed == true && mounted) {
-      widget.scheduleCubit.deleteSession(
-        timetableId: widget.sessionId!,
-        sectionId: widget.sectionId,
-        className: widget.className,
-        semesterId: widget.semesterId,
+    if (confirmed == true) {
+      Navigator.pop(sheetContext);
+
+      scheduleCubit.deleteSession(
+        timetableId: sessionId!,
+        sectionId: sectionId,
+        className: className,
+        semesterId: semesterId,
       );
-      Navigator.pop(widget.sheetContext);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(context.tr('session_delete_success'), style: const TextStyle(fontFamily: 'Cairo')),
-        backgroundColor: const Color(0xFF0F766E),
-        behavior: SnackBarBehavior.floating,
-      ));
     }
   }
 
@@ -230,91 +218,133 @@ class _SessionFormState extends State<_SessionForm> {
 
   @override
   Widget build(BuildContext context) {
-    final cs        = widget.colorScheme;
-    final isNew     = widget.sessionId == null;
-    final titleKey  = isNew ? 'session_add_title' : 'session_edit_title';
+    final cs = colorScheme;
+    final isNew = sessionId == null;
+    final titleKey = isNew ? 'session_add_title' : 'session_edit_title';
 
     return SafeArea(
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(child: Container(
-              width: 45, height: 4.5,
-              decoration: BoxDecoration(color: cs.outlineVariant, borderRadius: BorderRadius.circular(10)),
-            )),
-            const SizedBox(height: 24),
-
-            Row(children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: cs.primary.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(12),
+        child: BlocBuilder<ScheduleCubit, ScheduleState>(
+          builder: (context, state) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 45,
+                    height: 4.5,
+                    decoration: BoxDecoration(
+                      color: cs.outlineVariant,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                 ),
-                child: Icon(isNew ? Icons.add_box_rounded : Icons.edit_calendar_rounded,
-                    color: cs.primary, size: 24),
-              ),
-              const SizedBox(width: 12),
-              Expanded(child: Text(
-                '${context.tr(titleKey)} ${widget.periodNumber} - ${context.tr('session_semester')} ${widget.semesterId}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Cairo'),
-                maxLines: 1, overflow: TextOverflow.ellipsis,
-              )),
-              if (!isNew)
-                IconButton(
-                  onPressed: _deleteSession,
-                  icon: Icon(Icons.delete_outline_rounded, color: cs.error, size: 22),
-                  tooltip: context.tr('session_btn_delete'),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: cs.primary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        isNew ? Icons.add_box_rounded : Icons.edit_calendar_rounded,
+                        color: cs.primary,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        '${context.tr(titleKey)} $periodNumber - ${context.tr('session_semester')} $semesterId',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Cairo',
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (!isNew)
+                      IconButton(
+                        onPressed: () => _deleteSession(context),
+                        icon: Icon(Icons.delete_outline_rounded, color: cs.error, size: 22),
+                        tooltip: context.tr('session_btn_delete'),
+                      ),
+                  ],
                 ),
-            ]),
-            const SizedBox(height: 24),
-
-            SubjectDropdownField(
-              selectedSubjectId: _subjectId,
-              isArabic: widget.isArabic,
-              onChanged: (v) => setState(() => _subjectId = v),
-            ),
-            const SizedBox(height: 16),
-            TeacherDropdownField(
-              selectedTeacherId: _teacherId,
-              isArabic: widget.isArabic,
-              onChanged: (v) => setState(() => _teacherId = v),
-            ),
-            const SizedBox(height: 16),
-            RoomTextField(controller: _roomCtrl),
-            const SizedBox(height: 28),
-
-            Row(children: [
-              Expanded(flex: 2, child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: cs.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
+                const SizedBox(height: 24),
+                SubjectDropdownField(
+                  selectedSubjectId: state.formSubjectId,
+                  isArabic: isArabic,
+                  onChanged: (v) => scheduleCubit.setFormSubjectId(v),
                 ),
-                onPressed: _submit,
-                child: Text(
-                  context.tr(isNew ? 'session_btn_add' : 'session_btn_save'),
-                  style: const TextStyle(color: Colors.white, fontSize: 15,
-                      fontWeight: FontWeight.bold, fontFamily: 'Cairo'),
+                const SizedBox(height: 16),
+                TeacherDropdownField(
+                  selectedTeacherId: state.formTeacherId,
+                  isArabic: isArabic,
+                  onChanged: (v) => scheduleCubit.setFormTeacherId(v),
                 ),
-              )),
-              const SizedBox(width: 12),
-              Expanded(child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: cs.outlineVariant, width: 1.5),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                const SizedBox(height: 16),
+                RoomTextField(
+                  initialValue: state.formRoom,
+                  onChanged: (v) => scheduleCubit.setFormRoom(v),
                 ),
-                onPressed: () => Navigator.pop(widget.sheetContext),
-                child: Text(context.tr('session_btn_cancel'),
-                    style: TextStyle(color: cs.onSurfaceVariant, fontSize: 15, fontFamily: 'Cairo')),
-              )),
-            ]),
-          ],
+                const SizedBox(height: 28),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: cs.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 0,
+                        ),
+                        onPressed: () => _submit(context),
+                        child: Text(
+                          context.tr(isNew ? 'session_btn_add' : 'session_btn_save'),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Cairo',
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: cs.outlineVariant, width: 1.5),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                        onPressed: () {
+                          scheduleCubit.clearFormData();
+                          Navigator.pop(sheetContext);
+                        },
+                        child: Text(
+                          context.tr('session_btn_cancel'),
+                          style: TextStyle(
+                            color: cs.onSurfaceVariant,
+                            fontSize: 15,
+                            fontFamily: 'Cairo',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

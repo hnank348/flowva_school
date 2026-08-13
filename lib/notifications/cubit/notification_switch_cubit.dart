@@ -7,14 +7,12 @@ class NotificationSwitchCubit extends Cubit<bool> {
     loadStatus();
   }
 
-  /// تحميل الحالة المخزنة سابقاً
   Future<void> loadStatus() async {
     final prefs = await SharedPreferences.getInstance();
     final isEnabled = prefs.getBool('notifications_enabled') ?? true;
     emit(isEnabled);
   }
 
-  /// تبديل الحالة وتحديث الفايربيس والتخزين المحلي
   Future<void> toggleNotification(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('notifications_enabled', value);

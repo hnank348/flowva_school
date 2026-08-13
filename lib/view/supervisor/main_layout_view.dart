@@ -5,6 +5,10 @@ import 'package:flowva_school/view/mutual/settings/settings_view.dart';
 import 'package:flowva_school/cubit/logout/logout_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import '../../services/api_service.dart';
+import 'package:flowva_school/services/constant_api.dart';
+
 import '../../cubit/supervisor/cubit_supervisor/navigation_cubit.dart';
 import '../../cubit/profile/profile_cubit.dart';
 import '../../cubit/profile/profile_state.dart';
@@ -14,10 +18,9 @@ import '../../cubit/locale/locale_cubit.dart';
 import '../../cubit/locale/locale_state.dart';
 import '../../app_localizations.dart';
 
-// Cubits الإشعارات
 import '../../notifications/cubit/notifications_cubit.dart';
 import '../../notifications/cubit/notifications_state.dart';
-import '../../notifications/cubit/notification_switch_cubit.dart'; // 👈 إضافة الكيوبت الجديد هنا
+import '../../notifications/cubit/notification_switch_cubit.dart';
 
 import '../../notifications/screens/supervisor_notifications_screen.dart';
 import 'weekly_schedule/weekly_schedule_view.dart';
@@ -27,6 +30,32 @@ class MainLayoutView extends StatelessWidget {
   final String userToken;
 
   const MainLayoutView({super.key, required this.userToken});
+
+  Future<void> _syncFcmToken(BuildContext context) async {
+    try {
+      final messaging = FirebaseMessaging.instance;
+      final settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        final token = await messaging.getToken();
+        if (token != null && token.isNotEmpty) {
+          final apiService = ApiService();
+          final response = await apiService.post(
+            '${ConstantApi.baseApi}/users/fcm-token',
+            data: {'fcm_token': token},
+            tr: context.tr,
+          );
+          debugPrint('✅ [FCM Sync] Token sent successfully. Status: ${response.statusCode}');
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ [FCM Sync Error]: $e');
+    }
+  }
 
   void _openSettings(BuildContext context) {
     final logoutCubit = context.read<LogoutCubit>();
@@ -42,12 +71,13 @@ class MainLayoutView extends StatelessWidget {
             BlocProvider<LogoutCubit>.value(value: logoutCubit),
             BlocProvider<NotificationsCubit>.value(value: notificationsCubit),
             BlocProvider<NotificationSwitchCubit>.value(value: notificationSwitchCubit),
-            BlocProvider<ProfileCubit>.value(value: profileCubit), // 👈 تمرير البروفايل كيوبت
+            BlocProvider<ProfileCubit>.value(value: profileCubit),
           ],
           child: SettingsView(userToken: userToken),
         ),
       ),
     ).then((_) {
+      // 🟢 تم التصحيح: تمرير context.tr
       profileCubit.fetchUserProfile(token: userToken);
     });
   }
@@ -70,11 +100,11 @@ class MainLayoutView extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // ✅ التأكد من تحميل الإشعارات مرّة واحدة فقط إذا كانت الحالة Initial
     final notificationsCubit = context.read<NotificationsCubit>();
     if (notificationsCubit.state is NotificationsInitial) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         notificationsCubit.loadNotifications();
+        _syncFcmToken(context);
       });
     }
 

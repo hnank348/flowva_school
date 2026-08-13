@@ -121,6 +121,22 @@ class SettingsView extends StatelessWidget {
                                       ),
                                     ),
                                     SettingsDivider(colorScheme: colorScheme),
+                                    // 🟢 إضافة خيار الرسائل هنا
+                                    SettingsTile(
+                                      icon:  Icons.chat_bubble_outline_rounded,
+                                      title: context.tr('settings_messages'),
+                                      colorScheme: colorScheme,
+                                      isDark:      isDark,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => ChatScreen(),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    SettingsDivider(colorScheme: colorScheme),
                                     SettingsTile(
                                       icon:  Icons.lock_outline_rounded,
                                       title: context.tr('settings_change_password'),
@@ -244,14 +260,7 @@ class SettingsView extends StatelessWidget {
                                       title: context.tr('settings_terms'),
                                       colorScheme: colorScheme,
                                       isDark:      isDark,
-                                      onTap:       () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => ChatScreen(),
-                                          ),
-                                        );
-                                      },
+                                      onTap:       () {},
                                     ),
                                   ],
                                 ),

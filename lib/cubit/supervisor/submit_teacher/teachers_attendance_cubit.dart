@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:flowva_school/cubit/supervisor/submit_teacher/teacher_attendance_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/models/supervisor/teacher_attendance_model.dart';
@@ -10,7 +11,9 @@ class TeacherAttendanceCubit extends Cubit<TeacherAttendanceState> {
 
   TeacherAttendanceCubit(this._service) : super(TeacherAttendanceInitial());
 
-  Future<void> fetchTeachers() async {
+  Future<void> fetchTeachers({
+    required String Function(String key) tr, // 🟢 إجباري بدون خيارات
+  }) async {
     emit(TeacherAttendanceLoading(state.attendanceMap));
     try {
       final today = _todayString();
@@ -35,10 +38,10 @@ class TeacherAttendanceCubit extends Cubit<TeacherAttendanceState> {
           noteEditMap: noteEditMap,
         ));
       } else {
-        final teachers = await _service.getTeachers();
+        final teachers = await _service.getTeachers(tr: context.tr,);
 
         if (teachers.isEmpty) {
-          emit(const TeacherAttendanceError('لا يوجد معلمون مسجلون'));
+          emit(TeacherAttendanceError(tr('teacher_attendance_no_teachers')));
           return;
         }
 
@@ -48,7 +51,7 @@ class TeacherAttendanceCubit extends Cubit<TeacherAttendanceState> {
         for (final t in teachers) {
           map[t.id] = TeacherAttendanceStatus.active;
           noteMap[t.id] = t.notes;
-          expandedMap[t.id] = true; // ✅ موسّع افتراضياً بوضع التسجيل
+          expandedMap[t.id] = true;
         }
         emit(TeacherAttendanceSuccess(
           teachers,
@@ -58,7 +61,7 @@ class TeacherAttendanceCubit extends Cubit<TeacherAttendanceState> {
         ));
       }
     } catch (e) {
-      emit(TeacherAttendanceError(e.toString()));
+      emit(TeacherAttendanceError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 
@@ -69,7 +72,7 @@ class TeacherAttendanceCubit extends Cubit<TeacherAttendanceState> {
       map[teacherId] = status;
 
       final newExpanded = Map<int, bool>.from(s.expandedMap);
-      newExpanded[teacherId] = false; // ✅ يطوي بعد الاختيار
+      newExpanded[teacherId] = false;
 
       emit(s.copyWith(attendanceMap: map, expandedMap: newExpanded));
     }
@@ -84,7 +87,6 @@ class TeacherAttendanceCubit extends Cubit<TeacherAttendanceState> {
     }
   }
 
-  // ✅ جديد
   void toggleExpanded(int teacherId, bool value) {
     if (state is TeacherAttendanceSuccess) {
       final s = state as TeacherAttendanceSuccess;
@@ -124,7 +126,6 @@ class TeacherAttendanceCubit extends Cubit<TeacherAttendanceState> {
     }
   }
 
-  // ✅ جديد
   void toggleEditExpanded(int attendanceRecordId, bool value) {
     if (state is TeacherAttendanceViewMode) {
       final s = state as TeacherAttendanceViewMode;
@@ -151,6 +152,7 @@ class TeacherAttendanceCubit extends Cubit<TeacherAttendanceState> {
         attendanceId: attendanceRecordId,
         statusId:     _fromStatus(status),
         notes:        note,
+        tr: context.tr,
       );
 
       if (state is TeacherAttendanceViewMode) {
@@ -181,8 +183,6 @@ class TeacherAttendanceCubit extends Cubit<TeacherAttendanceState> {
     }
   }
 
-  // ─── helpers ──────────────────────────────────────────────────────────────
-
   String _todayString() {
     final now = DateTime.now();
     final y   = now.year.toString();
@@ -210,8 +210,6 @@ class TeacherAttendanceCubit extends Cubit<TeacherAttendanceState> {
   }
 }
 
-// ─── Submit Cubit - بدون تغيير ──────────────────────────────────────────────
-
 class SubmitTeacherAttendanceCubit extends Cubit<SubmitTeacherAttendanceState> {
   final TeacherAttendanceService _service;
 
@@ -230,10 +228,11 @@ class SubmitTeacherAttendanceCubit extends Cubit<SubmitTeacherAttendanceState> {
   Future<void> submitAttendance({
     required List<TeacherModel> teachers,
     required Map<int, TeacherAttendanceStatus> attendanceMap,
+    required String Function(String key) tr, // 🟢 إجباري بدون خيارات
     Map<int, String?> noteMap = const {},
   }) async {
     if (teachers.isEmpty) {
-      emit(SubmitTeacherAttendanceError('لا يوجد معلمون لتسجيل حضورهم'));
+      emit(SubmitTeacherAttendanceError(tr('submit_teacher_attendance_no_teachers')));
       return;
     }
     emit(SubmitTeacherAttendanceLoading());
@@ -254,11 +253,12 @@ class SubmitTeacherAttendanceCubit extends Cubit<SubmitTeacherAttendanceState> {
         date:         date,
         checkInTime:  checkIn,
         notesMap:     noteMap,
+        tr: context.tr,
       );
 
-      emit(SubmitTeacherAttendanceSuccess('تم تسجيل حضور المعلمين بنجاح ✓'));
+      emit(SubmitTeacherAttendanceSuccess(tr('submit_teacher_attendance_success')));
     } catch (e) {
-      emit(SubmitTeacherAttendanceError(e.toString()));
+      emit(SubmitTeacherAttendanceError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 

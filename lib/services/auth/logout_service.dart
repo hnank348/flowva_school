@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:flowva_school/services/api_service.dart';
 import 'package:flowva_school/services/constant_api.dart';
 
@@ -6,22 +7,27 @@ class LogoutService {
 
   LogoutService(this._apiService);
 
-  Future<Map<String, dynamic>> logout() async {
+  Future<Map<String, dynamic>> logout({
+    required String Function(String key) tr,
+  }) async {
     try {
       final response = await _apiService.post(
         ConstantApi.logout,
+        tr: context.tr,
       );
 
       print('🌐 [LogoutService] Response Data: ${response.data}');
       print('📊 [LogoutService] Status Code: ${response.statusCode}');
 
-      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
+      final isSuccessStatus = response.statusCode == 200 || response.statusCode == 201;
+
+      if (isSuccessStatus && response.data != null && response.data is Map && response.data['success'] == true) {
         return {'success': true, 'message': response.data['message'] ?? ''};
       }
 
       return {
         'success': false,
-        'message': response.data['message'] ?? 'فشل تسجيل الخروج',
+        'message': (response.data is Map ? response.data['message'] : null) ?? tr('logout_failed_msg'),
       };
     } catch (e) {
       return {

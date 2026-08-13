@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:flowva_school/cubit/supervisor/submit_student/submit_attendance_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/cubit/supervisor/student/student_attendance_state.dart';
@@ -24,10 +25,11 @@ class SubmitAttendanceCubit extends Cubit<SubmitAttendanceState> {
     required int sectionId,
     required int academicYearId,
     required int semesterId,
-    Map<String, String?> noteMap = const {}, // ✅ جديد
+    required String Function(String key) tr,
+    Map<String, String?> noteMap = const {},
   }) async {
     if (students.isEmpty) {
-      emit(const SubmitAttendanceError('لا يوجد طلاب لتسجيل حضورهم'));
+      emit(SubmitAttendanceError(tr('submit_attendance_no_students')));
       return;
     }
 
@@ -53,12 +55,13 @@ class SubmitAttendanceCubit extends Cubit<SubmitAttendanceState> {
         statusMap:      statusMap,
         date:           date,
         checkInTime:    time,
-        notesMap:       noteMap, // ✅ جديد
+        notesMap:       noteMap,
+        tr: context.tr,
       );
 
-      emit(const SubmitAttendanceSuccess('تم تسجيل الحضور بنجاح ✓'));
+      emit(SubmitAttendanceSuccess(tr('submit_attendance_success')));
     } catch (e) {
-      emit(SubmitAttendanceError(e.toString()));
+      emit(SubmitAttendanceError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 

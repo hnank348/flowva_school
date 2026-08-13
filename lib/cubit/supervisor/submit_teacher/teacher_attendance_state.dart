@@ -19,7 +19,7 @@ class TeacherAttendanceLoading extends TeacherAttendanceState {
 class TeacherAttendanceSuccess extends TeacherAttendanceState {
   final List<TeacherModel> teachers;
   final Map<int, String?> noteMap;
-  final Map<int, bool> expandedMap; // ✅ جديد
+  final Map<int, bool> expandedMap;
 
   const TeacherAttendanceSuccess(
       this.teachers,
@@ -47,9 +47,9 @@ class TeacherAttendanceViewMode extends TeacherAttendanceState {
   final List<TeacherAttendanceRecord> records;
   final Map<int, TeacherAttendanceStatus> editMap;
   final Map<int, String?> noteEditMap;
-  final Map<int, bool> expandedMap; // ✅ جديد
-  final Map<int, bool> savingMap;   // ✅ جديد
-  final Map<int, bool> savedMap;    // ✅ جديد
+  final Map<int, bool> expandedMap;
+  final Map<int, bool> savingMap;
+  final Map<int, bool> savedMap;
 
   const TeacherAttendanceViewMode(
       this.records,
@@ -87,7 +87,6 @@ class TeacherAttendanceError extends TeacherAttendanceState {
   const TeacherAttendanceError(this.errorMessage) : super(const {});
 }
 
-// ─── حالات إرسال الحضور (submit) - بدون تغيير ──────────────────────────────
 abstract class SubmitTeacherAttendanceState {}
 
 class SubmitTeacherAttendanceInitial extends SubmitTeacherAttendanceState {}

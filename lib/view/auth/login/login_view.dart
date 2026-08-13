@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../app_localizations.dart';
 import '../../../app_theme.dart';
 import '../../../cubit/login/login_cubit.dart';
 import '../../../cubit/login/login_state.dart';
@@ -42,13 +43,32 @@ class LoginScreen extends StatelessWidget {
             _notify(context, state.message);
 
             final String token = state.data['token'] ?? '';
-            final String userType = state.data['user']?['user_type'] ?? state.data['user_type'] ?? 'admin';
+            final String userType = (state.data['user']?['user_type'] ?? state.data['user_type'] ?? '').toString().toLowerCase();
 
             Widget nextView;
-            if (userType == "admin") {
-              nextView = MainLayoutView(userToken: token);
-            } else {
-              nextView = TeacherDashboard(userToken: token);
+
+            switch (userType) {
+              case 'counselor':
+              case 'admin':
+                nextView = MainLayoutView(userToken: token);
+                break;
+
+              case 'teacher':
+                nextView = TeacherDashboard(userToken: token);
+                break;
+
+              case 'student':
+                nextView = MainLayoutView(userToken: token);
+                break;
+
+              case 'parent':
+              case 'guardian':
+                nextView = MainLayoutView(userToken: token);
+                break;
+
+              default:
+                nextView = MainLayoutView(userToken: token);
+                break;
             }
 
             Navigator.pushReplacement(
@@ -79,11 +99,11 @@ class LoginScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 60),
-                    const Text(
-                      "Login",
-                      style: TextStyle(
+                    Text(
+                      context.tr('login_title'),
+                      style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 60,
+                        fontSize: 50,
                         fontWeight: FontWeight.bold,
                         fontFamily: 'PlayfairDisplay',
                       ),
@@ -104,9 +124,9 @@ class LoginScreen extends StatelessWidget {
                               children: [
                                 CustomTextField(
                                   controller: _emailController,
-                                  hintText: "Email",
+                                  hintText: context.tr('login_email_hint'),
                                   decoration: FieldStyles.authInputDecoration(
-                                    label: "Email",
+                                    label: context.tr('login_email_hint'),
                                     icon: Icons.email_outlined,
                                   ),
                                 ),
@@ -114,10 +134,10 @@ class LoginScreen extends StatelessWidget {
                                 PasswordField(
                                   controller: _passwordController,
                                   isVisibleNotifier: _isPasswordVisible,
-                                  label: "Password",
+                                  label: context.tr('login_password_hint'),
                                   icon: Icons.lock_outline,
                                   decoration: FieldStyles.authInputDecoration(
-                                    label: "Password",
+                                    label: context.tr('login_password_hint'),
                                     icon: Icons.lock_outline,
                                   ),
                                 ),
@@ -131,13 +151,14 @@ class LoginScreen extends StatelessWidget {
                                       );
                                     }
                                     return Button(
-                                      text: "Login",
+                                      text: context.tr('login_button'),
                                       color: AppColors.primaryTeal,
                                       colorText: Colors.white,
                                       onPressed: () {
                                         context.read<LoginCubit>().loginUser(
                                           email: _emailController.text,
                                           password: _passwordController.text,
+                                          tr: context.tr,
                                         );
                                       },
                                     );

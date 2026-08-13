@@ -105,7 +105,7 @@ class ProfileView extends StatelessWidget {
   }
 }
 
-// ─── Error ───────────────────────────────────────────────────────────────────
+
 
 class _ErrorBody extends StatelessWidget {
   final String message;

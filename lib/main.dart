@@ -21,9 +21,9 @@ void main() async {
 
   final localeCubit = LocaleCubit();
   await localeCubit.init();
-  await Future.wait([
-    PushNotificationsService.init(),
-    LocalNotificationService.init()]);
+
+  await LocalNotificationService.init();
+  await PushNotificationsService.init();
 
   runApp(SchoolManagementApp(localeCubit: localeCubit));
 }
@@ -58,9 +58,7 @@ class SchoolManagementApp extends StatelessWidget {
               return MaterialApp(
                 title: 'Flowva School Management',
                 debugShowCheckedModeBanner: false,
-                themeMode: isDark
-                    ? ThemeMode.dark
-                    : ThemeMode.light,
+                themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
                 theme: AppTheme.lightTheme,
                 darkTheme: AppTheme.darkTheme,
                 builder: (context, child) => Directionality(

@@ -10,9 +10,9 @@ class ExamModel {
   final double passMarks;
   final String status;     // scheduled | completed | ...
   final String? instructions;
-  final ExamTypeModel examType;
-  final ExamSubjectModel subject;
-  final ExamTeacherModel teacher;
+  final ExamTypeModel? examType;
+  final ExamSubjectModel? subject; // 💡 تم تحويله إلى Nullable حمايةً ضد البيانات الفارغة
+  final ExamTeacherModel? teacher; // 💡 تم تحويله إلى Nullable حمايةً ضد البيانات الفارغة
 
   const ExamModel({
     required this.id,
@@ -25,28 +25,38 @@ class ExamModel {
     required this.totalMarks,
     required this.passMarks,
     required this.status,
-    required this.instructions,
-    required this.examType,
-    required this.subject,
-    required this.teacher,
+    this.instructions,
+    this.examType,
+    this.subject,
+    this.teacher,
   });
 
   factory ExamModel.fromJson(Map<String, dynamic> json) {
     return ExamModel(
-      id:           json['id'] as int,
-      name:         json['name'] ?? '',
-      nameAr:       json['name_ar'] ?? '',
-      examDate:     json['exam_date'] ?? '',
-      startTime:    json['start_time'] ?? '',
-      endTime:      json['end_time'] ?? '',
-      room:         json['room'] ?? '',
-      totalMarks:   double.tryParse(json['total_marks'].toString()) ?? 0,
-      passMarks:    double.tryParse(json['pass_marks'].toString()) ?? 0,
-      status:       json['status'] ?? 'scheduled',
-      instructions: json['instructions'],
-      examType:     ExamTypeModel.fromJson(json['exam_type']),
-      subject:      ExamSubjectModel.fromJson(json['subject']),
-      teacher:      ExamTeacherModel.fromJson(json['teacher']),
+      id:           json['id'] as int? ?? 0,
+      name:         json['name']?.toString() ?? '',
+      nameAr:       json['name_ar']?.toString() ?? '',
+      examDate:     json['exam_date']?.toString() ?? '',
+      startTime:    json['start_time']?.toString() ?? '',
+      endTime:      json['end_time']?.toString() ?? '',
+      room:         json['room']?.toString() ?? '',
+      totalMarks:   double.tryParse(json['total_marks']?.toString() ?? '0') ?? 0.0,
+      passMarks:    double.tryParse(json['pass_marks']?.toString() ?? '0') ?? 0.0,
+      status:       json['status']?.toString() ?? 'scheduled',
+      instructions: json['instructions']?.toString(),
+
+      // ✅ التعديل الرئيسي: فحص كينونة الخريطة وتواجدها قبل التحويل لمنع الـ Exception
+      examType: json['exam_type'] != null && json['exam_type'] is Map<String, dynamic>
+          ? ExamTypeModel.fromJson(json['exam_type'] as Map<String, dynamic>)
+          : null,
+
+      subject: json['subject'] != null && json['subject'] is Map<String, dynamic>
+          ? ExamSubjectModel.fromJson(json['subject'] as Map<String, dynamic>)
+          : null,
+
+      teacher: json['teacher'] != null && json['teacher'] is Map<String, dynamic>
+          ? ExamTeacherModel.fromJson(json['teacher'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -72,10 +82,10 @@ class ExamTypeModel {
 
   factory ExamTypeModel.fromJson(Map<String, dynamic> json) {
     return ExamTypeModel(
-      id:     json['id'] as int,
-      name:   json['name'] ?? '',
-      nameAr: json['name_ar'] ?? '',
-      weight: json['weight'] ?? 0,
+      id:     json['id'] as int? ?? 0,
+      name:   json['name']?.toString() ?? '',
+      nameAr: json['name_ar']?.toString() ?? '',
+      weight: int.tryParse(json['weight']?.toString() ?? '0') ?? 0,
     );
   }
 }
@@ -93,9 +103,9 @@ class ExamSubjectModel {
 
   factory ExamSubjectModel.fromJson(Map<String, dynamic> json) {
     return ExamSubjectModel(
-      id:   json['id'] as int,
-      name: json['name'] ?? '',
-      code: json['code'] ?? '',
+      id:   json['id'] as int? ?? 0,
+      name: json['name']?.toString() ?? '',
+      code: json['code']?.toString() ?? '',
     );
   }
 }
@@ -113,9 +123,9 @@ class ExamTeacherModel {
 
   factory ExamTeacherModel.fromJson(Map<String, dynamic> json) {
     return ExamTeacherModel(
-      id:         json['id'] as int,
-      employeeId: json['employee_id'] ?? '',
-      fullName:   json['full_name'] ?? '',
+      id:         json['id'] as int? ?? 0,
+      employeeId: json['employee_id']?.toString() ?? '',
+      fullName:   json['full_name']?.toString() ?? '',
     );
   }
 }

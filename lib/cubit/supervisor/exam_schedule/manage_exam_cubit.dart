@@ -9,33 +9,55 @@ class ManageExamCubit extends Cubit<ManageExamState> {
 
   ManageExamCubit(this._service) : super(const ManageExamInitial());
 
-  Future<void> updateExam(int examId, UpdateExamRequest request) async {
+  Future<void> updateExam({
+    required int examId,
+    required UpdateExamRequest request,
+    required String Function(String key) tr, // 🟢 استقبال دالة الترجمة كـ Parameter إجباري
+  }) async {
     emit(const ManageExamLoading());
     try {
-      final updatedExam = await _service.updateExam(examId, request);
+      final updatedExam = await _service.updateExam(
+        examId: examId,
+        request: request,
+        tr: tr,
+      );
       emit(UpdateExamSuccess(updatedExam));
     } catch (e) {
-      emit(ManageExamError(e.toString()));
+      emit(ManageExamError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 
-  Future<void> changeStatus(int examId, String status) async {
+  Future<void> changeStatus({
+    required int examId,
+    required String status,
+    required String Function(String key) tr, // 🟢 تمرير tr للخدمة
+  }) async {
     emit(const ManageExamLoading());
     try {
-      await _service.changeExamStatus(examId, status);
+      await _service.changeExamStatus(
+        examId: examId,
+        status: status,
+        tr: tr,
+      );
       emit(ChangeExamStatusSuccess(status));
     } catch (e) {
-      emit(ManageExamError(e.toString()));
+      emit(ManageExamError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 
-  Future<void> deleteExam(int examId) async {
+  Future<void> deleteExam({
+    required int examId,
+    required String Function(String key) tr, // 🟢 تمرير tr للخدمة
+  }) async {
     emit(const ManageExamLoading());
     try {
-      await _service.deleteExam(examId);
+      await _service.deleteExam(
+        examId: examId,
+        tr: tr,
+      );
       emit(const DeleteExamSuccess());
     } catch (e) {
-      emit(ManageExamError(e.toString()));
+      emit(ManageExamError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../app_localizations.dart';
 import '../../../cubit/supervisor/classes/classes_cubit.dart';
 import '../../../cubit/supervisor/schedule/schedule_cubit.dart';
 import '../../../cubit/supervisor/subjects/subjects_cubit.dart';
@@ -19,7 +20,7 @@ import 'schedule_table_widget.dart';
 class WeeklyScheduleView extends StatelessWidget {
   const WeeklyScheduleView({super.key});
 
-  void _triggerFetchSchedule(
+  void _fetchScheduleOnly(
       BuildContext context,
       int sectionId,
       String sectionName,
@@ -29,144 +30,168 @@ class WeeklyScheduleView extends StatelessWidget {
       sectionId,
       sectionName,
       semester: semesterId,
+      tr: context.tr,
     );
-    context.read<SubjectsCubit>().fetchSubjects();
-    context.read<TeachersCubit>().fetchTeachers();
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (context.mounted) {
+        context.read<SubjectsCubit>().fetchSubjects(tr: context.tr);
+        context.read<TeachersCubit>().fetchTeachers(tr: context.tr);
+      }
+    });
+
     return BlocBuilder<LocaleCubit, LocaleState>(
       builder: (context, localeState) {
-        return Directionality(
-          textDirection: localeState.textDirection,
-          child: Container(
-            color: colorScheme.surface,
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: BlocBuilder<ClassesCubit, ClassesState>(
-              builder: (context, classState) {
-                return BlocBuilder<ScheduleCubit, ScheduleState>(
-                  builder: (context, scheduleState) {
-                    return BlocBuilder<CurrentSemesterCubit, CurrentSemesterState>(
-                      builder: (context, semesterState) {
-
-                        int currentSemesterId = 1;
-                        if (semesterState is CurrentSemesterSuccess) {
-                          currentSemesterId = semesterState.currentSemester.id;
-                        }
-
-                        final scheduleCubit = context.read<ScheduleCubit>();
-                        if (classState is ClassesLoaded && classState.selectedSection != null) {
-                          if (scheduleCubit.state is ScheduleInitial) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (context.mounted) {
-                                _triggerFetchSchedule(
-                                  context,
-                                  classState.selectedSection!.id,
-                                  classState.selectedSection!.name,
-                                  currentSemesterId,
-                                );
-                              }
-                            });
+        return BlocListener<ScheduleCubit, ScheduleState>(
+          listener: (context, state) {
+            if (state is ScheduleActionSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(
+                  state.successMessage,
+                  style: const TextStyle(fontFamily: 'Cairo'),
+                ),
+                backgroundColor: const Color(0xFF0F766E),
+                behavior: SnackBarBehavior.floating,
+              ));
+            }
+          },
+          child: Directionality(
+            textDirection: localeState.textDirection,
+            child: Container(
+              color: colorScheme.surface,
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: BlocBuilder<ClassesCubit, ClassesState>(
+                builder: (context, classState) {
+                  return BlocBuilder<ScheduleCubit, ScheduleState>(
+                    builder: (context, scheduleState) {
+                      return BlocBuilder<CurrentSemesterCubit, CurrentSemesterState>(
+                        builder: (context, semesterState) {
+                          int currentSemesterId = 1;
+                          if (semesterState is CurrentSemesterSuccess) {
+                            currentSemesterId = semesterState.currentSemester.id;
                           }
-                        }
 
-                        List<ScheduleSessionModel> activeSessions = [];
-                        if (scheduleState is ScheduleLoaded) {
-                          activeSessions = scheduleState.sessions;
-                        }
-
-                        int activeSectionId = 0;
-                        String activeClassName = "";
-                        if (classState is ClassesLoaded && classState.selectedSection != null) {
-                          activeSectionId = classState.selectedSection!.id;
-                          activeClassName = classState.selectedSection!.name;
-                        }
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const SizedBox(height: 12),
-
-                            Builder(
-                              builder: (context) {
-                                if (classState is ClassesLoading) {
-                                  return SizedBox(
-                                    height: 38,
-                                    child: Center(
-                                      child: LinearProgressIndicator(
-                                        color: colorScheme.primary,
-                                      ),
-                                    ),
-                                  );
-                                } else if (classState is ClassesError) {
-                                  return Center(
-                                    child: Text(
-                                      classState.message,
-                                      style: TextStyle(fontFamily: 'Cairo', color: colorScheme.error, fontSize: 12),
-                                    ),
-                                  );
-                                } else if (classState is ClassesLoaded) {
-                                  return ScheduleHeaderWidget(
-                                    classState: classState,
-                                    // ✅ تمت إزالة classesCubit لأنه لم يعد موجوداً بالويدجت الموحّد
-                                    onSectionChanged: (newSection) {
-                                      context.read<ClassesCubit>().selectSection(newSection);
-
-                                      _triggerFetchSchedule(
-                                        context,
-                                        newSection.id,
-                                        newSection.name,
-                                        currentSemesterId,
-                                      );
-                                    },
-                                    onExportPdfPressed: () {},
+                          final scheduleCubit = context.read<ScheduleCubit>();
+                          if (classState is ClassesLoaded && classState.selectedSection != null) {
+                            if (scheduleCubit.state is ScheduleInitial) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (context.mounted) {
+                                  _fetchScheduleOnly(
+                                    context,
+                                    classState.selectedSection!.id,
+                                    classState.selectedSection!.name,
+                                    currentSemesterId,
                                   );
                                 }
-                                return const SizedBox();
-                              },
-                            ),
+                              });
+                            }
+                          }
 
-                            const SizedBox(height: 12),
+                          List<ScheduleSessionModel> activeSessions = [];
+                          if (scheduleState is ScheduleLoaded) {
+                            activeSessions = scheduleState.sessions;
+                          }
 
-                            Expanded(
-                              child: Builder(
+                          int activeSectionId = 0;
+                          String activeClassName = "";
+                          if (classState is ClassesLoaded && classState.selectedSection != null) {
+                            activeSectionId = classState.selectedSection!.id;
+                            activeClassName = classState.selectedSection!.name;
+                          }
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const SizedBox(height: 12),
+                              Builder(
                                 builder: (context) {
-                                  if (scheduleState is ScheduleLoading) {
-                                    return Center(
-                                      child: CircularProgressIndicator(
-                                        color: colorScheme.primary,
+                                  if (classState is ClassesLoading) {
+                                    return SizedBox(
+                                      height: 38,
+                                      child: Center(
+                                        child: LinearProgressIndicator(
+                                          color: colorScheme.primary,
+                                        ),
                                       ),
                                     );
-                                  } else if (scheduleState is ScheduleError) {
+                                  } else if (classState is ClassesError) {
                                     return Center(
                                       child: Text(
-                                        scheduleState.message,
-                                        style: TextStyle(fontFamily: 'Cairo', color: colorScheme.error),
+                                        classState.message,
+                                        style: TextStyle(
+                                          fontFamily: 'Cairo',
+                                          color: colorScheme.error,
+                                          fontSize: 12,
+                                        ),
                                       ),
                                     );
-                                  }
+                                  } else if (classState is ClassesLoaded) {
+                                    return ScheduleHeaderWidget(
+                                      classState: classState,
+                                      onSectionChanged: (newSection) {
+                                        context.read<ClassesCubit>().selectSection(newSection);
 
-                                  return ScheduleTableWidget(
-                                    key: ValueKey('${activeSectionId}_${currentSemesterId}_${localeState.currentLanguage}'),
-                                    sessions: activeSessions,
-                                    sectionId: activeSectionId,
-                                    className: activeClassName,
-                                    semesterId: currentSemesterId,
-                                    currentLanguage: localeState.currentLanguage,
-                                  );
+                                        _fetchScheduleOnly(
+                                          context,
+                                          newSection.id,
+                                          newSection.name,
+                                          currentSemesterId,
+                                        );
+                                      },
+                                      onExportPdfPressed: () {},
+                                    );
+                                  }
+                                  return const SizedBox();
                                 },
                               ),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                );
-              },
+                              const SizedBox(height: 12),
+                              Expanded(
+                                child: Builder(
+                                  builder: (context) {
+                                    if (scheduleState is ScheduleLoading) {
+                                      return Center(
+                                        child: CircularProgressIndicator(
+                                          color: colorScheme.primary,
+                                        ),
+                                      );
+                                    } else if (scheduleState is ScheduleError) {
+                                      return Center(
+                                        child: Text(
+                                          scheduleState.message,
+                                          style: TextStyle(
+                                            fontFamily: 'Cairo',
+                                            color: colorScheme.error,
+                                          ),
+                                        ),
+                                      );
+                                    }
+
+                                    return ScheduleTableWidget(
+                                      key: ValueKey(
+                                        '${activeSectionId}_${currentSemesterId}_${localeState.currentLanguage}',
+                                      ),
+                                      sessions: activeSessions,
+                                      sectionId: activeSectionId,
+                                      className: activeClassName,
+                                      semesterId: currentSemesterId,
+                                      currentLanguage: localeState.currentLanguage,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ),
         );

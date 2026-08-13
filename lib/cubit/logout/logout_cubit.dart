@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flowva_school/cubit/logout/logout_state.dart';
@@ -11,7 +12,7 @@ class LogoutCubit extends Cubit<LogoutState> {
   Future<void> logout() async {
     emit(LogoutLoading());
 
-    final result = await _logoutService.logout();
+    final result = await _logoutService.logout(tr: context.tr,);
 
     if (result['success']) {
       final prefs = await SharedPreferences.getInstance();

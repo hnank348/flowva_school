@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/cubit/change_password/change_password_state.dart';
 import 'package:flowva_school/services/auth/change_password_service.dart';
@@ -13,34 +14,41 @@ class ChangePasswordCubit extends Cubit<ChangePasswordState> {
     required int userId,
     required String newPassword,
     required String confirmPassword,
+    required String Function(String key) tr, // 🟢 استقبال دالة context.tr
   }) async {
     if (newPassword.isEmpty || confirmPassword.isEmpty) {
-      emit(ChangePasswordError('الرجاء ملء جميع الحقول المطلوبة'));
+      emit(ChangePasswordError(tr('change_password_fill_fields')));
       return;
     }
 
     if (newPassword.length < 8) {
-      emit(ChangePasswordError('يجب أن تتكون كلمة المرور من 8 أحرف على الأقل'));
+      emit(ChangePasswordError(tr('change_password_min_length')));
       return;
     }
 
     if (newPassword != confirmPassword) {
-      emit(ChangePasswordError('كلمتا المرور غير متطابقتين'));
+      emit(ChangePasswordError(tr('change_password_mismatch')));
       return;
     }
 
     emit(ChangePasswordLoading());
 
-    final result = await _service.changePassword(
-      userId: userId,
-      newPassword: newPassword,
-      newPasswordConfirmation: confirmPassword,
-    );
+    try {
+      final result = await _service.changePassword(
+        userId: userId,
+        newPassword: newPassword,
+        newPasswordConfirmation: confirmPassword,
+        tr: context.tr
 
-    if (result['success'] == true) {
-      emit(ChangePasswordSuccess(result['message']));
-    } else {
-      emit(ChangePasswordError(result['message']));
+      );
+
+      if (result['success'] == true) {
+        emit(ChangePasswordSuccess(result['message'] ?? ''));
+      } else {
+        emit(ChangePasswordError(result['message'] ?? ''));
+      }
+    } catch (e) {
+      emit(ChangePasswordError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 

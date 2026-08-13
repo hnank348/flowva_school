@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/cubit/supervisor/student/student_attendance_state.dart';
 import 'package:flowva_school/services/supervisor/student_attendance_service.dart';
@@ -14,7 +15,11 @@ class StudentAttendanceCubit extends Cubit<StudentAttendanceState> {
   })  : _service = attendanceService,
         super(StudentAttendanceInitial());
 
-  Future<void> fetchAttendance(int sectionId, {required int semesterId}) async {
+  Future<void> fetchAttendance(
+      int sectionId, {
+        required int semesterId,
+        required String Function(String key) tr,
+      }) async {
     emit(StudentAttendanceLoading(state.attendanceMap));
 
     try {
@@ -47,10 +52,14 @@ class StudentAttendanceCubit extends Cubit<StudentAttendanceState> {
         final students = await _service.getStudentsBySection(
           sectionId: sectionId,
           token:     userToken,
+          tr: context.tr,
         );
 
         if (students.isEmpty) {
-          emit(const StudentAttendanceError('لا يوجد طلاب في هذه الشعبة'));
+          final errorMessage = tr != null
+              ? tr('student_attendance_no_students')
+              : 'لا يوجد طلاب في هذه الشعبة';
+          emit(StudentAttendanceError(errorMessage));
           return;
         }
 
@@ -60,7 +69,7 @@ class StudentAttendanceCubit extends Cubit<StudentAttendanceState> {
         for (final s in students) {
           map[s.id.toString()] = StudentAttendanceStatus.present;
           noteMap[s.id.toString()] = s.notes;
-          expandedMap[s.id.toString()] = true; // ✅ موسّع افتراضياً بوضع التسجيل
+          expandedMap[s.id.toString()] = true;
         }
         emit(StudentAttendanceSuccess(
           students,
@@ -70,7 +79,7 @@ class StudentAttendanceCubit extends Cubit<StudentAttendanceState> {
         ));
       }
     } catch (e) {
-      emit(StudentAttendanceError(e.toString()));
+      emit(StudentAttendanceError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 
@@ -80,7 +89,6 @@ class StudentAttendanceCubit extends Cubit<StudentAttendanceState> {
       final newMap = Map<String, StudentAttendanceStatus>.from(s.attendanceMap);
       newMap[studentId] = status;
 
-      // ✅ يطوي الكارت تلقائياً بعد الاختيار
       final newExpanded = Map<String, bool>.from(s.expandedMap);
       newExpanded[studentId] = false;
 
@@ -97,7 +105,6 @@ class StudentAttendanceCubit extends Cubit<StudentAttendanceState> {
     }
   }
 
-  // ✅ جديد - فتح/إغلاق منطقة اختيار الحالة (وضع التسجيل)
   void toggleExpanded(String studentId, bool value) {
     if (state is StudentAttendanceSuccess) {
       final s = state as StudentAttendanceSuccess;
@@ -115,7 +122,7 @@ class StudentAttendanceCubit extends Cubit<StudentAttendanceState> {
       final newExpanded = Map<int, bool>.from(s.expandedMap);
 
       newEditMap[attendanceRecordId] = status;
-      newExpanded[attendanceRecordId] = false; // ✅ يطوي بعد الاختيار
+      newExpanded[attendanceRecordId] = false;
 
       final record = s.records.firstWhere((r) => r.id == attendanceRecordId);
       newAttMap[record.studentId.toString()] = status;
@@ -137,7 +144,6 @@ class StudentAttendanceCubit extends Cubit<StudentAttendanceState> {
     }
   }
 
-  // ✅ جديد - فتح/إغلاق منطقة اختيار الحالة (وضع العرض/التعديل)
   void toggleEditExpanded(int attendanceRecordId, bool value) {
     if (state is StudentAttendanceViewMode) {
       final s = state as StudentAttendanceViewMode;
@@ -155,7 +161,6 @@ class StudentAttendanceCubit extends Cubit<StudentAttendanceState> {
     if (status == null) return;
     final note = s.noteEditMap[attendanceRecordId];
 
-    // ✅ تفعيل حالة التحميل بالـ Cubit
     final savingMap = Map<int, bool>.from(s.savingMap)
       ..[attendanceRecordId] = true;
     emit(s.copyWith(savingMap: savingMap));
@@ -165,6 +170,7 @@ class StudentAttendanceCubit extends Cubit<StudentAttendanceState> {
         attendanceId: attendanceRecordId,
         statusId:     _fromStatus(status),
         notes:        note,
+        tr: context.tr,
       );
 
       if (state is StudentAttendanceViewMode) {
@@ -175,7 +181,6 @@ class StudentAttendanceCubit extends Cubit<StudentAttendanceState> {
           ..[attendanceRecordId] = true;
         emit(current.copyWith(savingMap: newSaving, savedMap: newSaved));
 
-        // ✅ إخفاء علامة "تم الحفظ" بعد ثانيتين
         Future.delayed(const Duration(seconds: 2), () {
           if (state is StudentAttendanceViewMode) {
             final c2 = state as StudentAttendanceViewMode;
@@ -195,8 +200,6 @@ class StudentAttendanceCubit extends Cubit<StudentAttendanceState> {
       rethrow;
     }
   }
-
-  // ─── helpers ──────────────────────────────────────────────────────────────
 
   String _todayString() {
     final now = DateTime.now();

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:flowva_school/services/constant_api.dart';
 import '../../models/supervisor/schedule_session_model.dart';
 import '../api_service.dart';
@@ -12,16 +13,20 @@ class ScheduleService {
     required int sectionId,
     required String token,
     required int semesterId,
+    required String Function(String key) tr, // 🟢 إجباري بدون أي فحص إضافي
   }) async {
     try {
       final response = await _apiService.get(
         '${ConstantApi.section}/$sectionId/timetable',
         queryParameters: {'semester_id': semesterId},
+        tr: context.tr,
       );
 
       print('🌐 [ScheduleService - Fetch] Response Data: ${response.data}');
 
-      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
+      final isSuccessStatus = response.statusCode == 200 || response.statusCode == 201;
+
+      if (isSuccessStatus && response.data != null && response.data is Map && response.data['success'] == true) {
         final rawData = response.data['data'];
 
         if (rawData == null) return [];
@@ -46,7 +51,9 @@ class ScheduleService {
           return rawData.map((json) => ScheduleSessionModel.fromJson(json)).toList();
         }
       }
-      throw Exception(response.data['message'] ?? 'فشل جلب الجدول');
+
+      final errorMsg = (response.data is Map ? response.data['message'] : null) ?? tr('schedule_fetch_failed');
+      throw Exception(errorMsg);
     } catch (e) {
       throw Exception(e.toString().replaceAll("Exception: ", ""));
     }
@@ -60,6 +67,7 @@ class ScheduleService {
     required int teacherId,
     required int academicYearId,
     required int semesterId,
+    required String Function(String key) tr, // 🟢 إجباري بدون أي فحص إضافي
   }) async {
     try {
       final Map<String, dynamic> requestData = session.toJson()
@@ -74,14 +82,19 @@ class ScheduleService {
       final response = await _apiService.post(
         ConstantApi.timetables,
         data: requestData,
+        tr: context.tr,
       );
 
       print('🌐 [ScheduleService - Create] Response Data: ${response.data}');
 
-      if ((response.statusCode == 201 || response.statusCode == 200) && response.data['success'] == true) {
+      final isSuccessStatus = response.statusCode == 200 || response.statusCode == 201;
+
+      if (isSuccessStatus && response.data != null && response.data is Map && response.data['success'] == true) {
         return ScheduleSessionModel.fromJson(response.data['data']);
       }
-      throw Exception(response.data['message'] ?? 'فشل إنشاء الحصة');
+
+      final errorMsg = (response.data is Map ? response.data['message'] : null) ?? tr('schedule_create_failed');
+      throw Exception(errorMsg);
     } catch (e) {
       throw Exception(e.toString().replaceAll("Exception: ", ""));
     }
@@ -96,6 +109,7 @@ class ScheduleService {
     required int teacherId,
     required int academicYearId,
     required int semesterId,
+    required String Function(String key) tr, // 🟢 إجباري بدون أي فحص إضافي
   }) async {
     try {
       final Map<String, dynamic> requestData = session.toJson()
@@ -110,31 +124,42 @@ class ScheduleService {
       final response = await _apiService.put(
         '${ConstantApi.timetables}/$timetableId',
         data: requestData,
+        tr: context.tr,
       );
 
       print('🌐 [ScheduleService - Update] Response Data: ${response.data}');
-      print('🌐 [ScheduleService - Update] Response Data: ${response.data}');
 
-      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
+      final isSuccessStatus = response.statusCode == 200 || response.statusCode == 201;
+
+      if (isSuccessStatus && response.data != null && response.data is Map && response.data['success'] == true) {
         return ScheduleSessionModel.fromJson(response.data['data']);
       }
-      throw Exception(response.data['message'] ?? 'فشل تعديل الحصة');
+
+      final errorMsg = (response.data is Map ? response.data['message'] : null) ?? tr('schedule_update_failed');
+      throw Exception(errorMsg);
     } catch (e) {
       throw Exception(e.toString().replaceAll("Exception: ", ""));
     }
   }
 
-  Future<void> deleteSession(int timetableId) async {
+  Future<void> deleteSession({
+    required int timetableId,
+    required String Function(String key) tr, // 🟢 إجباري بدون أي فحص إضافي
+  }) async {
     try {
       final response = await _apiService.delete(
         '${ConstantApi.timetables}/$timetableId',
+        tr: context.tr,
       );
 
-      print('🌐 [ScheduleService - Delete] Response Data: ${response.statusCode}');
+      print('🌐 [ScheduleService - Delete] Status Code: ${response.statusCode}');
       print('🌐 [ScheduleService - Delete] Response Data: ${response.data}');
 
-      if (response.statusCode != 200 || response.statusCode == 201 || response.data['success'] != true) {
-        throw Exception(response.data['message'] ?? 'فشل حذف الحصة');
+      final isSuccessStatus = response.statusCode == 200 || response.statusCode == 201;
+
+      if (!isSuccessStatus || response.data == null || response.data is! Map || response.data['success'] != true) {
+        final errorMsg = (response.data is Map ? response.data['message'] : null) ?? tr('schedule_delete_failed');
+        throw Exception(errorMsg);
       }
     } catch (e) {
       throw Exception(e.toString().replaceAll("Exception: ", ""));

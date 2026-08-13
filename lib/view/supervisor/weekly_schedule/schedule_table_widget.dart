@@ -42,16 +42,13 @@ class ScheduleTableWidget extends StatelessWidget {
         (label: context.tr('period_6'),               time: '1:00 - 12:15',  isRest: false, periodNum: 6),
       ];
 
-  // ✅ الترتيب الصحيح للأعمدة حسب اللغة
-  // عربي:   [أحد، إثنين، ثلاثاء، أربعاء، خميس، وقت]  — الوقت آخر يمين
-  // إنجليزي: [وقت، أحد، إثنين، ثلاثاء، أربعاء، خميس] — الوقت أول يسار
+
   List<Widget> _buildRowCells({
     required Widget timeCell,
     required List<Widget> dayCells,
     required bool isArabic,
   }) {
     if (isArabic) {
-      // نعكس الأيام + نضع الوقت في النهاية (يظهر على اليمين بسبب RTL)
       return [...dayCells.reversed.toList(), timeCell];
     } else {
       return [timeCell, ...dayCells];
@@ -85,9 +82,7 @@ class ScheduleTableWidget extends StatelessWidget {
             ],
           ),
           clipBehavior: Clip.antiAlias,
-          // ✅ نثبت الـ direction على LTR دائماً داخل الجدول
-          // لأن الـ Table widget لا يدعم RTL بشكل صحيح
-          // ونتحكم بالترتيب يدوياً عبر _buildRowCells
+
           child: Directionality(
             textDirection: TextDirection.ltr,
             child: SingleChildScrollView(

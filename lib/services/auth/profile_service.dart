@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:flowva_school/services/api_service.dart';
 import 'package:flowva_school/models/mutual/user_model.dart';
 import 'package:flowva_school/services/constant_api.dart';
@@ -10,29 +11,38 @@ class ProfileService {
 
   ProfileService(this._apiService);
 
-  Future<UserModel> getUserProfile({String? token}) async {
+  Future<UserModel> getUserProfile({
+    required String Function(String key) tr,
+    String? token,
+  }) async {
     try {
-      final response = await _apiService.get(ConstantApi.profile);
+      final response = await _apiService.get(ConstantApi.profile,tr: context.tr,);
 
       log('📊 [ProfileService - GetProfile] Status Code: ${response.statusCode}');
       log('🌐 [ProfileService - GetProfile] Response Data: ${response.data}');
 
-      if (response.statusCode == 200 || response.statusCode == 201 && response.data != null) {
+      final isSuccessStatus = response.statusCode == 200 || response.statusCode == 201;
+
+      if (isSuccessStatus && response.data != null) {
         final data = response.data as Map<String, dynamic>;
         if (data['success'] == true && data['data'] != null) {
           return UserModel.fromJson(data['data'] as Map<String, dynamic>);
         }
-        throw Exception(data['message'] ?? 'فشل في قراءة بيانات المستخدم');
+        throw Exception(data['message'] ?? tr('profile_read_user_failed'));
       }
-      throw Exception('فشل في الاتصال بالسيرفر: ${response.statusCode}');
+      throw Exception(
+        tr('profile_server_error').replaceAll('{status}', response.statusCode.toString()),
+      );
     } catch (e) {
       log('❌ [ProfileService - GetProfile Error]: $e');
-      throw Exception('خطأ أثناء جلب الملف الشخصي: $e');
+      final rawError = e.toString().replaceAll('Exception: ', '');
+      throw Exception(tr('profile_fetch_error').replaceAll('{error}', rawError));
     }
   }
 
   Future<void> updateUserProfile({
     required int userId,
+    required String Function(String key) tr,
     String? firstName,
     String? firstNameAr,
     String? lastName,
@@ -50,11 +60,12 @@ class ProfileService {
       if (phone       != null) fields['phone']         = phone;
       if (dateOfBirth != null) fields['date_of_birth'] = dateOfBirth;
 
-      // 🔴 1. تحديث النصوص عبر PUT
+
       if (fields.isNotEmpty) {
         final response = await _apiService.put(
           "${ConstantApi.updateUser}/$userId",
           data: fields,
+          tr: context.tr,
         );
 
         log('📊 [ProfileService - UpdateText] Status Code: ${response.statusCode}');
@@ -75,13 +86,18 @@ class ProfileService {
           options: Options(
             contentType: 'multipart/form-data',
           ),
+          tr: context.tr,
         );
 
         log('📊 [ProfileService - UpdateAvatar] Status Code: ${imageResponse.statusCode}');
         log('🌐 [ProfileService - UpdateAvatar] Response Data: ${imageResponse.data}');
 
-        if (imageResponse.statusCode != 200 && imageResponse.statusCode != 201) {
-          throw Exception(imageResponse.data['message'] ?? 'فشل رفع الصورة الشخصية');
+        final isAvatarSuccess = imageResponse.statusCode == 200 || imageResponse.statusCode == 201;
+
+        if (!isAvatarSuccess) {
+          final errorMsg = (imageResponse.data is Map ? imageResponse.data['message'] : null) ??
+              tr('profile_avatar_upload_failed');
+          throw Exception(errorMsg);
         }
       }
     } catch (e) {

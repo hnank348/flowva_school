@@ -1,6 +1,7 @@
+import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'current_semester_state.dart';
-import '../../services/mutual/semester_service.dart'; // تأكدي من ضبط مسار السيرفس طبقاً لمشروعك
+import '../../services/mutual/semester_service.dart';
 
 class CurrentSemesterCubit extends Cubit<CurrentSemesterState> {
   final SemesterService _service;
@@ -10,10 +11,9 @@ class CurrentSemesterCubit extends Cubit<CurrentSemesterState> {
   Future<void> fetchCurrentSemester() async {
     emit(CurrentSemesterLoading());
     try {
-      final semester = await _service.getCurrentSemester();
+      final semester = await _service.getCurrentSemester(tr: context.tr,);
       emit(CurrentSemesterSuccess(semester));
     } catch (e) {
-      // إزالة كلمة Exception الزائدة إن وجدت لعرض رسالة خطأ نظيفة
       emit(CurrentSemesterError(e.toString().replaceAll('Exception: ', '')));
     }
   }

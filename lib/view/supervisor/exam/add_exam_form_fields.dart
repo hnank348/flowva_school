@@ -8,7 +8,6 @@ import '../../../app_localizations.dart';
 import '../../../widget/supervisor/locale_name.dart';
 import '../../../models/supervisor/exam_type_option.dart';
 
-// ─── Dropdown نوع الامتحان ────────────────────────────────────────────
 class ExamTypeDropdownField extends StatelessWidget {
   final ExamTypeOption? value;
   final ValueChanged<ExamTypeOption?> onChanged;
@@ -35,7 +34,6 @@ class ExamTypeDropdownField extends StatelessWidget {
   }
 }
 
-// ─── Dropdown المواد ─────────────────────────────────────────────────────────
 class ExamSubjectDropdownField extends StatelessWidget {
   final int? selectedSubjectId;
   final ValueChanged<int?> onChanged;
@@ -115,16 +113,19 @@ class ExamTeacherDropdownField extends StatelessWidget {
   }
 }
 
-// ─── حقل نصي عام ─────────────────────────────────────────────────────────────
 class ExamTextField extends StatelessWidget {
-  final TextEditingController controller;
+  final TextEditingController? controller;
+  final String? initialValue;
+  final ValueChanged<String>? onChanged;
   final String label;
   final IconData icon;
   final TextInputType? keyboardType;
 
   const ExamTextField({
     super.key,
-    required this.controller,
+    this.controller,
+    this.initialValue,
+    this.onChanged,
     required this.label,
     required this.icon,
     this.keyboardType,
@@ -135,6 +136,8 @@ class ExamTextField extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return TextFormField(
       controller:   controller,
+      initialValue: controller == null ? initialValue : null,
+      onChanged:    onChanged,
       keyboardType: keyboardType,
       style: const TextStyle(fontFamily: 'Cairo', fontSize: 14, fontWeight: FontWeight.w600),
       decoration: InputDecoration(
@@ -172,7 +175,7 @@ class _ModernDropdown<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return DropdownButtonFormField<T>(
-      initialValue: value, dropdownColor: cs.surfaceContainerLow, isExpanded: true,
+      value: value, dropdownColor: cs.surfaceContainerLow, isExpanded: true,
       hint: Text(hint, style: TextStyle(fontFamily: 'Cairo', fontSize: 13, color: cs.onSurfaceVariant),
           maxLines: 1, overflow: TextOverflow.ellipsis),
       icon: Icon(Icons.arrow_drop_down_circle_outlined, color: cs.onSurfaceVariant.withOpacity(0.6), size: 22),

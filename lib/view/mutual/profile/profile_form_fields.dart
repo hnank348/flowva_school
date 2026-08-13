@@ -7,7 +7,6 @@ import 'package:flowva_school/widget/custom_text_field.dart';
 import 'package:flowva_school/widget/field_styles.dart';
 import 'package:flowva_school/widget/date.dart';
 
-// ─── وضع العرض ───────────────────────────────────────────────────────────────
 
 class ProfileViewFields extends StatelessWidget {
   final String displayName;
@@ -103,7 +102,6 @@ class ProfileInfoTile extends StatelessWidget {
   }
 }
 
-// ─── وضع التعديل ─────────────────────────────────────────────────────────────
 
 class ProfileEditFields extends StatelessWidget {
   final TextEditingController nameCtrl;

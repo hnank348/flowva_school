@@ -19,7 +19,6 @@ class ThemeCubit extends Cubit<ThemeState> {
     }
   }
 
-  // 🔄 دالة التبديل
   void toggleTheme() async {
     final prefs = await SharedPreferences.getInstance();
 

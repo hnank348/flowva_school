@@ -40,41 +40,24 @@ class ForgetPasswordScreen extends StatelessWidget {
   }
 }
 
-class _ChangePasswordContent extends StatefulWidget {
+class _ChangePasswordContent extends StatelessWidget {
   const _ChangePasswordContent();
 
-  @override
-  State<_ChangePasswordContent> createState() => _ChangePasswordContentState();
-}
-
-class _ChangePasswordContentState extends State<_ChangePasswordContent> {
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-
-  final ValueNotifier<bool> _isPasswordVisible = ValueNotifier<bool>(false);
-  final ValueNotifier<bool> _isConfirmPasswordVisible =
-  ValueNotifier<bool>(false);
-
-  @override
-  void dispose() {
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    _isPasswordVisible.dispose();
-    _isConfirmPasswordVisible.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    final pw = _passwordController.text.trim();
-    final cpw = _confirmPasswordController.text.trim();
+  void _submit(
+      BuildContext context,
+      TextEditingController passwordController,
+      TextEditingController confirmPasswordController,
+      ) {
+    final pw = passwordController.text.trim();
+    final cpw = confirmPasswordController.text.trim();
 
     if (pw.length < 8) {
-      _showSnack(message: context.tr('change_pw_error_length'), isError: true);
+      _showSnack(context, message: context.tr('change_pw_error_length'), isError: true);
       return;
     }
 
     if (pw != cpw) {
-      _showSnack(message: context.tr('change_pw_error_match'), isError: true);
+      _showSnack(context, message: context.tr('change_pw_error_match'), isError: true);
       return;
     }
 
@@ -82,6 +65,7 @@ class _ChangePasswordContentState extends State<_ChangePasswordContent> {
 
     if (profileState is! ProfileLoaded) {
       _showSnack(
+        context,
         message: context.tr('change_pw_user_not_found'),
         isError: true,
       );
@@ -92,10 +76,11 @@ class _ChangePasswordContentState extends State<_ChangePasswordContent> {
       userId: profileState.user.id,
       newPassword: pw,
       confirmPassword: cpw,
+      tr: context.tr,
     );
   }
 
-  void _showSnack({required String message, required bool isError}) {
+  void _showSnack(BuildContext context, {required String message, required bool isError}) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -104,8 +89,7 @@ class _ChangePasswordContentState extends State<_ChangePasswordContent> {
             message,
             style: const TextStyle(fontFamily: 'Cairo', fontSize: 13),
           ),
-          backgroundColor:
-          isError ? Colors.red.shade600 : AppColors.primaryTeal,
+          backgroundColor: isError ? Colors.red.shade600 : AppColors.primaryTeal,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -120,267 +104,261 @@ class _ChangePasswordContentState extends State<_ChangePasswordContent> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
 
+    // 🟢 تعريف المتحكمات مباشرة داخل الـ build الخاص بالـ StatelessWidget
+    final passwordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    final isPasswordVisible = ValueNotifier<bool>(false);
+    final isConfirmPasswordVisible = ValueNotifier<bool>(false);
+
     return BlocListener<ChangePasswordCubit, ChangePasswordState>(
       listener: (context, state) {
         if (state is ChangePasswordSuccess) {
-          _showSnack(message: state.message, isError: false);
-          _passwordController.clear();
-          _confirmPasswordController.clear();
+          _showSnack(context, message: state.message, isError: false);
+          passwordController.clear();
+          confirmPasswordController.clear();
           context.read<ChangePasswordCubit>().reset();
           Future.delayed(const Duration(milliseconds: 400), () {
             if (context.mounted) Navigator.pop(context);
           });
         }
         if (state is ChangePasswordError) {
-          _showSnack(message: state.errorMessage, isError: true);
+          _showSnack(context, message: state.errorMessage, isError: true);
         }
       },
       child: Scaffold(
         backgroundColor: cs.surface,
-        appBar: _buildAppBar(context, isDark),
-        resizeToAvoidBottomInset: true,
-        body: SafeArea(
-          child: BlocBuilder<LocaleCubit, LocaleState>(
-            builder: (context, localeState) {
-              return Directionality(
-                textDirection: localeState.textDirection,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final isWide = constraints.maxWidth > 600;
-                    return SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isWide ? 40 : 20,
-                        vertical: 24,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: Container(
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.4),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          systemOverlayStyle: const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light,
+          ),
+        ),
+        body: BlocBuilder<LocaleCubit, LocaleState>(
+          builder: (context, localeState) {
+            return Directionality(
+              textDirection: localeState.textDirection,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.42,
+                      width: double.infinity,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.asset(
+                            'assets/Images/ronaldo1.png',
+                            fit: BoxFit.cover,
+                            alignment: Alignment.topRight,
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  cs.surface.withOpacity(0.8),
+                                  cs.surface,
+                                ],
+                                stops: const [0.5, 0.85, 1.0],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 480),
+                    ),
+
+                    // كارت المدخلات
+                    Transform.translate(
+                      offset: const Offset(0, -20),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Container(
+                          padding: const EdgeInsets.all(22),
+                          decoration: BoxDecoration(
+                            color: isDark ? cs.surfaceContainerHigh : Colors.white,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: cs.outlineVariant.withOpacity(0.3),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                                blurRadius: 20,
+                                spreadRadius: 1,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              _HeaderIcon(colorScheme: cs, isDark: isDark),
-                              const SizedBox(height: 20),
-                              _HeaderText(colorScheme: cs),
-                              const SizedBox(height: 28),
-                              _FormCard(
-                                passwordController: _passwordController,
-                                confirmPasswordController:
-                                _confirmPasswordController,
-                                isPasswordVisible: _isPasswordVisible,
-                                isConfirmPasswordVisible:
-                                _isConfirmPasswordVisible,
-                                onSubmit: _submit,
-                                isDark: isDark,
-                                colorScheme: cs,
+                              PasswordField(
+                                controller: passwordController,
+                                isVisibleNotifier: isPasswordVisible,
+                                label: context.tr('change_pw_new_password'),
+                                icon: Icons.lock_outline_rounded,
+                                decoration: FieldStyles.authInputDecoration(
+                                  label: context.tr('change_pw_new_password'),
+                                  icon: Icons.lock_outline_rounded,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              PasswordField(
+                                controller: confirmPasswordController,
+                                isVisibleNotifier: isConfirmPasswordVisible,
+                                label: context.tr('change_pw_confirm_password'),
+                                icon: Icons.shield_outlined,
+                                decoration: FieldStyles.authInputDecoration(
+                                  label: context.tr('change_pw_confirm_password'),
+                                  icon: Icons.shield_outlined,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              BlocBuilder<ChangePasswordCubit, ChangePasswordState>(
+                                builder: (context, state) {
+                                  final isLoading = state is ChangePasswordLoading;
+                                  if (isLoading) {
+                                    return const SizedBox(
+                                      height: 50,
+                                      child: Center(
+                                        child: CircularProgressIndicator(
+                                          color: AppColors.primaryTeal,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return SizedBox(
+                                    width: double.infinity,
+                                    height: 50,
+                                    child: Button(
+                                      text: context.tr('change_pw_update'),
+                                      color: AppColors.primaryTeal,
+                                      colorText: Colors.white,
+                                      onPressed: () => _submit(
+                                        context,
+                                        passwordController,
+                                        confirmPasswordController,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             ],
                           ),
                         ),
                       ),
-                    );
-                  },
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
+                    ),
 
-  AppBar _buildAppBar(BuildContext context, bool isDark) {
-    return AppBar(
-      title: Text(
-        context.tr('change_pw_title'),
-        style: const TextStyle(
-          fontFamily: 'Cairo',
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      centerTitle: true,
-      elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-        onPressed: () => Navigator.pop(context),
-      ),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
-      ),
-      systemOverlayStyle: SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-      ),
-    );
-  }
-}
-
-class _HeaderIcon extends StatelessWidget {
-  final ColorScheme colorScheme;
-  final bool isDark;
-  const _HeaderIcon({required this.colorScheme, required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 90,
-        height: 90,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.primaryTeal.withOpacity(0.85),
-              AppColors.primaryTeal,
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primaryTeal.withOpacity(isDark ? 0.4 : 0.25),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: const Icon(
-          Icons.lock_reset_rounded,
-          color: Colors.white,
-          size: 44,
-        ),
-      ),
-    );
-  }
-}
-
-class _HeaderText extends StatelessWidget {
-  final ColorScheme colorScheme;
-  const _HeaderText({required this.colorScheme});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          context.tr('change_pw_heading'),
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontFamily: 'Cairo',
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          context.tr('change_pw_subtitle'),
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontFamily: 'Cairo',
-            fontSize: 12,
-            color: colorScheme.onSurfaceVariant.withOpacity(0.75),
-            height: 1.5,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _FormCard extends StatelessWidget {
-  final TextEditingController passwordController;
-  final TextEditingController confirmPasswordController;
-  final ValueNotifier<bool> isPasswordVisible;
-  final ValueNotifier<bool> isConfirmPasswordVisible;
-  final VoidCallback onSubmit;
-  final bool isDark;
-  final ColorScheme colorScheme;
-
-  const _FormCard({
-    required this.passwordController,
-    required this.confirmPasswordController,
-    required this.isPasswordVisible,
-    required this.isConfirmPasswordVisible,
-    required this.onSubmit,
-    required this.isDark,
-    required this.colorScheme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? colorScheme.surfaceContainerHigh : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withOpacity(0.3),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.25 : 0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          PasswordField(
-            controller: passwordController,
-            isVisibleNotifier: isPasswordVisible,
-            label: context.tr('change_pw_new_password'),
-            icon: Icons.lock_outline_rounded,
-            decoration: FieldStyles.authInputDecoration(
-              label: context.tr('change_pw_new_password'),
-              icon: Icons.lock_outline_rounded,
-            ),
-          ),
-          const SizedBox(height: 14),
-          PasswordField(
-            controller: confirmPasswordController,
-            isVisibleNotifier: isConfirmPasswordVisible,
-            label: context.tr('change_pw_confirm_password'),
-            icon: Icons.check_circle_outline_rounded,
-            decoration: FieldStyles.authInputDecoration(
-              label: context.tr('change_pw_confirm_password'),
-              icon: Icons.check_circle_outline_rounded,
-            ),
-          ),
-          const SizedBox(height: 28),
-          BlocBuilder<ChangePasswordCubit, ChangePasswordState>(
-            builder: (context, state) {
-              final isLoading = state is ChangePasswordLoading;
-              if (isLoading) {
-                return SizedBox(
-                  height: 52,
-                  child: Center(
-                    child: SizedBox(
-                      width: 26,
-                      height: 26,
-                      child: CircularProgressIndicator(
-                        color: AppColors.primaryTeal,
-                        strokeWidth: 2.5,
+                    // العبارة 1
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 28),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.lock_reset_rounded,
+                            size: 18,
+                            color: AppColors.primaryTeal,
+                          ),
+                          const SizedBox(width: 12),
+                          Flexible(
+                            child: Text(
+                              context.tr('change_pw_heading'),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: cs.onSurfaceVariant.withOpacity(0.8),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                );
-              }
-              return Button(
-                text: context.tr('change_pw_update'),
-                color: AppColors.primaryTeal,
-                colorText: Colors.white,
-                onPressed: onSubmit,
-              );
-            },
-          ),
-        ],
+
+                    const SizedBox(height: 12),
+
+                    // العبارة 2
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 28),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.verified_user_outlined,
+                            size: 18,
+                            color: cs.primary.withOpacity(0.8),
+                          ),
+                          const SizedBox(width: 12),
+                          Flexible(
+                            child: Text(
+                              context.tr('change_pw_subtitle'),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: cs.onSurfaceVariant.withOpacity(0.65),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // العبارة 3
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 28),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.info_outline_rounded,
+                            size: 18,
+                            color: cs.primary.withOpacity(0.8),
+                          ),
+                          const SizedBox(width: 12),
+                          Flexible(
+                            child: Text(
+                              context.tr('change_pw_error_length'),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: cs.onSurfaceVariant.withOpacity(0.6),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

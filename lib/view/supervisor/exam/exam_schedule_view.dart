@@ -17,15 +17,8 @@ import 'exam_details_bottom_sheet.dart';
 import 'add_exam_bottom_sheet.dart';
 import 'delete_exam_dialog.dart';
 
-class ExamScheduleView extends StatefulWidget {
+class ExamScheduleView extends StatelessWidget {
   const ExamScheduleView({super.key});
-
-  @override
-  State<ExamScheduleView> createState() => _ExamScheduleViewState();
-}
-
-class _ExamScheduleViewState extends State<ExamScheduleView> {
-  String _selectedFilter = 'all';
 
   void _fetchExams(BuildContext context, int sectionId) {
     final semesterState = context.read<CurrentSemesterCubit>().state;
@@ -41,13 +34,20 @@ class _ExamScheduleViewState extends State<ExamScheduleView> {
   void _deleteExam(BuildContext context, ExamModel exam) async {
     final confirmed = await DeleteExamDialog.show(context, exam);
     if (confirmed == true && context.mounted) {
-      context.read<ManageExamCubit>().deleteExam(exam.id);
+      context.read<ManageExamCubit>().deleteExam(
+        examId: exam.id,
+        tr: context.tr,
+      );
     }
   }
 
   void _toggleExamStatus(BuildContext context, ExamModel exam) {
     final newStatus = exam.status.toLowerCase() == 'completed' ? 'scheduled' : 'completed';
-    context.read<ManageExamCubit>().changeStatus(exam.id, newStatus);
+    context.read<ManageExamCubit>().changeStatus(
+      examId: exam.id,
+      status: newStatus,
+      tr: context.tr,
+    );
   }
 
   void _editExam(BuildContext context, ExamModel exam, int sectionId) {
@@ -57,6 +57,7 @@ class _ExamScheduleViewState extends State<ExamScheduleView> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final selectedFilterNotifier = ValueNotifier<String>('all');
 
     return BlocBuilder<ClassesCubit, ClassesState>(
       builder: (context, classState) {
@@ -138,33 +139,43 @@ class _ExamScheduleViewState extends State<ExamScheduleView> {
 
                     const SizedBox(height: 12),
 
-                    Row(
-                      children: [
-                        _topButton(
-                          context.tr('exam_btn_add'),
-                          const Color(0xFF319795),
-                          Colors.white,
-                          icon: Icons.add_rounded,
-                          onTap: selectedSection == null
-                              ? null
-                              : () => AddExamBottomSheet.show(
-                            context,
-                            sectionId: selectedSection.id,
-                          ),
-                        ),
-                        const Spacer(),
-                        _filterChip('all', context.tr('exam_filter_all')),
-                        const SizedBox(width: 6),
-                        _filterChip('scheduled', context.tr('exam_filter_scheduled')),
-                        const SizedBox(width: 6),
-                        _filterChip('completed', context.tr('exam_filter_completed')),
-                      ],
+                    ValueListenableBuilder<String>(
+                      valueListenable: selectedFilterNotifier,
+                      builder: (context, selectedFilter, _) {
+                        return Row(
+                          children: [
+                            _topButton(
+                              context.tr('exam_btn_add'),
+                              const Color(0xFF319795),
+                              Colors.white,
+                              icon: Icons.add_rounded,
+                              onTap: selectedSection == null
+                                  ? null
+                                  : () => AddExamBottomSheet.show(
+                                context,
+                                sectionId: selectedSection.id,
+                              ),
+                            ),
+                            const Spacer(),
+                            _filterChip(context, 'all', context.tr('exam_filter_all'), selectedFilterNotifier),
+                            const SizedBox(width: 6),
+                            _filterChip(context, 'scheduled', context.tr('exam_filter_scheduled'), selectedFilterNotifier),
+                            const SizedBox(width: 6),
+                            _filterChip(context, 'completed', context.tr('exam_filter_completed'), selectedFilterNotifier),
+                          ],
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 14),
 
                     Expanded(
-                      child: _buildBody(context, examState, cs, selectedSection?.id),
+                      child: ValueListenableBuilder<String>(
+                        valueListenable: selectedFilterNotifier,
+                        builder: (context, selectedFilter, _) {
+                          return _buildBody(context, examState, cs, selectedSection?.id, selectedFilter);
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -176,9 +187,14 @@ class _ExamScheduleViewState extends State<ExamScheduleView> {
     );
   }
 
-  Widget _filterChip(String key, String label) {
+  Widget _filterChip(
+      BuildContext context,
+      String key,
+      String label,
+      ValueNotifier<String> filterNotifier,
+      ) {
     final cs = Theme.of(context).colorScheme;
-    final isSelected = _selectedFilter == key;
+    final isSelected = filterNotifier.value == key;
 
     return ChoiceChip(
       label: Text(
@@ -197,7 +213,7 @@ class _ExamScheduleViewState extends State<ExamScheduleView> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       onSelected: (_) {
-        setState(() => _selectedFilter = key);
+        filterNotifier.value = key;
       },
     );
   }
@@ -224,7 +240,13 @@ class _ExamScheduleViewState extends State<ExamScheduleView> {
     );
   }
 
-  Widget _buildBody(BuildContext context, ExamScheduleState state, ColorScheme cs, int? sectionId) {
+  Widget _buildBody(
+      BuildContext context,
+      ExamScheduleState state,
+      ColorScheme cs,
+      int? sectionId,
+      String selectedFilter,
+      ) {
     if (state is ExamScheduleLoading || state is ExamScheduleInitial) {
       return Center(child: CircularProgressIndicator(color: cs.primary));
     }
@@ -252,8 +274,8 @@ class _ExamScheduleViewState extends State<ExamScheduleView> {
     final allExams = (state as ExamScheduleSuccess).exams;
 
     final filteredExams = allExams.where((e) {
-      if (_selectedFilter == 'scheduled') return e.status.toLowerCase() == 'scheduled';
-      if (_selectedFilter == 'completed') return e.status.toLowerCase() == 'completed';
+      if (selectedFilter == 'scheduled') return e.status.toLowerCase() == 'scheduled';
+      if (selectedFilter == 'completed') return e.status.toLowerCase() == 'completed';
       return true;
     }).toList();
 

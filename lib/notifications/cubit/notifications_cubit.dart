@@ -18,15 +18,13 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   List<NotificationModel> _notifications = [];
   FilterType _currentFilter = FilterType.all;
 
-  /// الاستماع التلقائي للإشعارات اللحظية أثناء فتح التطبيق
+
   void _listenToIncomingNotifications() {
     _fcmSubscription = FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      // عند وصول إشعار جديد، يُعاد تحديث القائمة تلقائياً في الخلفية
       refresh();
     });
   }
 
-  /// أول تحميل — يعرض Loading كامل
   Future<void> loadNotifications() async {
     emit(NotificationsLoading());
     try {
@@ -38,7 +36,6 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     }
   }
 
-  /// سحب للتحديث — يحافظ على القائمة الظاهرة
   Future<void> refresh() async {
     if (state is! NotificationsLoaded) return loadNotifications();
     _emitLoaded(isRefreshing: true);
@@ -56,7 +53,6 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     _emitLoaded();
   }
 
-  /// تحديث تفاؤلي: نعلّم كمقروء فوراً ثم نستدعي السيرفر، ونتراجع عند الفشل
   Future<void> markAsRead(int id) async {
     final index = _notifications.indexWhere((n) => n.id == id);
     if (index == -1 || _notifications[index].isRead) return;
@@ -107,7 +103,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
       final da = DateTime.tryParse(a.createdAt);
       final db = DateTime.tryParse(b.createdAt);
       if (da == null || db == null) return 0;
-      return db.compareTo(da); // الأحدث أولاً
+      return db.compareTo(da);
     });
   }
 

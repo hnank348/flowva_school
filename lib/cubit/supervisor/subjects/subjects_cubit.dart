@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../services/supervisor/subjects_service.dart';
 import 'subjects_state.dart';
@@ -6,27 +7,26 @@ class SubjectsCubit extends Cubit<SubjectsState> {
   final SubjectsService _subjectsService;
   final String userToken;
 
-  // الكونستركتور يستقبل السيرفر والتوكن بشكل نظيف ومتوافق مع الـ AppProviders
   SubjectsCubit({
     required SubjectsService subjectsService,
     required this.userToken,
   })  : _subjectsService = subjectsService,
         super(SubjectsInitial());
 
-  /// دالة جلب المواد من السيرفر وتحديث الحالة تلقائياً
-  Future<void> fetchSubjects() async {
+  Future<void> fetchSubjects({
+    required String Function(String key) tr,
+  }) async {
     emit(SubjectsLoading());
     try {
-      final subjects = await _subjectsService.getSubjects(token: userToken);
+      final subjects = await _subjectsService.getSubjects(token: userToken,tr: context.tr,);
 
       if (subjects.isEmpty) {
-        emit(SubjectsError("لا توجد مواد مضافة لهذا الصف حالياً"));
+        emit(SubjectsError(tr('subjects_no_subjects_error')));
       } else {
         emit(SubjectsSuccess(subjects));
       }
     } catch (e) {
-      // تمرير نص الخطأ الصافي القادم من السيرفر
-      emit(SubjectsError(e.toString()));
+      emit(SubjectsError(e.toString().replaceAll("Exception: ", "")));
     }
   }
 }

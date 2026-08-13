@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'current_year_state.dart';
 import '../../services/mutual/academic_year_service.dart';
@@ -10,7 +11,7 @@ class CurrentYearCubit extends Cubit<CurrentYearState> {
   Future<void> fetchCurrentYear() async {
     emit(CurrentYearLoading());
     try {
-      final year = await _service.getCurrentYear();
+      final year = await _service.getCurrentYear(tr: context.tr,);
       emit(CurrentYearSuccess(year));
     } catch (e) {
       emit(CurrentYearError(e.toString()));

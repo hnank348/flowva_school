@@ -37,6 +37,7 @@ class StudentAttendanceView extends StatelessWidget {
     context.read<StudentAttendanceCubit>().fetchAttendance(
       sectionId,
       semesterId: semesterId,
+        tr: context.tr
     );
   }
 
@@ -61,6 +62,7 @@ class StudentAttendanceView extends StatelessWidget {
       academicYearId: yearState.currentYear.id,
       semesterId: semesterState.currentSemester.id,
       noteMap:        attendanceState.noteMap,
+      tr: context.tr,
     );
   }
 

@@ -1,5 +1,7 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flowva_school/services/constant_api.dart';
 
@@ -17,8 +19,8 @@ class ApiService {
   final Dio _dio = Dio(
     BaseOptions(
       baseUrl: ConstantApi.baseApi,
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
+      connectTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 60),
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -27,6 +29,15 @@ class ApiService {
   );
 
   ApiService() {
+    (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate =
+        (HttpClient client) {
+      client.maxConnectionsPerHost = 5;
+      client.idleTimeout = const Duration(seconds: 10);
+      client.connectionTimeout = const Duration(seconds: 30);
+      client.autoUncompress = true;
+      return client;
+    };
+
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
@@ -36,6 +47,21 @@ class ApiService {
             options.headers['Authorization'] = 'Bearer $token';
           }
           return handler.next(options);
+        },
+        onError: (DioException error, handler) async {
+          final isFormatError = error.error is FormatException ||
+              error.message?.contains('Unexpected end of input') == true;
+
+          if (isFormatError) {
+            log('🔁 Retry after FormatException: ${error.requestOptions.path}');
+            try {
+              final retryResponse = await _dio.fetch(error.requestOptions);
+              return handler.resolve(retryResponse);
+            } catch (e) {
+              return handler.next(error);
+            }
+          }
+          return handler.next(error);
         },
       ),
     );
@@ -48,6 +74,7 @@ class ApiService {
 
   Future<Response> get(
       String path, {
+        required String Function(String key) tr, // 🟢 إجباري بدون أي فحص إضافي
         Map<String, dynamic>? queryParameters,
         Object? data,
         Options? options,
@@ -62,71 +89,94 @@ class ApiService {
       );
       return response;
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw _handleError(e, tr: tr);
     }
   }
 
-  Future<Response> post(String path, {Object? data, Options? options}) async {
+  Future<Response> post(
+      String path, {
+        required String Function(String key) tr, // 🟢 إجباري بدون أي فحص إضافي
+        Object? data,
+        Options? options,
+      }) async {
     try {
       log('🚀 POST Request to: $path');
       final response = await _dio.post(path, data: data, options: options);
       return response;
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw _handleError(e, tr: tr);
     }
   }
 
-  Future<Response> put(String path, {Object? data, Options? options}) async {
+  Future<Response> put(
+      String path, {
+        required String Function(String key) tr, // 🟢 إجباري بدون أي فحص إضافي
+        Object? data,
+        Options? options,
+      }) async {
     try {
       log('🔄 PUT Request to: $path');
       final response = await _dio.put(path, data: data, options: options);
       return response;
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw _handleError(e, tr: tr);
     }
   }
 
-  Future<Response> patch(String path, {Object? data, Options? options}) async {
+  Future<Response> patch(
+      String path, {
+        required String Function(String key) tr, // 🟢 إجباري بدون أي فحص إضافي
+        Object? data,
+        Options? options,
+      }) async {
     try {
       log('🩹 PATCH Request to: $path');
       final response = await _dio.patch(path, data: data, options: options);
       return response;
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw _handleError(e, tr: tr);
     }
   }
 
-  Future<Response> delete(String path, {Object? data, Options? options}) async {
+  Future<Response> delete(
+      String path, {
+        required String Function(String key) tr, // 🟢 إجباري بدون أي فحص إضافي
+        Object? data,
+        Options? options,
+      }) async {
     try {
       log('🗑️ DELETE Request to: $path');
       final response = await _dio.delete(path, data: data, options: options);
       return response;
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw _handleError(e, tr: tr);
     }
   }
 
-  /// 🔴 معالجة واستخراج الرسالة الحقيقية المرجعة من الباك إند
-  ApiException _handleError(DioException e) {
+  ApiException _handleError(
+      DioException e, {
+        required String Function(String key) tr, // 🟢 إجباري لتقديم رسالة مترجمة صحيحة
+      }) {
     log('❌ [ApiService Error]');
-    String serverMessage = 'حدث خطأ غير متوقع، يرجى المحاولة لاحقاً';
+    log('📍 Endpoint Path: ${e.requestOptions.path}');
+    log('⚙️ Dio Error Type: ${e.type}');
+
+    String serverMessage = tr('api_unexpected_error');
     int? statusCode;
 
     if (e.response != null) {
       statusCode = e.response?.statusCode;
       final data = e.response?.data;
 
-      log('🚩 Status: $statusCode');
-      log('📄 Data: $data');
+      log('🚩 Status Code: $statusCode');
+      log('📄 Response Data: $data');
 
-      // 🔴 استخراج الرسالة القادمة من الباك إند (Laravel Response)
       if (data is Map<String, dynamic>) {
         if (data.containsKey('message') && data['message'] != null && data['message'].toString().isNotEmpty) {
           serverMessage = data['message'].toString();
         } else if (data.containsKey('error') && data['error'] != null) {
           serverMessage = data['error'].toString();
         } else if (data.containsKey('errors') && data['errors'] is Map) {
-          // استخراج أول خطأValidation إذا وُجد
           final errorsMap = data['errors'] as Map;
           if (errorsMap.isNotEmpty) {
             final firstErrorList = errorsMap.values.first;
@@ -137,13 +187,17 @@ class ApiService {
         }
       }
     } else {
-      log('⚠️ Message: ${e.message}');
+      log('⚠️ Raw Error Exception: ${e.error}');
+      log('⚠️ Raw Error Message: ${e.message ?? "No explicit message string provided"}');
+
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.sendTimeout) {
-        serverMessage = 'انتهت مهلة الاتصال بالسيرفر، تحقق من الشبكة';
+        serverMessage = tr('api_timeout_error');
       } else if (e.type == DioExceptionType.connectionError) {
-        serverMessage = 'تعذر الاتصال بالسيرفر، يرجى التأكد من اتصال الإنترنت';
+        serverMessage = tr('api_connection_error');
+      } else if (e.type == DioExceptionType.cancel) {
+        serverMessage = tr('api_cancel_error');
       }
     }
 

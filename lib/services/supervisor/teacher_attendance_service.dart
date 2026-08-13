@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:flowva_school/services/api_service.dart';
 import 'package:flowva_school/services/constant_api.dart';
 import 'package:flowva_school/models/supervisor/teacher_attendance_model.dart';
@@ -8,15 +9,22 @@ class TeacherAttendanceService {
 
   TeacherAttendanceService(this._apiService);
 
-  Future<List<TeacherModel>> getTeachers() async {
+  Future<List<TeacherModel>> getTeachers({
+    required String Function(String key) tr,
+  }) async {
     try {
-      final response = await _apiService.get(ConstantApi.teachers);
+      final response = await _apiService.get(ConstantApi.teachers,tr: context.tr,);
 
-      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
-        final List<dynamic> raw = response.data['data'];
+      final isSuccessStatus = response.statusCode == 200 || response.statusCode == 201;
+
+      if (isSuccessStatus && response.data != null && response.data is Map && response.data['success'] == true) {
+        final List<dynamic> raw = response.data['data'] ?? [];
         return raw.map((json) => TeacherModel.fromJson(json)).toList();
       }
-      throw Exception(response.data['message'] ?? 'فشل جلب المعلمين');
+
+      final errorMsg = (response.data is Map ? response.data['message'] : null) ??
+          tr('teacher_attendance_fetch_teachers_failed');
+      throw Exception(errorMsg);
     } catch (e) {
       throw Exception(e.toString().replaceAll('Exception: ', ''));
     }
@@ -29,9 +37,12 @@ class TeacherAttendanceService {
       final response = await _apiService.get(
         ConstantApi.teacherDailyAttendance,
         queryParameters: {'date': date},
+        tr: context.tr,
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
+      final isSuccessStatus = response.statusCode == 200 || response.statusCode == 201;
+
+      if (isSuccessStatus && response.data != null && response.data is Map && response.data['success'] == true) {
         final List<dynamic> raw = response.data['data'] ?? [];
         return raw.map((j) => TeacherAttendanceRecord.fromJson(j)).toList();
       }
@@ -44,6 +55,7 @@ class TeacherAttendanceService {
   Future<void> updateAttendanceRecord({
     required int attendanceId,
     required int statusId,
+    required String Function(String key) tr,
     String? notes,
   }) async {
     try {
@@ -53,25 +65,39 @@ class TeacherAttendanceService {
           'status_id': statusId,
           if (notes != null) 'notes': notes,
         },
+        tr: context.tr,
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) return;
-      throw Exception(response.data['message'] ?? 'فشل تعديل الحضور');
+      final isSuccessStatus = response.statusCode == 200 || response.statusCode == 201;
+
+      if (isSuccessStatus) return;
+
+      final errorMsg = (response.data is Map ? response.data['message'] : null) ??
+          tr('teacher_attendance_update_record_failed');
+      throw Exception(errorMsg);
     } catch (e) {
       throw Exception(e.toString().replaceAll('Exception: ', ''));
     }
   }
 
-  Future<void> submitOne(TeacherAttendanceRequest request) async {
+  Future<void> submitOne({
+    required TeacherAttendanceRequest request,
+    required String Function(String key) tr, // 🟢 إجباري بدون أي فحص إضافي
+  }) async {
     try {
       final response = await _apiService.post(
         ConstantApi.teacherAttendance,
         data: request.toJson(),
+        tr: context.tr,
       );
 
-      if (response.statusCode == 201 || response.statusCode == 200) return;
+      final isSuccessStatus = response.statusCode == 200 || response.statusCode == 201;
 
-      throw Exception(response.data['message'] ?? 'فشل تسجيل الحضور');
+      if (isSuccessStatus) return;
+
+      final errorMsg = (response.data is Map ? response.data['message'] : null) ??
+          tr('teacher_attendance_submit_failed');
+      throw Exception(errorMsg);
     } catch (e) {
       throw Exception(e.toString().replaceAll('Exception: ', ''));
     }
@@ -82,12 +108,13 @@ class TeacherAttendanceService {
     required Map<int, int> statusMap, // teacherId → statusId
     required String date,
     required String checkInTime,
+    required String Function(String key) tr, // 🟢 إجباري ليمرر لـ submitOne
     Map<int, String?> notesMap = const {},
   }) async {
     for (final teacher in teachers) {
       final statusId = statusMap[teacher.id] ?? 1;
       await submitOne(
-        TeacherAttendanceRequest(
+        request: TeacherAttendanceRequest(
           teacherId:   teacher.id,
           statusId:    statusId,
           date:        date,
@@ -95,6 +122,7 @@ class TeacherAttendanceService {
           lateMinutes: statusId == 3 ? 0 : null,
           notes:       notesMap[teacher.id],
         ),
+        tr: tr,
       );
     }
   }

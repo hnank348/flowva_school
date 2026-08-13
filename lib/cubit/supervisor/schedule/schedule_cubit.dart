@@ -17,34 +17,129 @@ class ScheduleCubit extends Cubit<ScheduleState> {
         _semesterService = semesterService,
         super(ScheduleInitial(selectedClass: ''));
 
-  void fetchWeeklySchedule(int sectionId, String className, {int? semester}) async {
-    emit(ScheduleLoading(selectedClass: className));
+  void setFormSubjectId(int? subjectId) {
+    emit(_copyState(formSubjectId: subjectId));
+  }
+
+  void setFormTeacherId(int? teacherId) {
+    emit(_copyState(formTeacherId: teacherId));
+  }
+
+  void setFormRoom(String room) {
+    emit(_copyState(formRoom: room));
+  }
+
+  void initFormData({int? subjectId, int? teacherId, String? room}) {
+    emit(_copyState(
+      formSubjectId: subjectId,
+      formTeacherId: teacherId,
+      formRoom: room ?? '',
+    ));
+  }
+
+  void clearFormData() {
+    emit(_copyState(formSubjectId: null, formTeacherId: null, formRoom: ''));
+  }
+
+  ScheduleState _copyState({
+    int? formSubjectId,
+    int? formTeacherId,
+    String? formRoom,
+  }) {
+    final subId = formSubjectId ?? state.formSubjectId;
+    final teachId = formTeacherId ?? state.formTeacherId;
+    final room = formRoom ?? state.formRoom;
+
+    if (state is ScheduleLoaded) {
+      final s = state as ScheduleLoaded;
+      return ScheduleLoaded(
+        sessions: s.sessions,
+        selectedClass: s.selectedClass,
+        semesterName: s.semesterName,
+        formSubjectId: subId,
+        formTeacherId: teachId,
+        formRoom: room,
+      );
+    } else if (state is ScheduleLoading) {
+      return ScheduleLoading(
+        selectedClass: state.selectedClass,
+        formSubjectId: subId,
+        formTeacherId: teachId,
+        formRoom: room,
+      );
+    } else if (state is ScheduleError) {
+      final s = state as ScheduleError;
+      return ScheduleError(
+        message: s.message,
+        selectedClass: s.selectedClass,
+        formSubjectId: subId,
+        formTeacherId: teachId,
+        formRoom: room,
+      );
+    }
+    return ScheduleInitial(
+      selectedClass: state.selectedClass,
+      formSubjectId: subId,
+      formTeacherId: teachId,
+      formRoom: room,
+    );
+  }
+
+  void fetchWeeklySchedule(
+      int sectionId,
+      String className, {
+        int? semester,
+        String Function(String key)? tr,
+      }) async {
+    final String Function(String key) safeTr = tr ?? (key) => key;
+
+    if (state is ScheduleLoading && (state as ScheduleLoading).selectedClass == className) {
+      return;
+    }
+
+    emit(ScheduleLoading(
+      selectedClass: className,
+      formSubjectId: state.formSubjectId,
+      formTeacherId: state.formTeacherId,
+      formRoom: state.formRoom,
+    ));
+
     try {
       int activeSemesterId = semester ?? 1;
-      String activeSemesterName = "First Semester";
+      String activeSemesterName = 'First semester';
 
       if (semester == null) {
-        final currentSemesterData = await _semesterService.getCurrentSemester();
-        activeSemesterId = currentSemesterData.id;
-        activeSemesterName = currentSemesterData.name;
+        try {
+          final currentSemesterData = await _semesterService.getCurrentSemester(tr: safeTr);
+          activeSemesterId = currentSemesterData.id;
+          activeSemesterName = currentSemesterData.name;
+        } catch (_) {
+          activeSemesterId = 1;
+        }
       }
 
       final sessions = await _scheduleService.getTimetableBySection(
         sectionId: sectionId,
         token: userToken,
         semesterId: activeSemesterId,
+        tr: safeTr,
       );
 
       emit(ScheduleLoaded(
         sessions: sessions,
         selectedClass: className,
-       // selectedSemester: activeSemesterId,
         semesterName: activeSemesterName,
+        formSubjectId: state.formSubjectId,
+        formTeacherId: state.formTeacherId,
+        formRoom: state.formRoom,
       ));
     } catch (e) {
       emit(ScheduleError(
         message: e.toString().replaceAll("Exception: ", ""),
         selectedClass: className,
+        formSubjectId: state.formSubjectId,
+        formTeacherId: state.formTeacherId,
+        formRoom: state.formRoom,
       ));
     }
   }
@@ -67,13 +162,26 @@ class ScheduleCubit extends Cubit<ScheduleState> {
         teacherId: teacherId,
         academicYearId: academicYearId,
         semesterId: semesterId,
+        tr: (key) => key,
       );
+
+      clearFormData();
+
+      emit(ScheduleActionSuccess(
+        successMessage: 'session_add_success',
+        selectedClass: className,
+      ));
 
       fetchWeeklySchedule(sectionId, className, semester: semesterId);
     } catch (e) {
+      final rawError = e.toString().replaceAll("Exception: ", "");
+
       emit(ScheduleError(
-        message: "فشل في حفظ تفاصيل الحصة: ${e.toString().replaceAll("Exception: ", "")}",
+        message: rawError,
         selectedClass: className,
+        formSubjectId: state.formSubjectId,
+        formTeacherId: state.formTeacherId,
+        formRoom: state.formRoom,
       ));
     }
   }
@@ -98,13 +206,26 @@ class ScheduleCubit extends Cubit<ScheduleState> {
         teacherId: teacherId,
         academicYearId: academicYearId,
         semesterId: semesterId,
+        tr: (key) => key,
       );
+
+      clearFormData();
+
+      emit(ScheduleActionSuccess(
+        successMessage: 'session_update_success',
+        selectedClass: className,
+      ));
 
       fetchWeeklySchedule(sectionId, className, semester: semesterId);
     } catch (e) {
+      final rawError = e.toString().replaceAll("Exception: ", "");
+
       emit(ScheduleError(
-        message: "فشل في تعديل تفاصيل الحصة: ${e.toString().replaceAll("Exception: ", "")}",
+        message: rawError,
         selectedClass: className,
+        formSubjectId: state.formSubjectId,
+        formTeacherId: state.formTeacherId,
+        formRoom: state.formRoom,
       ));
     }
   }
@@ -116,12 +237,28 @@ class ScheduleCubit extends Cubit<ScheduleState> {
     required int semesterId,
   }) async {
     try {
-      await _scheduleService.deleteSession(timetableId);
+      await _scheduleService.deleteSession(
+        timetableId: timetableId,
+        tr: (key) => key,
+      );
+
+      clearFormData();
+
+      emit(ScheduleActionSuccess(
+        successMessage: 'session_delete_success',
+        selectedClass: className,
+      ));
+
       fetchWeeklySchedule(sectionId, className, semester: semesterId);
     } catch (e) {
+      final rawError = e.toString().replaceAll("Exception: ", "");
+
       emit(ScheduleError(
-        message: "فشل في حذف الحصة: ${e.toString().replaceAll("Exception: ", "")}",
+        message: rawError,
         selectedClass: className,
+        formSubjectId: state.formSubjectId,
+        formTeacherId: state.formTeacherId,
+        formRoom: state.formRoom,
       ));
     }
   }

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -79,7 +80,7 @@ class AppProviders {
         create: (_) => ClassesCubit(
           classesService: ClassesService(apiService),
           userToken: userToken,
-        )..fetchClassesAndSections(),
+        )..fetchClassesAndSections(tr: context.tr),
       ),
       BlocProvider<ScheduleCubit>(
         create: (_) => ScheduleCubit(
@@ -92,13 +93,13 @@ class AppProviders {
         create: (_) => SubjectsCubit(
           subjectsService: SubjectsService(apiService),
           userToken: userToken,
-        )..fetchSubjects(),
+        )..fetchSubjects(tr: context.tr,),
       ),
       BlocProvider<TeachersCubit>(
         create: (_) => TeachersCubit(
           teachersService: TeachersService(apiService),
           userToken: userToken,
-        )..fetchTeachers(),
+        )..fetchTeachers(tr: context.tr,),
       ),
 
       BlocProvider<StudentAttendanceCubit>(
@@ -111,7 +112,7 @@ class AppProviders {
         create: (_) => SubmitAttendanceCubit(SubmitAttendanceService(apiService)),
       ),
       BlocProvider<TeacherAttendanceCubit>(
-        create: (_) => TeacherAttendanceCubit(teacherAttendanceService)..fetchTeachers(),
+        create: (_) => TeacherAttendanceCubit(teacherAttendanceService)..fetchTeachers(tr: context.tr,),
       ),
       BlocProvider<SubmitTeacherAttendanceCubit>(
         create: (_) => SubmitTeacherAttendanceCubit(teacherAttendanceService),

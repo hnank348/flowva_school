@@ -40,7 +40,20 @@ class AddExamBottomSheet {
           BlocProvider.value(value: yearCubit),
           BlocProvider.value(value: semesterCubit),
           BlocProvider<AddExamCubit>(
-            create: (_) => AddExamCubit(examCubit.service),
+            create: (_) {
+              final cubit = AddExamCubit(examCubit.service);
+              if (examToEdit != null) {
+                cubit.updateTextData(
+                  nameEn: examToEdit.name,
+                  nameAr: examToEdit.nameAr,
+                  room: examToEdit.room,
+                  totalMarks: examToEdit.totalMarks.toStringAsFixed(0),
+                  passMarks: examToEdit.passMarks.toStringAsFixed(0),
+                  instructions: examToEdit.instructions,
+                );
+              }
+              return cubit;
+            },
           ),
         ],
         child: _AddExamForm(
@@ -53,7 +66,7 @@ class AddExamBottomSheet {
   }
 }
 
-class _AddExamForm extends StatefulWidget {
+class _AddExamForm extends StatelessWidget {
   final int sectionId;
   final BuildContext sheetContext;
   final ExamModel? examToEdit;
@@ -64,111 +77,49 @@ class _AddExamForm extends StatefulWidget {
     this.examToEdit,
   });
 
-  @override
-  State<_AddExamForm> createState() => _AddExamFormState();
-}
-
-class _AddExamFormState extends State<_AddExamForm> {
-  late final TextEditingController _nameCtrl;
-  late final TextEditingController _nameArCtrl;
-  late final TextEditingController _roomCtrl;
-  late final TextEditingController _totalMarksCtrl;
-  late final TextEditingController _passMarksCtrl;
-  late final TextEditingController _instructionsCtrl;
-
-  ExamTypeOption? _examType;
-  int? _subjectId;
-  int? _teacherId;
-  DateTime? _examDate;
-  TimeOfDay? _startTime;
-  TimeOfDay? _endTime;
-
-  @override
-  void initState() {
-    super.initState();
-    final edit = widget.examToEdit;
-
-    _nameCtrl         = TextEditingController(text: edit?.name ?? '');
-    _nameArCtrl       = TextEditingController(text: edit?.nameAr ?? edit?.name ?? '');
-    _roomCtrl         = TextEditingController(text: edit?.room ?? '');
-    _totalMarksCtrl   = TextEditingController(text: edit?.totalMarks.toStringAsFixed(0) ?? '100');
-    _passMarksCtrl    = TextEditingController(text: edit?.passMarks.toStringAsFixed(0) ?? '50');
-    _instructionsCtrl = TextEditingController(text: edit?.instructions ?? '');
-
-    if (edit != null) {
-      _subjectId = edit.subject.id;
-      _teacherId = edit.teacher.id;
-      _examDate  = DateTime.tryParse(edit.examDate);
-
-      if (edit.startTime.isNotEmpty) {
-        final parts = edit.startTime.split(':');
-        if (parts.length >= 2) {
-          _startTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
-        }
-      }
-      if (edit.endTime.isNotEmpty) {
-        final parts = edit.endTime.split(':');
-        if (parts.length >= 2) {
-          _endTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
-        }
-      }
-
-      try {
-        _examType = ExamTypeOption.values.firstWhere(
-              (element) => element.id == edit.examType.id || element.nameEn.toLowerCase() == edit.examType.name.toLowerCase(),
-        );
-      } catch (_) {
-        _examType = ExamTypeOption.values.first;
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _nameCtrl.dispose();
-    _nameArCtrl.dispose();
-    _roomCtrl.dispose();
-    _totalMarksCtrl.dispose();
-    _passMarksCtrl.dispose();
-    _instructionsCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickDate() async {
+  Future<void> _pickDate(BuildContext context) async {
+    final addCubit = context.read<AddExamCubit>();
     final picked = await showDatePicker(
       context: context,
-      initialDate: _examDate ?? DateTime.now(),
+      initialDate: addCubit.state.examDate ?? DateTime.now(),
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
     );
-    if (picked != null) setState(() => _examDate = picked);
+    if (picked != null) addCubit.setExamDate(picked);
   }
 
-  Future<void> _pickTime(bool isStart) async {
+  Future<void> _pickTime(BuildContext context, bool isStart) async {
+    final addCubit = context.read<AddExamCubit>();
+    final current = isStart ? addCubit.state.startTime : addCubit.state.endTime;
     final picked = await showTimePicker(
       context: context,
-      initialTime: isStart ? (_startTime ?? TimeOfDay.now()) : (_endTime ?? TimeOfDay.now()),
+      initialTime: current ?? TimeOfDay.now(),
     );
     if (picked != null) {
-      setState(() => isStart ? _startTime = picked : _endTime = picked);
+      if (isStart) {
+        addCubit.setStartTime(picked);
+      } else {
+        addCubit.setEndTime(picked);
+      }
     }
   }
 
   String _fmtTime(TimeOfDay t) =>
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
-  void _submit() {
-    final isEdit = widget.examToEdit != null;
+  void _submit(BuildContext context) {
+    final isEdit = examToEdit != null;
+    final addState = context.read<AddExamCubit>().state;
 
     if (!isEdit) {
-      if (_nameCtrl.text.trim().isEmpty ||
-          _examType == null ||
-          _subjectId == null ||
-          _teacherId == null ||
-          _examDate == null ||
-          _startTime == null ||
-          _endTime == null ||
-          _roomCtrl.text.trim().isEmpty) {
+      if (addState.nameEn.trim().isEmpty ||
+          addState.examType == null ||
+          addState.subjectId == null ||
+          addState.teacherId == null ||
+          addState.examDate == null ||
+          addState.startTime == null ||
+          addState.endTime == null ||
+          addState.room.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(context.tr('exam_error_required'), style: const TextStyle(fontFamily: 'Cairo')),
         ));
@@ -188,66 +139,73 @@ class _AddExamFormState extends State<_AddExamForm> {
 
     if (isEdit) {
       final updateReq = UpdateExamRequest(
-        name:           _nameCtrl.text.trim().isNotEmpty ? _nameCtrl.text.trim() : null,
-        nameAr:         _nameArCtrl.text.trim().isNotEmpty ? _nameArCtrl.text.trim() : null,
-        examTypeId:     _examType?.id,
-        subjectId:      _subjectId,
-        sectionId:      widget.sectionId,
+        name:           addState.nameEn.trim().isNotEmpty ? addState.nameEn.trim() : null,
+        nameAr:         addState.nameAr.trim().isNotEmpty ? addState.nameAr.trim() : null,
+        examTypeId:     addState.examType?.id,
+        subjectId:      addState.subjectId,
+        sectionId:      sectionId,
         academicYearId: yearState.currentYear.id,
         semesterId:     semesterState.currentSemester.id,
-        teacherId:      _teacherId,
-        examDate:       _examDate != null ? '${_examDate!.year}-${_examDate!.month.toString().padLeft(2, '0')}-${_examDate!.day.toString().padLeft(2, '0')}' : null,
-        startTime:      _startTime != null ? _fmtTime(_startTime!) : null,
-        endTime:        _endTime != null ? _fmtTime(_endTime!) : null,
-        room:           _roomCtrl.text.trim().isNotEmpty ? _roomCtrl.text.trim() : null,
-        totalMarks:     double.tryParse(_totalMarksCtrl.text),
-        passMarks:      double.tryParse(_passMarksCtrl.text),
-        instructions:   _instructionsCtrl.text.trim().isNotEmpty ? _instructionsCtrl.text.trim() : null,
+        teacherId:      addState.teacherId,
+        examDate:       addState.examDate != null ? '${addState.examDate!.year}-${addState.examDate!.month.toString().padLeft(2, '0')}-${addState.examDate!.day.toString().padLeft(2, '0')}' : null,
+        startTime:      addState.startTime != null ? _fmtTime(addState.startTime!) : null,
+        endTime:        addState.endTime != null ? _fmtTime(addState.endTime!) : null,
+        room:           addState.room.trim().isNotEmpty ? addState.room.trim() : null,
+        totalMarks:     double.tryParse(addState.totalMarks),
+        passMarks:      double.tryParse(addState.passMarks),
+        instructions:   addState.instructions.trim().isNotEmpty ? addState.instructions.trim() : null,
       );
 
-      context.read<ManageExamCubit>().updateExam(widget.examToEdit!.id, updateReq);
+      context.read<ManageExamCubit>().updateExam(
+        examId: examToEdit!.id,
+        request: updateReq,
+        tr: context.tr,
+      );
     } else {
       final addReq = AddExamRequest(
-        name:           _nameCtrl.text.trim(),
-        nameAr:         _nameArCtrl.text.trim().isEmpty ? _nameCtrl.text.trim() : _nameArCtrl.text.trim(),
-        examTypeId:     _examType!.id,
-        subjectId:      _subjectId!,
-        sectionId:      widget.sectionId,
+        name:           addState.nameEn.trim(),
+        nameAr:         addState.nameAr.trim().isEmpty ? addState.nameEn.trim() : addState.nameAr.trim(),
+        examTypeId:     addState.examType!.id,
+        subjectId:      addState.subjectId!,
+        sectionId:      sectionId,
         academicYearId: yearState.currentYear.id,
         semesterId:     semesterState.currentSemester.id,
-        teacherId:      _teacherId!,
-        examDate:       '${_examDate!.year}-${_examDate!.month.toString().padLeft(2, '0')}-${_examDate!.day.toString().padLeft(2, '0')}',
-        startTime:      _fmtTime(_startTime!),
-        endTime:        _fmtTime(_endTime!),
-        room:           _roomCtrl.text.trim(),
-        totalMarks:     double.tryParse(_totalMarksCtrl.text) ?? 100,
-        passMarks:      double.tryParse(_passMarksCtrl.text) ?? 50,
-        instructions:   _instructionsCtrl.text.trim(),
+        teacherId:      addState.teacherId!,
+        examDate:       '${addState.examDate!.year}-${addState.examDate!.month.toString().padLeft(2, '0')}-${addState.examDate!.day.toString().padLeft(2, '0')}',
+        startTime:      _fmtTime(addState.startTime!),
+        endTime:        _fmtTime(addState.endTime!),
+        room:           addState.room.trim(),
+        totalMarks:     double.tryParse(addState.totalMarks) ?? 100,
+        passMarks:      double.tryParse(addState.passMarks) ?? 50,
+        instructions:   addState.instructions.trim(),
       );
 
-      context.read<AddExamCubit>().submit(addReq);
+      context.read<AddExamCubit>().submit(
+        request: addReq,
+        tr: context.tr,
+      );
     }
   }
 
-  void _refreshList() {
+  void _refreshList(BuildContext context) {
     final semesterState = context.read<CurrentSemesterCubit>().state;
     final semId = semesterState is CurrentSemesterSuccess ? semesterState.currentSemester.id : 1;
-    context.read<ExamScheduleCubit>().fetchExams(sectionId: widget.sectionId, semesterId: semId);
+    context.read<ExamScheduleCubit>().fetchExams(sectionId: sectionId, semesterId: semId);
   }
 
   @override
   Widget build(BuildContext context) {
     final cs     = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isEdit = widget.examToEdit != null;
+    final isEdit = examToEdit != null;
 
     return MultiBlocListener(
       listeners: [
         BlocListener<AddExamCubit, AddExamState>(
           listener: (context, state) {
             if (state is AddExamSuccess) {
-              Navigator.pop(widget.sheetContext);
-              _refreshList();
+              Navigator.pop(sheetContext);
+              _refreshList(context);
               context.read<AddExamCubit>().reset();
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text(context.tr('exam_success_add'), style: const TextStyle(fontFamily: 'Cairo')),
@@ -270,8 +228,8 @@ class _AddExamFormState extends State<_AddExamForm> {
         BlocListener<ManageExamCubit, ManageExamState>(
           listener: (context, state) {
             if (state is UpdateExamSuccess) {
-              Navigator.pop(widget.sheetContext);
-              _refreshList();
+              Navigator.pop(sheetContext);
+              _refreshList(context);
               context.read<ManageExamCubit>().reset();
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text(context.tr('exam_success_update'), style: const TextStyle(fontFamily: 'Cairo')),
@@ -305,7 +263,7 @@ class _AddExamFormState extends State<_AddExamForm> {
               ),
               padding: EdgeInsets.only(
                 top: 16, left: 24, right: 24,
-                bottom: MediaQuery.of(widget.sheetContext).viewInsets.bottom + 24,
+                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
               ),
               child: SafeArea(
                 child: SingleChildScrollView(
@@ -332,47 +290,129 @@ class _AddExamFormState extends State<_AddExamForm> {
                       const SizedBox(height: 20),
 
                       Row(children: [
-                        Expanded(child: ExamTextField(controller: _nameCtrl, label: context.tr('exam_name_en'), icon: Icons.badge_outlined)),
+                        Expanded(
+                          child: ExamTextField(
+                            initialValue: context.read<AddExamCubit>().state.nameEn,
+                            onChanged: (v) => context.read<AddExamCubit>().updateTextData(nameEn: v),
+                            label: context.tr('exam_name_en'),
+                            icon: Icons.badge_outlined,
+                          ),
+                        ),
                         const SizedBox(width: 10),
-                        Expanded(child: ExamTextField(controller: _nameArCtrl, label: context.tr('exam_name_ar'), icon: Icons.badge_outlined)),
+                        Expanded(
+                          child: ExamTextField(
+                            initialValue: context.read<AddExamCubit>().state.nameAr,
+                            onChanged: (v) => context.read<AddExamCubit>().updateTextData(nameAr: v),
+                            label: context.tr('exam_name_ar'),
+                            icon: Icons.badge_outlined,
+                          ),
+                        ),
                       ]),
                       const SizedBox(height: 14),
 
-                      ExamTypeDropdownField(value: _examType, onChanged: (v) => setState(() => _examType = v)),
+                      BlocBuilder<AddExamCubit, AddExamState>(
+                        builder: (context, state) {
+                          return ExamTypeDropdownField(
+                            value: state.examType,
+                            onChanged: (v) => context.read<AddExamCubit>().setExamType(v),
+                          );
+                        },
+                      ),
                       const SizedBox(height: 14),
 
-                      ExamSubjectDropdownField(selectedSubjectId: _subjectId, onChanged: (v) => setState(() => _subjectId = v)),
+                      BlocBuilder<AddExamCubit, AddExamState>(
+                        builder: (context, state) {
+                          return ExamSubjectDropdownField(
+                            selectedSubjectId: state.subjectId,
+                            onChanged: (v) => context.read<AddExamCubit>().setSubjectId(v),
+                          );
+                        },
+                      ),
                       const SizedBox(height: 14),
 
-                      ExamTeacherDropdownField(selectedTeacherId: _teacherId, onChanged: (v) => setState(() => _teacherId = v)),
+                      BlocBuilder<AddExamCubit, AddExamState>(
+                        builder: (context, state) {
+                          return ExamTeacherDropdownField(
+                            selectedTeacherId: state.teacherId,
+                            onChanged: (v) => context.read<AddExamCubit>().setTeacherId(v),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 14),
+
+                      BlocBuilder<AddExamCubit, AddExamState>(
+                        builder: (context, state) {
+                          return Row(children: [
+                            Expanded(
+                              child: _pickerTile(
+                                context,
+                                icon: Icons.calendar_month_outlined,
+                                label: state.examDate == null
+                                    ? context.tr('exam_date')
+                                    : '${state.examDate!.year}-${state.examDate!.month.toString().padLeft(2, '0')}-${state.examDate!.day.toString().padLeft(2, '0')}',
+                                onTap: () => _pickDate(context),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _pickerTile(
+                                context,
+                                icon: Icons.play_circle_outline_rounded,
+                                label: state.startTime == null ? context.tr('exam_start_time') : _fmtTime(state.startTime!),
+                                onTap: () => _pickTime(context, true),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _pickerTile(
+                                context,
+                                icon: Icons.stop_circle_outlined,
+                                label: state.endTime == null ? context.tr('exam_end_time') : _fmtTime(state.endTime!),
+                                onTap: () => _pickTime(context, false),
+                              ),
+                            ),
+                          ]);
+                        },
+                      ),
+                      const SizedBox(height: 14),
+
+                      ExamTextField(
+                        initialValue: context.read<AddExamCubit>().state.room,
+                        onChanged: (v) => context.read<AddExamCubit>().updateTextData(room: v),
+                        label: context.tr('exam_room'),
+                        icon: Icons.meeting_room_outlined,
+                      ),
                       const SizedBox(height: 14),
 
                       Row(children: [
-                        Expanded(child: _pickerTile(context, icon: Icons.calendar_month_outlined,
-                            label: _examDate == null ? context.tr('exam_date') : '${_examDate!.year}-${_examDate!.month}-${_examDate!.day}',
-                            onTap: _pickDate)),
+                        Expanded(
+                          child: ExamTextField(
+                            initialValue: context.read<AddExamCubit>().state.totalMarks,
+                            onChanged: (v) => context.read<AddExamCubit>().updateTextData(totalMarks: v),
+                            label: context.tr('exam_total_marks'),
+                            icon: Icons.grade_outlined,
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
                         const SizedBox(width: 10),
-                        Expanded(child: _pickerTile(context, icon: Icons.play_circle_outline_rounded,
-                            label: _startTime == null ? context.tr('exam_start_time') : _fmtTime(_startTime!),
-                            onTap: () => _pickTime(true))),
-                        const SizedBox(width: 10),
-                        Expanded(child: _pickerTile(context, icon: Icons.stop_circle_outlined,
-                            label: _endTime == null ? context.tr('exam_end_time') : _fmtTime(_endTime!),
-                            onTap: () => _pickTime(false))),
+                        Expanded(
+                          child: ExamTextField(
+                            initialValue: context.read<AddExamCubit>().state.passMarks,
+                            onChanged: (v) => context.read<AddExamCubit>().updateTextData(passMarks: v),
+                            label: context.tr('exam_pass_marks'),
+                            icon: Icons.check_circle_outline_rounded,
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
                       ]),
                       const SizedBox(height: 14),
 
-                      ExamTextField(controller: _roomCtrl, label: context.tr('exam_room'), icon: Icons.meeting_room_outlined),
-                      const SizedBox(height: 14),
-
-                      Row(children: [
-                        Expanded(child: ExamTextField(controller: _totalMarksCtrl, label: context.tr('exam_total_marks'), icon: Icons.grade_outlined, keyboardType: TextInputType.number)),
-                        const SizedBox(width: 10),
-                        Expanded(child: ExamTextField(controller: _passMarksCtrl, label: context.tr('exam_pass_marks'), icon: Icons.check_circle_outline_rounded, keyboardType: TextInputType.number)),
-                      ]),
-                      const SizedBox(height: 14),
-
-                      ExamTextField(controller: _instructionsCtrl, label: context.tr('exam_instructions'), icon: Icons.info_outline_rounded),
+                      ExamTextField(
+                        initialValue: context.read<AddExamCubit>().state.instructions,
+                        onChanged: (v) => context.read<AddExamCubit>().updateTextData(instructions: v),
+                        label: context.tr('exam_instructions'),
+                        icon: Icons.info_outline_rounded,
+                      ),
                       const SizedBox(height: 24),
 
                       Builder(
@@ -388,7 +428,7 @@ class _AddExamFormState extends State<_AddExamForm> {
                                 padding: const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
-                              onPressed: isLoading ? null : _submit,
+                              onPressed: isLoading ? null : () => _submit(context),
                               child: isLoading
                                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                                   : Text(isEdit ? context.tr('session_btn_save') : context.tr('session_btn_add'), style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Cairo')),
@@ -400,7 +440,7 @@ class _AddExamFormState extends State<_AddExamForm> {
                                 padding: const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
-                              onPressed: () => Navigator.pop(widget.sheetContext),
+                              onPressed: () => Navigator.pop(sheetContext),
                               child: Text(context.tr('session_btn_cancel'), style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14, fontFamily: 'Cairo')),
                             )),
                           ]);

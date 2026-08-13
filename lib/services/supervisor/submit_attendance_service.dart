@@ -1,4 +1,5 @@
-import 'package:flowva_school/models/supervisor/submit_attendance_model.dart'; // 🔶 تأكد اسم الملف اللي فيه SubmitAttendanceRequest/Response
+import 'package:easy_localization/easy_localization.dart' as context;
+import 'package:flowva_school/models/supervisor/submit_attendance_model.dart';
 import 'package:flowva_school/services/api_service.dart';
 import 'package:flowva_school/services/constant_api.dart';
 
@@ -7,20 +8,27 @@ class SubmitAttendanceService {
 
   SubmitAttendanceService(this._apiService);
 
-  Future<SubmitAttendanceResponse> submitOne(
-      SubmitAttendanceRequest request) async {
+  Future<SubmitAttendanceResponse> submitOne({
+    required SubmitAttendanceRequest request,
+    required String Function(String key) tr, // 🟢 إجباري بدون أي فحص إضافي
+  }) async {
     try {
       final response = await _apiService.post(
         ConstantApi.studentAttendance,
         data: request.toJson(),
+        tr: context.tr,
       );
 
-      if (response.statusCode == 201 || response.statusCode == 200) {
+      final isSuccessStatus = response.statusCode == 200 || response.statusCode == 201;
+
+      if (isSuccessStatus && response.data != null && response.data is Map) {
         return SubmitAttendanceResponse.fromJson(
             response.data as Map<String, dynamic>);
       }
 
-      throw Exception(response.data['message'] ?? 'فشل تسجيل الحضور');
+      final errorMsg = (response.data is Map ? response.data['message'] : null) ??
+          tr('submit_attendance_failed');
+      throw Exception(errorMsg);
     } catch (e) {
       throw Exception(e.toString().replaceAll('Exception: ', ''));
     }
@@ -34,6 +42,7 @@ class SubmitAttendanceService {
     required Map<String, int> statusMap,
     required String date,
     required String checkInTime,
+    required String Function(String key) tr, // 🟢 إجباري ليمرر لـ submitOne
     Map<String, String?> notesMap = const {},
   }) async {
     final results = <SubmitAttendanceResponse>[];
@@ -43,7 +52,7 @@ class SubmitAttendanceService {
       final statusId  = statusMap[sid] ?? 1;
 
       final response = await submitOne(
-        SubmitAttendanceRequest(
+        request: SubmitAttendanceRequest(
           studentId:      studentId,
           sectionId:      sectionId,
           academicYearId: academicYearId,
@@ -53,6 +62,7 @@ class SubmitAttendanceService {
           checkInTime:    checkInTime,
           notes:          notesMap[sid],
         ),
+        tr: tr,
       );
       results.add(response);
     }

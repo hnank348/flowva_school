@@ -93,6 +93,7 @@ class ProfileCard extends StatelessWidget {
       lastNameAr: isAr ? last : null,
       phone: phoneCtrl.text.trim(),
       dateOfBirth: _toApiDate(birthDateCtrl.text),
+      tr: context.tr,
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/services/supervisor/exam_service.dart';
 
@@ -19,6 +20,7 @@ class ExamScheduleCubit extends Cubit<ExamScheduleState> {
       final exams = await _service.getExamsBySection(
         sectionId:  sectionId,
         semesterId: semesterId,
+        tr: context.tr,
       );
       emit(ExamScheduleSuccess(exams));
     } catch (e) {

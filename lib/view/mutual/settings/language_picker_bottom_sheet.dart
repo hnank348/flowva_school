@@ -42,7 +42,6 @@ class LanguagePickerBottomSheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // خيار اللغة العربية
             ListTile(
               leading: Icon(Icons.language_rounded, color: colorScheme.primary),
               title: const Text(
@@ -59,7 +58,6 @@ class LanguagePickerBottomSheet extends StatelessWidget {
             ),
             Divider(color: colorScheme.outlineVariant.withOpacity(0.4), height: 1),
 
-            // خيار اللغة الإنجليزية
             ListTile(
               leading: Icon(Icons.language_rounded, color: colorScheme.primary),
               title: const Text(

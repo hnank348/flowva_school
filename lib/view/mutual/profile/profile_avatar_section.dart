@@ -37,7 +37,6 @@ class ProfileAvatarSection extends StatelessWidget {
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
-          // ─── 1. الصورة الشخصية (مطابقة لحجم الإطار 100%) ───
           Container(
             width: avatarSize,
             height: avatarSize,

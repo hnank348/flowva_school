@@ -12,7 +12,6 @@ class ScheduleHeaderWidget extends StatelessWidget {
     required this.classState,
     required this.onSectionChanged,
     this.onExportPdfPressed,
-    // ❌ classesCubit تمت إزالته لأنه كان غير مستخدم أصلاً بالكود
   });
 
   @override
