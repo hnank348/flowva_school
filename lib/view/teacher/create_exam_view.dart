@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/mock_data.dart';
-import '../../models/classroom.dart';
+import '../../models/teacher/classroom.dart';
 
 class CreateExamView extends StatefulWidget {
   const CreateExamView({super.key});

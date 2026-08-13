@@ -6,7 +6,8 @@ import 'classes_view.dart';
 import 'chat_view.dart';
 
 class TeacherDashboard extends StatefulWidget {
-  const TeacherDashboard({super.key});
+  const TeacherDashboard({super.key, required this.userToken});
+  final String userToken;
 
   @override
   State<TeacherDashboard> createState() => _TeacherDashboardState();
@@ -15,8 +16,8 @@ class TeacherDashboard extends StatefulWidget {
 class _TeacherDashboardState extends State<TeacherDashboard> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeView(),
+  List<Widget> get _screens => [
+    HomeView(userToken: widget.userToken),
     const ScheduleView(),
     const ClassesView(),
     const StudentsView(),
@@ -43,10 +44,7 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
           unselectedFontSize: 12,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'الرئيسية'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today),
-              label: 'الجدول',
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'الجدول'),
             BottomNavigationBarItem(icon: Icon(Icons.book), label: 'الصفوف'),
             BottomNavigationBarItem(icon: Icon(Icons.people), label: 'الطلاب'),
             BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'المحادثات'),

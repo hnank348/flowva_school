@@ -1,76 +1,143 @@
 import 'package:dio/dio.dart';
-
+import 'package:flowva_school/services/constant_api.dart';
 import '../../models/supervisor/schedule_session_model.dart';
 import '../api_service.dart';
 
-
 class ScheduleService {
-  final ApiService _apiService = ApiService();
+  final ApiService _apiService;
 
-  // 1. رفع حصة جديدة للبرنامج (Create)
-  Future<ScheduleSessionModel> createSession(ScheduleSessionModel session, String token) async {
+  ScheduleService(this._apiService);
+
+  Future<List<ScheduleSessionModel>> getTimetableBySection({
+    required int sectionId,
+    required String token,
+    required int semesterId,
+  }) async {
     try {
-      final response = await _apiService.post(
-        'timetables',
-        data: session.toJson(),
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      final response = await _apiService.get(
+        '${ConstantApi.section}/$sectionId/timetable',
+        queryParameters: {'semester_id': semesterId},
       );
-      if (response.statusCode == 201 && response.data['success'] == true) {
+
+      print('🌐 [ScheduleService - Fetch] Response Data: ${response.data}');
+
+      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
+        final rawData = response.data['data'];
+
+        if (rawData == null) return [];
+
+        if (rawData is Map<String, dynamic> && rawData.containsKey('day_of_week')) {
+          return [ScheduleSessionModel.fromJson(rawData)];
+        }
+
+        if (rawData is Map<String, dynamic> && !rawData.containsKey('day_of_week')) {
+          List<ScheduleSessionModel> allSessions = [];
+          rawData.forEach((day, sessionsList) {
+            if (sessionsList is List) {
+              for (var jsonSession in sessionsList) {
+                allSessions.add(ScheduleSessionModel.fromJson(jsonSession));
+              }
+            }
+          });
+          return allSessions;
+        }
+
+        if (rawData is List) {
+          return rawData.map((json) => ScheduleSessionModel.fromJson(json)).toList();
+        }
+      }
+      throw Exception(response.data['message'] ?? 'فشل جلب الجدول');
+    } catch (e) {
+      throw Exception(e.toString().replaceAll("Exception: ", ""));
+    }
+  }
+
+  Future<ScheduleSessionModel> createSession({
+    required ScheduleSessionModel session,
+    required String token,
+    required int sectionId,
+    required int subjectId,
+    required int teacherId,
+    required int academicYearId,
+    required int semesterId,
+  }) async {
+    try {
+      final Map<String, dynamic> requestData = session.toJson()
+        ..addAll({
+          'section_id': sectionId,
+          'subject_id': subjectId,
+          'teacher_id': teacherId,
+          'academic_year_id': academicYearId,
+          'semester_id': semesterId,
+        });
+
+      final response = await _apiService.post(
+        ConstantApi.timetables,
+        data: requestData,
+      );
+
+      print('🌐 [ScheduleService - Create] Response Data: ${response.data}');
+
+      if ((response.statusCode == 201 || response.statusCode == 200) && response.data['success'] == true) {
         return ScheduleSessionModel.fromJson(response.data['data']);
       }
       throw Exception(response.data['message'] ?? 'فشل إنشاء الحصة');
     } catch (e) {
-      throw Exception('خطأ أثناء رفع الحصة: $e');
+      throw Exception(e.toString().replaceAll("Exception: ", ""));
     }
   }
 
-  // 2. جلب كل حصص جدول صف معين (Read)
-  Future<List<ScheduleSessionModel>> getTimetableBySection(int sectionId, String token) async {
+  Future<ScheduleSessionModel> updateSession({
+    required int timetableId,
+    required ScheduleSessionModel session,
+    required String token,
+    required int sectionId,
+    required int subjectId,
+    required int teacherId,
+    required int academicYearId,
+    required int semesterId,
+  }) async {
     try {
-      final response = await _apiService.get(
-        'timetables', // أو المسار المخصص حسب الـ Index endpoint لديك
-        queryParameters: {'section_id': sectionId},
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        final List<dynamic> data = response.data['data'];
-        return data.map((json) => ScheduleSessionModel.fromJson(json)).toList();
-      }
-      throw Exception(response.data['message'] ?? 'فشل جلب الجدول');
-    } catch (e) {
-      throw Exception('خطأ أثناء جلب الجدول: $e');
-    }
-  }
+      final Map<String, dynamic> requestData = session.toJson()
+        ..addAll({
+          'section_id': sectionId,
+          'subject_id': subjectId,
+          'teacher_id': teacherId,
+          'academic_year_id': academicYearId,
+          'semester_id': semesterId,
+        });
 
-  // 3. تعديل تفاصيل حصة موجودة (Update)
-  Future<ScheduleSessionModel> updateSession(int id, ScheduleSessionModel session, String token) async {
-    try {
       final response = await _apiService.put(
-        'timetables/$id',
-        data: session.toJson(),
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        '${ConstantApi.timetables}/$timetableId',
+        data: requestData,
       );
-      if (response.statusCode == 200 && response.data['success'] == true) {
+
+      print('🌐 [ScheduleService - Update] Response Data: ${response.data}');
+      print('🌐 [ScheduleService - Update] Response Data: ${response.data}');
+
+      if (response.statusCode == 200 || response.statusCode == 201 && response.data['success'] == true) {
         return ScheduleSessionModel.fromJson(response.data['data']);
       }
       throw Exception(response.data['message'] ?? 'فشل تعديل الحصة');
     } catch (e) {
-      throw Exception('خطأ أثناء تعديل الحصة: $e');
+      throw Exception(e.toString().replaceAll("Exception: ", ""));
     }
   }
 
-  // 4. حذف حصة من الجدول (Delete)
-  Future<void> deleteSession(int id, String token) async {
+  Future<void> deleteSession(int timetableId) async {
     try {
       final response = await _apiService.delete(
-        'timetables/$id',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        '${ConstantApi.timetables}/$timetableId',
       );
-      if (response.statusCode != 200 || response.data['success'] != true) {
+
+      print('🌐 [ScheduleService - Delete] Response Data: ${response.statusCode}');
+      print('🌐 [ScheduleService - Delete] Response Data: ${response.data}');
+
+      if (response.statusCode != 200 || response.statusCode == 201 || response.data['success'] != true) {
         throw Exception(response.data['message'] ?? 'فشل حذف الحصة');
       }
     } catch (e) {
-      throw Exception('خطأ أثناء حذف الحصة: $e');
+      throw Exception(e.toString().replaceAll("Exception: ", ""));
     }
   }
 }

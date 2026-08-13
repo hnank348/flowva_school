@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
+<<<<<<< HEAD
   // ==================== Light Mode Colors ====================
+=======
+  // ═══════════ Light ═══════════
+>>>>>>> 1b465efd2918a95bb900fa00348a56898b6b9f0d
   static const Color primaryTeal = Color(0xFF008081);
   static const Color backgroundColor = Colors.white;
+  static const Color surfaceContainerLight = Color(0xFFF8FAFC);
   static const Color outlineColor = Color(0xFFCCCCCC);
   static const Color secondaryText = Color(0xFF808081);
   static const Color primaryText = Colors.black87;
   static const Color errorRed = Colors.red;
 
+<<<<<<< HEAD
   // ألوان الحضور للوضع الفاتح (Light Mode)
   static const Color attendancePresent = Colors.green;
   static const Color attendanceLateOrExcused = Colors.orange;
@@ -56,6 +62,16 @@ class AppColors {
         return isDark ? Colors.white : primaryText;
     }
   }
+=======
+  // ═══════════ Dark (Slate palette - مريحة للعين) ═══════════
+  static const Color darkPrimaryTeal = Color(0xFF2DD4BF);
+  static const Color darkBackground = Color(0xFF0F172A);
+  static const Color darkSurface = Color(0xFF16213A);
+  static const Color darkSurfaceContainer = Color(0xFF1E293B);
+  static const Color darkOutlineColor = Color(0xFF334155);
+  static const Color darkSecondaryText = Color(0xFF94A3B8);
+  static const Color darkPrimaryText = Color(0xFFF1F5F9);
+>>>>>>> 1b465efd2918a95bb900fa00348a56898b6b9f0d
 }
 
 class AppSizes {
@@ -93,6 +109,7 @@ class AppStyles {
     fontSize: AppSizes.fontSizeButton,
     fontWeight: FontWeight.bold,
   );
+<<<<<<< HEAD
 }
 
 class AppTheme {
@@ -239,3 +256,6 @@ class AppTheme {
     );
   }
 }
+=======
+}
+>>>>>>> 1b465efd2918a95bb900fa00348a56898b6b9f0d

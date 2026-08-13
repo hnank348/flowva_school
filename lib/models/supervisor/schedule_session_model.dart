@@ -13,7 +13,6 @@ class ScheduleSessionModel {
   final String? status;
   final String? createdAt;
 
-  // الكائنات المدمجة لعرض النصوص بالواجهة
   final ApiSubjectModel? subject;
   final ApiTeacherModel? teacher;
 
@@ -76,14 +75,16 @@ class ScheduleSessionModel {
 class ApiSubjectModel {
   final int id;
   final String name;
+  final String nameAr;
   final String? code;
 
-  ApiSubjectModel({required this.id, required this.name, this.code});
+  ApiSubjectModel({required this.id, required this.name, required this.nameAr, this.code});
 
   factory ApiSubjectModel.fromJson(Map<String, dynamic> json) {
     return ApiSubjectModel(
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
+      nameAr: json['name_ar'] ?? '',
       code: json['code'],
     );
   }
@@ -98,7 +99,7 @@ class ApiTeacherModel {
   factory ApiTeacherModel.fromJson(Map<String, dynamic> json) {
     return ApiTeacherModel(
       id: json['id'] ?? 0,
-      fullName: json['full_name'] ?? '',
+      fullName: json['full_name'] ?? json['name'] ?? '',
     );
   }
 }

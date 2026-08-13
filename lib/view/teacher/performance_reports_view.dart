@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/mock_data.dart';
-import '../../widgets/common_widgets.dart';
+import '../../widget/common_widgets.dart';
 
 class PerformanceReportsView extends StatelessWidget {
   const PerformanceReportsView({super.key});

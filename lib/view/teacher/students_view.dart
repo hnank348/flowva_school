@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../widgets/common_widgets.dart';
+import '../../widget/common_widgets.dart';
 import '../../data/mock_data.dart';
-import '../../models/student.dart';
+import '../../models/teacher/student.dart';
 import 'student_evaluation_view.dart';
 import 'performance_reports_view.dart';
 // removed unused imports
