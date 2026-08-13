@@ -1,20 +1,61 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Light
+  // ==================== Light Mode Colors ====================
   static const Color primaryTeal = Color(0xFF008081);
   static const Color backgroundColor = Colors.white;
   static const Color outlineColor = Color(0xFFCCCCCC);
-  static const Color secondaryText = Color(0xFF808080);
+  static const Color secondaryText = Color(0xFF808081);
   static const Color primaryText = Colors.black87;
   static const Color errorRed = Colors.red;
 
-  // Dark
+  // ألوان الحضور للوضع الفاتح (Light Mode)
+  static const Color attendancePresent = Colors.green;
+  static const Color attendanceLateOrExcused = Colors.orange;
+  static const Color attendanceUnexcused = Colors.red;
+  static const Color attendanceRate = Colors.blue;
+
+  // ==================== Dark Mode Colors ====================
   static const Color darkPrimaryTeal = Color(0xFF4D9B9C);
   static const Color darkBackground = Color.fromARGB(255, 32, 32, 32);
   static const Color darkSurface = Color(0xFF1E1E1E);
   static const Color darkOutlineColor = Color(0xFF424242);
   static const Color darkSecondaryText = Color(0xFFAAAAAA);
+  
+  // ألوان الحضور للوضع المظلم (Dark Mode - مريحة ومناسبة للعين خلف الخلفيات الداكنة)
+  static const Color darkAttendancePresent = Colors.greenAccent;
+  static const Color darkAttendanceLateOrExcused = Colors.amber;
+  static const Color darkAttendanceUnexcused = Color(0xFFFF6B6B);
+  static const Color darkAttendanceRate = Color(0xFF64B5F6);
+
+  // ==================== الدالة الذكية لجلب الألوان ديناميكياً ====================
+  /// دالة ذكية لإرجاع لون نسبة الحضور المناسب تلقائياً حسب وضع الشاشة (فاتح / مظلم)
+  static Color getAttendanceRateColor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? darkAttendanceRate : attendanceRate;
+  }
+
+  /// ميزة إضافية: دالة ذكية مدمجة لبقية ألوان الحضور لتوحيد وتسهيل العمل في الشاشات
+  static Color getAttendanceStatusColor(BuildContext context, String status) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    switch (status) {
+      case 'present':
+      case 'حاضر':
+        return isDark ? darkAttendancePresent : attendancePresent;
+      case 'late':
+      case 'absent_excused':
+      case 'متأخر':
+      case 'غائب بعذر':
+      case 'بعذر':
+        return isDark ? darkAttendanceLateOrExcused : attendanceLateOrExcused;
+      case 'absent_unexcused':
+      case 'غائب':
+      case 'بدون عذر':
+        return isDark ? darkAttendanceUnexcused : attendanceUnexcused;
+      default:
+        return isDark ? Colors.white : primaryText;
+    }
+  }
 }
 
 class AppSizes {
@@ -39,7 +80,6 @@ class AppStyles {
   static const TextStyle titleStyle = TextStyle(
     fontSize: AppSizes.fontSizeTitle,
     fontWeight: FontWeight.bold,
-    // color: AppColors.primaryText,
   );
 
   static const TextStyle labelStyle = TextStyle(
@@ -56,9 +96,9 @@ class AppStyles {
 }
 
 class AppTheme {
-  // Light Theme
   static ThemeData get lightTheme {
     return ThemeData(
+      fontFamily: 'Cairo', // تثبيت الخط للتطبيق بأكمله
       shadowColor: Colors.grey,
       primaryColor: AppColors.primaryTeal,
       scaffoldBackgroundColor: AppColors.backgroundColor,
@@ -70,11 +110,12 @@ class AppTheme {
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
         iconTheme: IconThemeData(color: AppColors.primaryText),
         elevation: 0,
         centerTitle: true,
       ),
-
       inputDecorationTheme: InputDecorationTheme(
         contentPadding: const EdgeInsets.symmetric(
           vertical: AppSizes.paddingMedium,
@@ -123,20 +164,19 @@ class AppTheme {
             borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
           ),
           textStyle: AppStyles.buttonTextStyle,
-          elevation: 5,
+          elevation: 2,
         ),
       ),
       useMaterial3: true,
     );
   }
 
-  // Dark Theme
   static ThemeData get darkTheme {
     return ThemeData(
+      fontFamily: 'Cairo', 
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.darkBackground,
       primaryColor: AppColors.darkPrimaryTeal,
-
       colorScheme: const ColorScheme.dark(
         primary: AppColors.darkPrimaryTeal,
         secondary: AppColors.darkPrimaryTeal,
@@ -145,14 +185,14 @@ class AppTheme {
         onSurfaceVariant: AppColors.darkSecondaryText,
         error: AppColors.errorRed,
       ),
-
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.darkSurface,
+        backgroundColor: AppColors.darkBackground,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
         iconTheme: IconThemeData(color: Colors.white),
         elevation: 0,
         centerTitle: true,
       ),
-
       inputDecorationTheme: InputDecorationTheme(
         contentPadding: const EdgeInsets.symmetric(
           vertical: AppSizes.paddingMedium,
@@ -183,22 +223,18 @@ class AppTheme {
           color: AppColors.darkSecondaryText,
         ),
       ),
-
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.darkPrimaryTeal,
-          foregroundColor: AppColors.darkSurface,
+          foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, AppSizes.buttonHeight),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
           ),
-          textStyle: AppStyles.buttonTextStyle.copyWith(
-            color: AppColors.darkSurface,
-          ),
-          elevation: 5,
+          textStyle: AppStyles.buttonTextStyle,
+          elevation: 2,
         ),
       ),
-
       useMaterial3: true,
     );
   }
