@@ -1,15 +1,59 @@
 import '../models/teacher/student.dart';
 import '../models/teacher/classroom.dart';
 import '../models/teacher/activity.dart';
+import '../models/teacher/homework.dart';
 import '../models/teacher/schedule.dart';
 import '../models/teacher/message.dart';
 
 class MockData {
+  // ── mutable activities list — supports runtime additions ─────────────────
+  static final List<Activity> _activities = [
+    Activity(
+      id: '1',
+      title: 'اجتماع أولياء أمور الصف 9-أ',
+      description: 'مناقشة نتائج الفصل الدراسي الأول',
+      date: '2026-05-20',
+      type: ActivityType.parentMeeting,
+      classRoom: 'الصف 9-أ',
+    ),
+    Activity(
+      id: '2',
+      title: 'رحلة مدرسية إلى المتحف الوطني',
+      description: 'رحلة ترفيهية وتعليمية لطلاب الصف 10',
+      date: '2026-05-25',
+      type: ActivityType.schoolTrip,
+      classRoom: 'الصف 10-أ',
+    ),
+    Activity(
+      id: '3',
+      title: 'مسابقة الرياضيات الإقليمية',
+      description: 'التصفيات الأولى للمسابقة',
+      date: '2026-06-02',
+      type: ActivityType.competition,
+      classRoom: 'الصف 9-ب',
+    ),
+    Activity(
+      id: '4',
+      title: 'حفل تكريم المتفوقين',
+      description: 'تكريم أفضل 10 طلاب في الفصل الدراسي',
+      date: '2026-06-10',
+      type: ActivityType.ceremony,
+      classRoom: 'عام',
+    ),
+  ];
+
+  static List<Activity> getActivities() => List.unmodifiable(_activities);
+
+  static void addActivity(Activity activity) {
+    _activities.insert(0, activity);
+  }
+
   static List<Student> getStudents() {
     return [
       Student(
         id: '1',
         name: 'أحمد محمد',
+        classRoomId: '1',
         grade: 95,
         attendance: 98,
         performance: 92,
@@ -17,6 +61,7 @@ class MockData {
       Student(
         id: '2',
         name: 'فاطمة علي',
+        classRoomId: '1',
         grade: 88,
         attendance: 95,
         performance: 90,
@@ -24,6 +69,7 @@ class MockData {
       Student(
         id: '3',
         name: 'محمد خالد',
+        classRoomId: '2',
         grade: 78,
         attendance: 85,
         performance: 80,
@@ -31,6 +77,7 @@ class MockData {
       Student(
         id: '4',
         name: 'نور حسن',
+        classRoomId: '2',
         grade: 92,
         attendance: 97,
         performance: 94,
@@ -38,6 +85,7 @@ class MockData {
       Student(
         id: '5',
         name: 'سارة أحمد',
+        classRoomId: '3',
         grade: 85,
         attendance: 90,
         performance: 87,
@@ -45,6 +93,7 @@ class MockData {
       Student(
         id: '6',
         name: 'عمر يوسف',
+        classRoomId: '3',
         grade: 91,
         attendance: 93,
         performance: 89,
@@ -52,11 +101,18 @@ class MockData {
       Student(
         id: '7',
         name: 'ليلى حسين',
+        classRoomId: '5',
         grade: 87,
         attendance: 88,
         performance: 86,
       ),
     ];
+  }
+
+  static List<Student> getStudentsByClassRoom(String classRoomId) {
+    return getStudents()
+        .where((student) => student.classRoomId == classRoomId)
+        .toList();
   }
 
   static List<ClassRoom> getClassRooms() {
@@ -95,39 +151,6 @@ class MockData {
         subject: 'رياضيات',
         studentsCount: 15,
         nextSession: 'الأربعاء 10:00',
-      ),
-    ];
-  }
-
-  static List<Activity> getActivities() {
-    return [
-      Activity(
-        id: '1',
-        title: 'اختبار الجبر - الوحدة 3',
-        date: '2026-05-15',
-        type: ActivityType.exam,
-        classRoom: 'الصف 9-أ',
-      ),
-      Activity(
-        id: '2',
-        title: 'واجب: حل المعادلات التربيعية',
-        date: '2026-05-14',
-        type: ActivityType.homework,
-        classRoom: 'الصف 9-ب',
-      ),
-      Activity(
-        id: '3',
-        title: 'اجتماع أولياء الأمور',
-        date: '2026-05-20',
-        type: ActivityType.event,
-        classRoom: 'قاعة الاجتماعات',
-      ),
-      Activity(
-        id: '4',
-        title: 'اختبار الفيزياء - الحركة',
-        date: '2026-05-18',
-        type: ActivityType.exam,
-        classRoom: 'الصف 10-أ',
       ),
     ];
   }
@@ -265,5 +288,78 @@ class MockData {
         isMe: true,
       ),
     ];
+  }
+
+  static List<Homework> getHomeworks() {
+    return [
+      Homework(
+        id: '1',
+        title: 'حل تمارين الجبر - الفصل 4',
+        description:
+            'حل التمارين من 1 إلى 15 في صفحة 87 من الكتاب المدرسي، مع إظهار جميع خطوات الحل.',
+        classRoomId: '1',
+        classRoomName: 'الصف 9-أ',
+        dueDate: DateTime.now().add(const Duration(days: 3)),
+        type: HomeworkType.written,
+        totalMarks: 20,
+        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+        status: HomeworkStatus.pending,
+      ),
+      Homework(
+        id: '2',
+        title: 'بحث عن قوانين الحركة',
+        description:
+            'اكتب بحثاً لا يقل عن صفحتين عن قوانين نيوتن للحركة مع أمثلة من الحياة اليومية.',
+        classRoomId: '3',
+        classRoomName: 'الصف 10-أ',
+        dueDate: DateTime.now().add(const Duration(days: 5)),
+        type: HomeworkType.research,
+        totalMarks: 30,
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
+        status: HomeworkStatus.pending,
+      ),
+      Homework(
+        id: '3',
+        title: 'قراءة الوحدة الثانية',
+        description:
+            'اقرأ الوحدة الثانية كاملة من الكتاب وأجب عن أسئلة المراجعة في النهاية.',
+        classRoomId: '2',
+        classRoomName: 'الصف 9-ب',
+        dueDate: DateTime.now().add(const Duration(days: 2)),
+        type: HomeworkType.reading,
+        totalMarks: 10,
+        createdAt: DateTime.now().subtract(const Duration(days: 2)),
+        status: HomeworkStatus.submitted,
+      ),
+      Homework(
+        id: '4',
+        title: 'مشروع نموذج الجهاز الشمسي',
+        description:
+            'صمّم نموذجاً مجسماً للجهاز الشمسي مع تعليق على كل كوكب وخصائصه.',
+        classRoomId: '4',
+        classRoomName: 'الصف 10-ب',
+        dueDate: DateTime.now().add(const Duration(days: 10)),
+        type: HomeworkType.project,
+        totalMarks: 50,
+        createdAt: DateTime.now().subtract(const Duration(hours: 5)),
+        status: HomeworkStatus.pending,
+      ),
+      Homework(
+        id: '5',
+        title: 'تمارين المعادلات التربيعية',
+        description: 'حل التمارين الزوجية فقط من صفحة 102 إلى 105.',
+        classRoomId: '5',
+        classRoomName: 'الصف 8-أ',
+        dueDate: DateTime.now().add(const Duration(days: 1)),
+        type: HomeworkType.written,
+        totalMarks: 15,
+        createdAt: DateTime.now().subtract(const Duration(hours: 10)),
+        status: HomeworkStatus.graded,
+      ),
+    ];
+  }
+
+  static List<Homework> getHomeworksByClassRoom(String classRoomId) {
+    return getHomeworks().where((hw) => hw.classRoomId == classRoomId).toList();
   }
 }

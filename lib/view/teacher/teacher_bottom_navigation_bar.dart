@@ -1,22 +1,22 @@
-import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:flutter/material.dart';
 
-class CustomBottomNavigationBar extends StatelessWidget {
+class TeacherBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  const CustomBottomNavigationBar({
+  const TeacherBottomNavigationBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
   });
 
   static const _icons = [
+    Icons.home_outlined,
     Icons.calendar_view_week_rounded,
-    Icons.assignment_outlined,
-    Icons.how_to_reg_outlined,
-    Icons.bar_chart_outlined,
-    Icons.school_outlined,
+    Icons.menu_book_outlined,
+    Icons.people_outline,
+    Icons.chat_bubble_outline,
   ];
 
   @override

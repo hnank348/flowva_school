@@ -1,4 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../app_localizations.dart';
+import '../../cubit/locale/locale_cubit.dart';
+import '../../cubit/locale/locale_state.dart';
 import '../../data/mock_data.dart';
 
 class ScheduleView extends StatelessWidget {
@@ -8,171 +12,135 @@ class ScheduleView extends StatelessWidget {
   Widget build(BuildContext context) {
     final schedule = MockData.getSchedule();
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      body: Column(
-        children: [
-          // Header
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-                colors: [colorScheme.primary, colorScheme.primaryContainer],
-              ),
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'الجدول الأسبوعي',
-                              style: TextStyle(
-                                color: colorScheme.onPrimary,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'برنامج الدوام',
-                              style: TextStyle(
-                                color: colorScheme.onPrimaryContainer,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+    return BlocBuilder<LocaleCubit, LocaleState>(
+      builder: (context, localeState) {
+        return Directionality(
+          textDirection: localeState.textDirection,
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: schedule.length,
+            itemBuilder: (context, index) {
+              final day = schedule[index];
+              return Card(
+                elevation: isDark ? 0 : 2,
+                margin: const EdgeInsets.only(bottom: 16),
+                color: isDark ? colorScheme.surfaceContainer : colorScheme.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: isDark
+                      ? BorderSide(color: colorScheme.outlineVariant)
+                      : BorderSide.none,
                 ),
-              ),
-            ),
-          ),
-          // Schedule List
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: schedule.length,
-              itemBuilder: (context, index) {
-                final day = schedule[index];
-                return Card(
-                  elevation: 2,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          day.day,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        day.day,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                          fontFamily: 'Cairo',
                         ),
-                        const SizedBox(height: 12),
-                        ...day.sessions.map((session) {
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: colorScheme.surfaceVariant,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 8,
+                      ),
+                      const SizedBox(height: 12),
+                      ...day.sessions.map((session) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? colorScheme.surfaceContainerLow
+                                : colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.primary.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      session.time,
+                                      style: TextStyle(
+                                        color: colorScheme.primary,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                        fontFamily: 'Cairo',
                                       ),
-                                      decoration: BoxDecoration(
-                                        color: colorScheme.primaryContainer,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        session.time,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        session.subject,
                                         style: TextStyle(
-                                          color: colorScheme.primary,
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 13,
+                                          fontSize: 14,
+                                          color: colorScheme.onSurface,
+                                          fontFamily: 'Cairo',
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          session.subject,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        session.className,
+                                        style: TextStyle(
+                                          color: colorScheme.onSurfaceVariant,
+                                          fontSize: 12,
+                                          fontFamily: 'Cairo',
                                         ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          session.className,
-                                          style: TextStyle(
-                                            color: colorScheme.onSurfaceVariant,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surface,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    'غرفة ${session.room}',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: colorScheme.outlineVariant,
                                   ),
                                 ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ],
-                    ),
+                                child: Text(
+                                  '${context.tr('table_room')} ${session.room}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: colorScheme.onSurfaceVariant,
+                                    fontFamily: 'Cairo',
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

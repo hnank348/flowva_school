@@ -1,6 +1,7 @@
 import 'package:flowva_school/view/supervisor/attendance/attendance_view.dart';
 import 'package:flowva_school/view/supervisor/exam/exam_schedule_view.dart';
 import 'package:flowva_school/view/supervisor/statistics_view.dart';
+import 'package:flowva_school/view/supervisor/teachers_evaluation_view.dart';
 import 'package:flowva_school/view/mutual/settings/settings_view.dart';
 import 'package:flowva_school/cubit/logout/logout_cubit.dart';
 import 'package:flutter/material.dart';
@@ -59,9 +60,9 @@ class MainLayoutView extends StatelessWidget {
 
   void _openSettings(BuildContext context) {
     final logoutCubit = context.read<LogoutCubit>();
+    final profileCubit = context.read<ProfileCubit>();
     final notificationsCubit = context.read<NotificationsCubit>();
     final notificationSwitchCubit = context.read<NotificationSwitchCubit>();
-    final profileCubit = context.read<ProfileCubit>();
 
     Navigator.push(
       context,
@@ -82,19 +83,6 @@ class MainLayoutView extends StatelessWidget {
     });
   }
 
-  void _openNotifications(BuildContext context) {
-    final notificationsCubit = context.read<NotificationsCubit>();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: notificationsCubit,
-          child: const SupervisorNotificationsScreen(),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -113,6 +101,7 @@ class MainLayoutView extends StatelessWidget {
       ExamScheduleView(),
       AttendanceView(),
       StatisticsView(),
+      TeachersEvaluationView(),
     ];
 
     return BlocBuilder<LocaleCubit, LocaleState>(
@@ -138,17 +127,17 @@ class MainLayoutView extends StatelessWidget {
                       gradient: isDark
                           ? null
                           : LinearGradient(
-                        begin: isArabic
-                            ? Alignment.topRight
-                            : Alignment.topLeft,
-                        end: isArabic
-                            ? Alignment.bottomLeft
-                            : Alignment.bottomRight,
-                        colors: [
-                          colorScheme.primary,
-                          colorScheme.primary.withOpacity(0.8),
-                        ],
-                      ),
+                              begin: isArabic
+                                  ? Alignment.topRight
+                                  : Alignment.topLeft,
+                              end: isArabic
+                                  ? Alignment.bottomLeft
+                                  : Alignment.bottomRight,
+                              colors: [
+                                colorScheme.primary,
+                                colorScheme.primary.withValues(alpha: 0.8),
+                              ],
+                            ),
                       color: isDark ? colorScheme.surfaceContainer : null,
                       borderRadius: const BorderRadius.only(
                         bottomLeft: Radius.circular(24),
@@ -169,14 +158,16 @@ class MainLayoutView extends StatelessWidget {
                                 if (profileState is ProfileLoaded) {
                                   displayName = isArabic
                                       ? (profileState.user.fullNameAr.isNotEmpty
-                                      ? profileState.user.fullNameAr
-                                      : profileState.user.fullName)
+                                            ? profileState.user.fullNameAr
+                                            : profileState.user.fullName)
                                       : (profileState.user.fullName.isNotEmpty
-                                      ? profileState.user.fullName
-                                      : profileState.user.fullNameAr);
+                                            ? profileState.user.fullName
+                                            : profileState.user.fullNameAr);
                                   avatarUrl = profileState.user.avatarUrl;
                                 } else if (profileState is ProfileError) {
-                                  displayName = context.tr('main_profile_error');
+                                  displayName = context.tr(
+                                    'main_profile_error',
+                                  );
                                 }
 
                                 return Row(
@@ -193,39 +184,45 @@ class MainLayoutView extends StatelessWidget {
                                         shape: BoxShape.circle,
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.black.withOpacity(0.05),
+                                            color: Colors.black.withValues(
+                                              alpha: 0.05,
+                                            ),
                                             blurRadius: 8,
                                             offset: const Offset(0, 4),
-                                          )
+                                          ),
                                         ],
                                       ),
                                       child: ClipRRect(
                                         borderRadius: BorderRadius.circular(36),
                                         child: avatarUrl != null
                                             ? Image.network(
-                                          avatarUrl,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => Icon(
-                                            Icons.person,
-                                            color: colorScheme.primary,
-                                            size: 42,
-                                          ),
-                                        )
+                                                avatarUrl,
+                                                fit: BoxFit.cover,
+                                                errorBuilder:
+                                                    (context, err, stack) =>
+                                                        Icon(
+                                                          Icons.person,
+                                                          color: colorScheme
+                                                              .primary,
+                                                          size: 42,
+                                                        ),
+                                              )
                                             : Center(
-                                          child: Icon(
-                                            Icons.person,
-                                            color: colorScheme.primary,
-                                            size: 42,
-                                          ),
-                                        ),
+                                                child: Icon(
+                                                  Icons.person,
+                                                  color: colorScheme.primary,
+                                                  size: 42,
+                                                ),
+                                              ),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Text(
@@ -249,24 +246,30 @@ class MainLayoutView extends StatelessWidget {
                                             style: TextStyle(
                                               color: isDark
                                                   ? colorScheme.onSurfaceVariant
-                                                  : Colors.white.withOpacity(0.9),
+                                                  : Colors.white.withValues(
+                                                      alpha: 0.9,
+                                                    ),
                                               fontSize: 11,
                                               fontWeight: FontWeight.w500,
                                               fontFamily: 'Cairo',
                                             ),
                                           ),
                                           const SizedBox(height: 4),
-                                          BlocBuilder<CurrentYearCubit,
-                                              CurrentYearState>(
+                                          BlocBuilder<
+                                            CurrentYearCubit,
+                                            CurrentYearState
+                                          >(
                                             builder: (context, yearState) {
                                               String yearContent = '...';
-                                              if (yearState is CurrentYearSuccess) {
+                                              if (yearState
+                                                  is CurrentYearSuccess) {
                                                 yearContent =
                                                     yearState.currentYear.name;
                                               } else if (yearState
-                                              is CurrentYearError) {
-                                                yearContent =
-                                                    context.tr('main_year_error');
+                                                  is CurrentYearError) {
+                                                yearContent = context.tr(
+                                                  'main_year_error',
+                                                );
                                               }
                                               return Text(
                                                 '${context.tr('main_academic_year')} $yearContent',
@@ -275,8 +278,9 @@ class MainLayoutView extends StatelessWidget {
                                                 style: TextStyle(
                                                   color: isDark
                                                       ? colorScheme.primary
-                                                      : Colors.white
-                                                      .withOpacity(0.75),
+                                                      : Colors.white.withValues(
+                                                          alpha: 0.75,
+                                                        ),
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.bold,
                                                   fontFamily: 'Cairo',
@@ -309,70 +313,16 @@ class MainLayoutView extends StatelessWidget {
                                   onPressed: () => _openSettings(context),
                                 ),
                                 const SizedBox(width: 4),
-                                BlocBuilder<NotificationsCubit,
-                                    NotificationsState>(
-                                  builder: (context, notifState) {
-                                    final unread = notifState is NotificationsLoaded
-                                        ? notifState.unreadCount
-                                        : 0;
-
-                                    return Stack(
-                                      clipBehavior: Clip.none,
-                                      alignment: Alignment.center,
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.notifications_none_rounded,
-                                            color: Colors.white,
-                                            size: 24,
-                                          ),
-                                          constraints: const BoxConstraints(),
-                                          padding: const EdgeInsets.all(6),
-                                          onPressed: () =>
-                                              _openNotifications(context),
-                                        ),
-                                        if (unread > 0)
-                                          Positioned(
-                                            top: 0,
-                                            right: isArabic ? null : 0,
-                                            left: isArabic ? 0 : null,
-                                            child: Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 4,
-                                                vertical: 1,
-                                              ),
-                                              constraints: const BoxConstraints(
-                                                minWidth: 16,
-                                                minHeight: 16,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: colorScheme.error,
-                                                shape: BoxShape.rectangle,
-                                                borderRadius:
-                                                BorderRadius.circular(10),
-                                                border: Border.all(
-                                                  color: isDark
-                                                      ? colorScheme
-                                                      .surfaceContainer
-                                                      : colorScheme.primary,
-                                                  width: 1.5,
-                                                ),
-                                              ),
-                                              alignment: Alignment.center,
-                                              child: Text(
-                                                unread > 99 ? '99+' : '$unread',
-                                                style: TextStyle(
-                                                  color: colorScheme.onError,
-                                                  fontSize: 9,
-                                                  height: 1.2,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontFamily: 'Cairo',
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    );
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.notifications_none_rounded,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                  constraints: const BoxConstraints(),
+                                  padding: const EdgeInsets.all(6),
+                                  onPressed: () {
+                                    // Notifications disabled
                                   },
                                 ),
                               ],

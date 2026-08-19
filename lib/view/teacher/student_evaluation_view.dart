@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../../app_localizations.dart';
 import '../../models/teacher/student.dart';
+import 'teacher_sub_screen_app_bar.dart';
 
 class StudentEvaluationView extends StatefulWidget {
   final Student student;
@@ -38,7 +40,7 @@ class _StudentEvaluationViewState extends State<StudentEvaluationView> {
     if (_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('تم حفظ التقييم بنجاح'),
+          content: Text(context.tr('teacher_evaluation_saved')),
           backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
@@ -50,10 +52,9 @@ class _StudentEvaluationViewState extends State<StudentEvaluationView> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(
-        title: Text('تقييم ${widget.student.name}'),
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
+      backgroundColor: colorScheme.surface,
+      appBar: TeacherSubScreenAppBar(
+        title: '${context.tr('teacher_evaluate')} ${widget.student.name}',
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -65,7 +66,7 @@ class _StudentEvaluationViewState extends State<StudentEvaluationView> {
               Center(
                 child: CircleAvatar(
                   radius: 50,
-                  backgroundColor: colorScheme.primaryContainer,
+                  backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
                   child: Text(
                     widget.student.name[0],
                     style: TextStyle(
@@ -87,18 +88,22 @@ class _StudentEvaluationViewState extends State<StudentEvaluationView> {
                 ),
               ),
               const SizedBox(height: 32),
-              const Text(
-                'الدرجات',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                context.tr('teacher_grades'),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                  fontFamily: 'Cairo',
+                ),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _gradeController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'الدرجة (0-100)',
-                  prefixIcon: Icon(Icons.grade),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: context.tr('teacher_grade_label'),
+                  prefixIcon: const Icon(Icons.grade_outlined),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -115,10 +120,9 @@ class _StudentEvaluationViewState extends State<StudentEvaluationView> {
               TextFormField(
                 controller: _attendanceController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'نسبة الحضور (0-100)',
-                  prefixIcon: Icon(Icons.check_circle),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: context.tr('teacher_attendance_label'),
+                  prefixIcon: const Icon(Icons.check_circle_outline),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -137,10 +141,9 @@ class _StudentEvaluationViewState extends State<StudentEvaluationView> {
               TextFormField(
                 controller: _performanceController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'الأداء العام (0-100)',
-                  prefixIcon: Icon(Icons.trending_up),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: context.tr('teacher_performance_label'),
+                  prefixIcon: const Icon(Icons.trending_up),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -159,28 +162,30 @@ class _StudentEvaluationViewState extends State<StudentEvaluationView> {
               TextFormField(
                 controller: _notesController,
                 maxLines: 4,
-                decoration: const InputDecoration(
-                  labelText: 'ملاحظات إضافية',
-                  prefixIcon: Icon(Icons.note),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: context.tr('teacher_notes'),
+                  prefixIcon: const Icon(Icons.note_outlined),
                 ),
               ),
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
+                height: 52,
+                child: ElevatedButton.icon(
                   onPressed: _submit,
+                  icon: const Icon(Icons.check_rounded),
+                  label: Text(
+                    context.tr('teacher_save_evaluation'),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Cairo',
+                    ),
+                  ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: colorScheme.onPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                  ),
-                  child: const Text(
-                    'حفظ التقييم',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

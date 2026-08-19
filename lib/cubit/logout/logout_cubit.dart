@@ -17,6 +17,7 @@ class LogoutCubit extends Cubit<LogoutState> {
     if (result['success']) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('userToken');
+      await prefs.remove('userType');
 
       emit(LogoutSuccess());
     } else {

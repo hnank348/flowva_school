@@ -34,12 +34,13 @@ class LoginCubit extends Cubit<LoginState> {
         if (token.isNotEmpty) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('userToken', token);
+          final userType = result['data']['user']?['user_type'] ?? 'teacher';
+          await prefs.setString('userType', userType);
 
           try {
             final String? fcmToken = await FirebaseMessaging.instance.getToken();
             if (fcmToken != null && fcmToken.isNotEmpty) {
               await prefs.setString('fcmToken', fcmToken);
-              // 🟢 تم التصحيح: تمرير fcmToken و tr بشكل صحيح
               await _loginService.sendFcmToken(
                 fcmToken: fcmToken,
                 tr: tr,
