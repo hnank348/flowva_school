@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../app_localizations.dart';
+import '../../cubit/locale/locale_cubit.dart';
+import '../../cubit/locale/locale_state.dart';
 import '../../data/mock_data.dart';
+import 'class_evaluation_view.dart';
+import 'class_students_view.dart';
 import 'create_exam_view.dart';
-import 'attendance_view.dart';
-// unused imports removed
+import 'send_homework_view.dart';
 
 class ClassesView extends StatelessWidget {
   const ClassesView({super.key});
@@ -11,140 +16,119 @@ class ClassesView extends StatelessWidget {
   Widget build(BuildContext context) {
     final classRooms = MockData.getClassRooms();
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      body: Column(
-        children: [
-          // Header
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-                colors: [colorScheme.primary, colorScheme.primaryContainer],
-              ),
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'الصفوف الدراسية',
-                              style: TextStyle(
-                                color: colorScheme.onPrimary,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'الصفوف المسؤول عنها',
-                              style: TextStyle(
-                                color: colorScheme.onPrimaryContainer,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+    return BlocBuilder<LocaleCubit, LocaleState>(
+      builder: (context, localeState) {
+        return Directionality(
+          textDirection: localeState.textDirection,
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: classRooms.length,
+            itemBuilder: (context, index) {
+              final classRoom = classRooms[index];
+              return Card(
+                elevation: isDark ? 0 : 2,
+                margin: const EdgeInsets.only(bottom: 12),
+                color: isDark
+                    ? colorScheme.surfaceContainer
+                    : colorScheme.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: isDark
+                      ? BorderSide(color: colorScheme.outlineVariant)
+                      : BorderSide.none,
                 ),
-              ),
-            ),
-          ),
-          // Classes List
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: classRooms.length,
-              itemBuilder: (context, index) {
-                final classRoom = classRooms[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ClassStudentsView(
+                        classRoomId: classRoom.id,
+                        classRoomName: classRoom.name,
+                      ),
+                    ),
+                  ),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // ── header row ──────────────────────────────────
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.primaryContainer,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    Icons.school,
-                                    color: colorScheme.primary,
-                                    size: 28,
-                                  ),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.1,
                                 ),
-                                const SizedBox(width: 12),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      classRoom.name,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: colorScheme.onSurface,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      classRoom.subject,
-                                      style: TextStyle(
-                                        color: colorScheme.onSurfaceVariant,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                Icons.menu_book_outlined,
+                                color: colorScheme.primary,
+                                size: 20,
+                              ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.arrow_forward_ios),
-                              onPressed: () {},
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    classRoom.name,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 17,
+                                      color: colorScheme.onSurface,
+                                      fontFamily: 'Cairo',
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    classRoom.subject,
+                                    style: TextStyle(
+                                      color: colorScheme.onSurfaceVariant,
+                                      fontSize: 13,
+                                      fontFamily: 'Cairo',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 15,
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+
+                        const SizedBox(height: 12),
+
+                        // ── meta row ─────────────────────────────────────
                         Row(
                           children: [
                             Icon(
-                              Icons.people,
-                              size: 16,
+                              Icons.people_outline,
+                              size: 15,
                               color: colorScheme.onSurfaceVariant,
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '${classRoom.studentsCount} طالب',
+                              '${classRoom.studentsCount} ${context.tr('teacher_student_count')}',
                               style: TextStyle(
                                 color: colorScheme.onSurfaceVariant,
-                                fontSize: 13,
+                                fontSize: 12,
+                                fontFamily: 'Cairo',
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 14),
                             Icon(
                               Icons.access_time,
-                              size: 16,
+                              size: 15,
                               color: colorScheme.onSurfaceVariant,
                             ),
                             const SizedBox(width: 4),
@@ -152,50 +136,64 @@ class ClassesView extends StatelessWidget {
                               classRoom.nextSession,
                               style: TextStyle(
                                 color: colorScheme.onSurfaceVariant,
-                                fontSize: 13,
+                                fontSize: 12,
+                                fontFamily: 'Cairo',
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+
+                        const SizedBox(height: 14),
+                        Divider(height: 1, color: colorScheme.outlineVariant),
+                        const SizedBox(height: 12),
+
+                        // ── action buttons ────────────────────────────────
                         Row(
                           children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const CreateExamView(),
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.assignment, size: 18),
-                                label: const Text('إنشاء اختبار'),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: colorScheme.primary,
+                            _ActionChip(
+                              icon: Icons.assignment_outlined,
+                              label: context.tr('teacher_create_exam'),
+                              baseColor: colorScheme.primary,
+                              isDark: isDark,
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => CreateExamView(
+                                    preselectedClassRoomId: classRoom.id,
+                                    preselectedClassRoomName:
+                                        '${classRoom.name} — ${classRoom.subject}',
+                                  ),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AttendanceView(
-                                        classRoomId: classRoom.id,
-                                        classRoomName: classRoom.name,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.check_circle, size: 18),
-                                label: const Text('الحضور'),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: colorScheme.primary,
+                            const SizedBox(width: 8),
+                            _ActionChip(
+                              icon: Icons.home_work_outlined,
+                              label: context.tr('teacher_send_homework'),
+                              baseColor: const Color(0xFF0F766E),
+                              isDark: isDark,
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => SendHomeworkView(
+                                    preselectedClassRoomId: classRoom.id,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            _ActionChip(
+                              icon: Icons.bar_chart_outlined,
+                              label: context.tr('teacher_evaluate'),
+                              baseColor: Colors.deepPurple,
+                              isDark: isDark,
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ClassEvaluationView(
+                                    classRoomId: classRoom.id,
+                                    classRoomName: classRoom.name,
+                                  ),
                                 ),
                               ),
                             ),
@@ -204,11 +202,76 @@ class ClassesView extends StatelessWidget {
                       ],
                     ),
                   ),
-                );
-              },
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ── reusable action chip ──────────────────────────────────────────────────────
+
+class _ActionChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color baseColor;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  const _ActionChip({
+    required this.icon,
+    required this.label,
+    required this.baseColor,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: isDark
+                  ? baseColor.withValues(alpha: 0.15)
+                  : baseColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: baseColor.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 9),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, color: baseColor, size: 20),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: baseColor,
+                      fontFamily: 'Cairo',
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

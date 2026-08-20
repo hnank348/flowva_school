@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../app_localizations.dart';
 import '../../widget/common_widgets.dart';
+import 'teacher_sub_screen_app_bar.dart';
 
 class NotificationsView extends StatelessWidget {
   const NotificationsView({super.key});
@@ -7,52 +9,44 @@ class NotificationsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('الإشعارات'),
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
+      backgroundColor: colorScheme.surface,
+      appBar: TeacherSubScreenAppBar(
+        title: context.tr('teacher_notifications_title'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           NotificationCard(
-            title: 'اختبار جديد',
-            message: 'تم إنشاء اختبار رياضيات للصف 9-أ',
-            time: 'منذ 5 دقائق',
-            icon: Icons.assignment,
+            title: context.tr('teacher_notif_new_exam'),
+            message: context.tr('teacher_notif_new_exam_msg'),
+            time: context.tr('teacher_notif_time_5m'),
+            icon: Icons.assignment_outlined,
             color: colorScheme.primary,
             isUnread: true,
           ),
           NotificationCard(
-            title: 'تذكير بالحضور',
-            message: 'يرجى تسجيل حضور الصفوف اليوم',
-            time: 'منذ ساعة',
-            icon: Icons.access_time,
-            color: colorScheme.primary,
-            isUnread: true,
-          ),
-          NotificationCard(
-            title: 'اجتماع أولياء الأمور',
-            message: 'الاجتماع يوم الأحد القادم الساعة 10 صباحاً',
-            time: 'منذ يومين',
-            icon: Icons.event,
-            color: Colors.green,
-            isUnread: false,
-          ),
-          NotificationCard(
-            title: 'تقرير الأداء',
-            message: 'تم نشر تقرير الأداء الشهري',
-            time: 'منذ 3 أيام',
-            icon: Icons.bar_chart,
+            title: context.tr('teacher_notif_parent_meeting'),
+            message: context.tr('teacher_notif_parent_meeting_msg'),
+            time: context.tr('teacher_notif_time_2d'),
+            icon: Icons.event_outlined,
             color: colorScheme.primary,
             isUnread: false,
           ),
           NotificationCard(
-            title: 'رسالة من الموجه',
-            message: 'الموجه التربوي يريد مناقشة نتائج الطلاب',
-            time: 'منذ أسبوع',
-            icon: Icons.chat,
+            title: context.tr('teacher_performance_reports'),
+            message: context.tr('teacher_notif_report_msg'),
+            time: context.tr('teacher_notif_time_3d'),
+            icon: Icons.bar_chart_outlined,
+            color: colorScheme.primary,
+            isUnread: false,
+          ),
+          NotificationCard(
+            title: context.tr('teacher_supervisor_messages'),
+            message: context.tr('teacher_notif_supervisor_msg'),
+            time: context.tr('teacher_notif_time_1w'),
+            icon: Icons.chat_bubble_outline,
             color: colorScheme.primary,
             isUnread: false,
           ),
@@ -60,6 +54,4 @@ class NotificationsView extends StatelessWidget {
       ),
     );
   }
-
-  // NotificationCard moved to shared widgets
 }

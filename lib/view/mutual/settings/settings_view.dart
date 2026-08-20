@@ -14,6 +14,7 @@ import 'package:flowva_school/notifications/cubit/notifications_cubit.dart';
 
 import '../../../app_localizations.dart';
 import '../../../chat/screens/chat_screen.dart';
+import '../../../view/teacher/leave_request_view.dart';
 import 'new_password_view.dart';
 import 'language_picker_bottom_sheet.dart';
 import 'logout_tile.dart';
@@ -23,7 +24,12 @@ class SettingsView extends StatelessWidget {
 
   const SettingsView({super.key, required this.userToken});
 
-  void _showLanguagePicker(BuildContext context, ColorScheme colorScheme, bool isDark, String currentLang) {
+  void _showLanguagePicker(
+    BuildContext context,
+    ColorScheme colorScheme,
+    bool isDark,
+    String currentLang,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: isDark ? colorScheme.surfaceContainerHigh : Colors.white,
@@ -44,7 +50,7 @@ class SettingsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark      = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: isDark ? colorScheme.surface : const Color(0xFFF8FAFC),
@@ -52,9 +58,10 @@ class SettingsView extends StatelessWidget {
         title: TranslatedText(
           'settings_title',
           style: const TextStyle(
-              fontFamily: 'Cairo',
-              fontWeight: FontWeight.bold,
-              fontSize: 16),
+            fontFamily: 'Cairo',
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
         ),
         centerTitle: true,
         elevation: 0,
@@ -64,7 +71,7 @@ class SettingsView extends StatelessWidget {
         ),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
-            bottomLeft:  Radius.circular(24),
+            bottomLeft: Radius.circular(24),
             bottomRight: Radius.circular(24),
           ),
         ),
@@ -102,21 +109,24 @@ class SettingsView extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 // ─── الحساب ───
-                                SectionLabel(label: context.tr('settings_account')),
+                                SectionLabel(
+                                  label: context.tr('settings_account'),
+                                ),
                                 const SizedBox(height: 8),
                                 SettingsGroup(
-                                  isDark:      isDark,
+                                  isDark: isDark,
                                   colorScheme: colorScheme,
                                   children: [
                                     SettingsTile(
-                                      icon:  Icons.person_outline_rounded,
+                                      icon: Icons.person_outline_rounded,
                                       title: context.tr('settings_profile'),
                                       colorScheme: colorScheme,
-                                      isDark:      isDark,
+                                      isDark: isDark,
                                       onTap: () => Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (_) => ProfileView(userToken: userToken),
+                                          builder: (_) =>
+                                              ProfileView(userToken: userToken),
                                         ),
                                       ),
                                     ),
@@ -138,15 +148,20 @@ class SettingsView extends StatelessWidget {
                                     ),
                                     SettingsDivider(colorScheme: colorScheme),
                                     SettingsTile(
-                                      icon:  Icons.lock_outline_rounded,
-                                      title: context.tr('settings_change_password'),
+                                      icon: Icons.lock_outline_rounded,
+                                      title: context.tr(
+                                        'settings_change_password',
+                                      ),
                                       colorScheme: colorScheme,
-                                      isDark:      isDark,
+                                      isDark: isDark,
                                       onTap: () {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (_) => ForgetPasswordScreen(userToken: userToken),
+                                            builder: (_) =>
+                                                ForgetPasswordScreen(
+                                                  userToken: userToken,
+                                                ),
                                           ),
                                         );
                                       },
@@ -157,35 +172,45 @@ class SettingsView extends StatelessWidget {
                                 const SizedBox(height: 22),
 
                                 // ─── المظهر ───
-                                SectionLabel(label: context.tr('settings_appearance')),
+                                SectionLabel(
+                                  label: context.tr('settings_appearance'),
+                                ),
                                 const SizedBox(height: 8),
                                 SettingsGroup(
-                                  isDark:      isDark,
+                                  isDark: isDark,
                                   colorScheme: colorScheme,
                                   children: [
                                     SwitchTile(
-                                      icon: isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_outlined,
-                                      title: context.tr(isDarkMode ? 'settings_dark_mode_on' : 'settings_dark_mode_off'),
-                                      value:       isDarkMode,
+                                      icon: isDarkMode
+                                          ? Icons.dark_mode_rounded
+                                          : Icons.light_mode_outlined,
+                                      title: context.tr(
+                                        isDarkMode
+                                            ? 'settings_dark_mode_on'
+                                            : 'settings_dark_mode_off',
+                                      ),
+                                      value: isDarkMode,
                                       colorScheme: colorScheme,
-                                      isDark:      isDark,
-                                      onChanged: (_) => context.read<ThemeCubit>().toggleTheme(),
+                                      isDark: isDark,
+                                      onChanged: (_) => context
+                                          .read<ThemeCubit>()
+                                          .toggleTheme(),
                                     ),
                                     SettingsDivider(colorScheme: colorScheme),
                                     SettingsTile(
-                                      icon:  Icons.language_rounded,
+                                      icon: Icons.language_rounded,
                                       title: context.tr('settings_language'),
                                       trailing: BadgePill(
                                         label: langLabel,
                                         colorScheme: colorScheme,
                                       ),
                                       colorScheme: colorScheme,
-                                      isDark:      isDark,
+                                      isDark: isDark,
                                       onTap: () => _showLanguagePicker(
-                                          context,
-                                          colorScheme,
-                                          isDark,
-                                          localeState.currentLanguage
+                                        context,
+                                        colorScheme,
+                                        isDark,
+                                        localeState.currentLanguage,
                                       ),
                                     ),
                                   ],
@@ -194,26 +219,36 @@ class SettingsView extends StatelessWidget {
                                 const SizedBox(height: 22),
 
                                 // ─── الإشعارات (مربوط بالـ Cubit 100%) ───
-                                SectionLabel(label: context.tr('settings_notifications')),
+                                SectionLabel(
+                                  label: context.tr('settings_notifications'),
+                                ),
                                 const SizedBox(height: 8),
                                 SettingsGroup(
-                                  isDark:      isDark,
+                                  isDark: isDark,
                                   colorScheme: colorScheme,
                                   children: [
                                     BlocBuilder<NotificationSwitchCubit, bool>(
                                       builder: (context, isEnabled) {
                                         return SwitchTile(
                                           icon: isEnabled
-                                              ? Icons.notifications_active_outlined
-                                              : Icons.notifications_off_outlined,
-                                          title: context.tr('settings_notifications_toggle'),
+                                              ? Icons
+                                                    .notifications_active_outlined
+                                              : Icons
+                                                    .notifications_off_outlined,
+                                          title: context.tr(
+                                            'settings_notifications_toggle',
+                                          ),
                                           value: isEnabled,
                                           colorScheme: colorScheme,
                                           isDark: isDark,
                                           onChanged: (val) {
-                                            context.read<NotificationSwitchCubit>().toggleNotification(val);
+                                            context
+                                                .read<NotificationSwitchCubit>()
+                                                .toggleNotification(val);
                                             if (val) {
-                                              context.read<NotificationsCubit>().loadNotifications();
+                                              context
+                                                  .read<NotificationsCubit>()
+                                                  .loadNotifications();
                                             }
                                           },
                                         );
@@ -224,43 +259,77 @@ class SettingsView extends StatelessWidget {
 
                                 const SizedBox(height: 22),
 
-                                // ─── عن التطبيق ───
-                                SectionLabel(label: context.tr('settings_about')),
+                                // ─── خدمات المعلم ───
+                                SectionLabel(
+                                  label: context.tr(
+                                    'settings_teacher_services',
+                                  ),
+                                ),
                                 const SizedBox(height: 8),
                                 SettingsGroup(
-                                  isDark:      isDark,
+                                  isDark: isDark,
                                   colorScheme: colorScheme,
                                   children: [
                                     SettingsTile(
-                                      icon:  Icons.info_outline_rounded,
+                                      icon: Icons.event_busy_outlined,
+                                      title: context.tr(
+                                        'settings_leave_request',
+                                      ),
+                                      colorScheme: colorScheme,
+                                      isDark: isDark,
+                                      onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const LeaveRequestView(),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 22),
+
+                                // ─── عن التطبيق ───
+                                SectionLabel(
+                                  label: context.tr('settings_about'),
+                                ),
+                                const SizedBox(height: 8),
+                                SettingsGroup(
+                                  isDark: isDark,
+                                  colorScheme: colorScheme,
+                                  children: [
+                                    SettingsTile(
+                                      icon: Icons.info_outline_rounded,
                                       title: context.tr('settings_version'),
                                       trailing: Text(
                                         'v1.0.0',
                                         style: TextStyle(
                                           fontFamily: 'Cairo',
                                           fontSize: 12,
-                                          color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+                                          color: colorScheme.onSurfaceVariant
+                                              .withValues(alpha: 0.6),
                                         ),
                                       ),
                                       colorScheme: colorScheme,
-                                      isDark:      isDark,
-                                      onTap:       () {},
+                                      isDark: isDark,
+                                      onTap: () {},
                                     ),
                                     SettingsDivider(colorScheme: colorScheme),
                                     SettingsTile(
-                                      icon:  Icons.privacy_tip_outlined,
+                                      icon: Icons.privacy_tip_outlined,
                                       title: context.tr('settings_privacy'),
                                       colorScheme: colorScheme,
-                                      isDark:      isDark,
-                                      onTap:       () {},
+                                      isDark: isDark,
+                                      onTap: () {},
                                     ),
                                     SettingsDivider(colorScheme: colorScheme),
                                     SettingsTile(
-                                      icon:  Icons.description_outlined,
+                                      icon: Icons.description_outlined,
                                       title: context.tr('settings_terms'),
                                       colorScheme: colorScheme,
-                                      isDark:      isDark,
-                                      onTap:       () {},
+                                      isDark: isDark,
+                                      onTap: () {},
                                     ),
                                   ],
                                 ),
@@ -269,8 +338,8 @@ class SettingsView extends StatelessWidget {
 
                                 LogoutTile(
                                   colorScheme: colorScheme,
-                                  isDark:      isDark,
-                                  label:       context.tr('settings_logout'),
+                                  isDark: isDark,
+                                  label: context.tr('settings_logout'),
                                 ),
 
                                 const SizedBox(height: 12),

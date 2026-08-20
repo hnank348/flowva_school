@@ -1,6 +1,7 @@
 class Student {
   final String id;
   final String name;
+  final String classRoomId;
   final String? avatar;
   final double grade;
   final double attendance;
@@ -9,6 +10,7 @@ class Student {
   Student({
     required this.id,
     required this.name,
+    required this.classRoomId,
     this.avatar,
     required this.grade,
     required this.attendance,

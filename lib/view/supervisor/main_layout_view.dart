@@ -60,9 +60,9 @@ class MainLayoutView extends StatelessWidget {
 
   void _openSettings(BuildContext context) {
     final logoutCubit = context.read<LogoutCubit>();
+    final profileCubit = context.read<ProfileCubit>();
     final notificationsCubit = context.read<NotificationsCubit>();
     final notificationSwitchCubit = context.read<NotificationSwitchCubit>();
-    final profileCubit = context.read<ProfileCubit>();
 
     Navigator.push(
       context,
@@ -80,19 +80,6 @@ class MainLayoutView extends StatelessWidget {
     ).then((_) {
       profileCubit.fetchUserProfile(token: userToken);
     });
-  }
-
-  void _openNotifications(BuildContext context) {
-    final notificationsCubit = context.read<NotificationsCubit>();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: notificationsCubit,
-          child: const SupervisorNotificationsScreen(),
-        ),
-      ),
-    );
   }
 
   @override
@@ -165,14 +152,16 @@ class MainLayoutView extends StatelessWidget {
                                 if (profileState is ProfileLoaded) {
                                   displayName = isArabic
                                       ? (profileState.user.fullNameAr.isNotEmpty
-                                      ? profileState.user.fullNameAr
-                                      : profileState.user.fullName)
+                                            ? profileState.user.fullNameAr
+                                            : profileState.user.fullName)
                                       : (profileState.user.fullName.isNotEmpty
-                                      ? profileState.user.fullName
-                                      : profileState.user.fullNameAr);
+                                            ? profileState.user.fullName
+                                            : profileState.user.fullNameAr);
                                   avatarUrl = profileState.user.avatarUrl;
                                 } else if (profileState is ProfileError) {
-                                  displayName = context.tr('main_profile_error');
+                                  displayName = context.tr(
+                                    'main_profile_error',
+                                  );
                                 }
 
                                 return Row(
@@ -191,7 +180,7 @@ class MainLayoutView extends StatelessWidget {
                                             color: Colors.black.withOpacity(0.08),
                                             blurRadius: 8,
                                             offset: const Offset(0, 4),
-                                          )
+                                          ),
                                         ],
                                       ),
                                       child: CustomAvatar(
@@ -231,7 +220,9 @@ class MainLayoutView extends StatelessWidget {
                                             style: TextStyle(
                                               color: isDark
                                                   ? colorScheme.onSurfaceVariant
-                                                  : Colors.white.withOpacity(0.9),
+                                                  : Colors.white.withValues(
+                                                      alpha: 0.9,
+                                                    ),
                                               fontSize: 11,
                                               fontWeight: FontWeight.w500,
                                               fontFamily: 'Cairo',

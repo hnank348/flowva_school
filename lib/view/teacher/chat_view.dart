@@ -1,4 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../app_localizations.dart';
+import '../../cubit/locale/locale_cubit.dart';
+import '../../cubit/locale/locale_state.dart';
 import '../../data/mock_data.dart';
 import '../../models/teacher/message.dart';
 
@@ -32,7 +36,7 @@ class _ChatViewState extends State<ChatView> {
       messages.add(
         Message(
           id: DateTime.now().toString(),
-          sender: 'أنت',
+          sender: context.tr('teacher_you'),
           content: _messageController.text,
           time: TimeOfDay.now().format(context),
           isMe: true,
@@ -44,39 +48,33 @@ class _ChatViewState extends State<ChatView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          // Header
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-                colors: [
-                  Theme.of(context).colorScheme.primary,
-                  Theme.of(context).colorScheme.primaryContainer,
-                ],
-              ),
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return BlocBuilder<LocaleCubit, LocaleState>(
+      builder: (context, localeState) {
+        return Directionality(
+          textDirection: localeState.textDirection,
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? colorScheme.surfaceContainer
+                      : colorScheme.primary.withValues(alpha: 0.1).withValues(alpha: 0.35),
+                  border: Border(
+                    bottom: BorderSide(color: colorScheme.outlineVariant),
+                  ),
+                ),
                 child: Row(
                   children: [
                     CircleAvatar(
                       radius: 24,
-                      backgroundColor: Theme.of(context).colorScheme.onPrimary,
-                      child: Text(
-                        'أح',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+                      child: Icon(
+                        Icons.person_outline,
+                        color: colorScheme.primary,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -85,21 +83,21 @@ class _ChatViewState extends State<ChatView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'الموجه التربوي - أحمد السالم',
+                            context.tr('teacher_supervisor_name'),
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onPrimary,
+                              color: colorScheme.onSurface,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
+                              fontFamily: 'Cairo',
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'متصل الآن',
+                            context.tr('teacher_online_now'),
                             style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onPrimaryContainer,
+                              color: colorScheme.onSurfaceVariant,
                               fontSize: 12,
+                              fontFamily: 'Cairo',
                             ),
                           ),
                         ],
@@ -108,101 +106,99 @@ class _ChatViewState extends State<ChatView> {
                     IconButton(
                       icon: Icon(
                         Icons.more_vert,
-                        color: Theme.of(context).colorScheme.onPrimary,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                       onPressed: () {},
                     ),
                   ],
                 ),
               ),
-            ),
-          ),
-          // Messages
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                final message = messages[index];
-                return _buildMessageBubble(message);
-              },
-            ),
-          ),
-          // Input
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              border: Border(
-                top: BorderSide(color: Theme.of(context).colorScheme.outline),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final message = messages[index];
+                    return _buildMessageBubble(message, colorScheme, isDark);
+                  },
+                ),
               ),
-            ),
-            child: SafeArea(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceVariant,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: TextField(
-                        controller: _messageController,
-                        decoration: const InputDecoration(
-                          hintText: 'اكتب رسالتك...',
-                          border: InputBorder.none,
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  border: Border(
+                    top: BorderSide(color: colorScheme.outlineVariant),
+                  ),
+                ),
+                child: SafeArea(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? colorScheme.surfaceContainer
+                                : colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: TextField(
+                            controller: _messageController,
+                            decoration: InputDecoration(
+                              hintText: context.tr('teacher_type_message'),
+                              border: InputBorder.none,
+                            ),
+                            maxLines: null,
+                            textInputAction: TextInputAction.send,
+                            onSubmitted: (_) => _sendMessage(),
+                          ),
                         ),
-                        maxLines: null,
-                        textInputAction: TextInputAction.send,
-                        onSubmitted: (_) => _sendMessage(),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.send_rounded,
+                            color: colorScheme.onPrimary,
+                          ),
+                          onPressed: _sendMessage,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Theme.of(context).colorScheme.primary,
-                          Theme.of(context).colorScheme.primaryContainer,
-                        ],
-                      ),
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.send,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
-                      onPressed: _sendMessage,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildMessageBubble(Message message) {
+  Widget _buildMessageBubble(
+    Message message,
+    ColorScheme colorScheme,
+    bool isDark,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
-        mainAxisAlignment: message.isMe
-            ? MainAxisAlignment.end
-            : MainAxisAlignment.start,
+        mainAxisAlignment:
+            message.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           if (!message.isMe) ...[
             CircleAvatar(
               radius: 16,
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
               child: Text(
                 message.sender[0],
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
+                  color: colorScheme.primary,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -215,8 +211,10 @@ class _ChatViewState extends State<ChatView> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: message.isMe
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.surfaceVariant,
+                    ? colorScheme.primary
+                    : (isDark
+                        ? colorScheme.surfaceContainer
+                        : colorScheme.surfaceContainerHighest),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
@@ -235,7 +233,8 @@ class _ChatViewState extends State<ChatView> {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          color: colorScheme.onSurfaceVariant,
+                          fontFamily: 'Cairo',
                         ),
                       ),
                     ),
@@ -243,9 +242,10 @@ class _ChatViewState extends State<ChatView> {
                     message.content,
                     style: TextStyle(
                       color: message.isMe
-                          ? Theme.of(context).colorScheme.onPrimary
-                          : Theme.of(context).colorScheme.onSurface,
+                          ? colorScheme.onPrimary
+                          : colorScheme.onSurface,
                       fontSize: 14,
+                      fontFamily: 'Cairo',
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -254,8 +254,9 @@ class _ChatViewState extends State<ChatView> {
                     style: TextStyle(
                       fontSize: 10,
                       color: message.isMe
-                          ? Theme.of(context).colorScheme.onPrimaryContainer
-                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                          ? colorScheme.onPrimary.withValues(alpha: 0.8)
+                          : colorScheme.onSurfaceVariant,
+                      fontFamily: 'Cairo',
                     ),
                   ),
                 ],
@@ -266,11 +267,11 @@ class _ChatViewState extends State<ChatView> {
             const SizedBox(width: 8),
             CircleAvatar(
               radius: 16,
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
               child: Text(
                 'م',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
+                  color: colorScheme.primary,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
