@@ -15,7 +15,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
     Icons.calendar_view_week_rounded,
     Icons.assignment_outlined,
     Icons.how_to_reg_outlined,
-    Icons.bar_chart_outlined,
+    Icons.groups_rounded, // 🟢 أيقونة الطلاب
   ];
 
   @override

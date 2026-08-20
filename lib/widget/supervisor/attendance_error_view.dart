@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flowva_school/app_localizations.dart';
 
-/// ويدجت خطأ مشتركة (نفس الشكل عند الطالب والمعلم)
-/// onRetry اختياري لأن شاشة الطالب أصلاً ما كانت فيها زر إعادة محاولة
-/// أما شاشة المعلم فكانت فيها -> هلق منقدر نضيفه لأي واحدة بمرونة
+
 class AttendanceErrorView extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;

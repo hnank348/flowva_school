@@ -43,7 +43,6 @@ class _TeachersAttendanceBody extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final cubit = context.read<TeacherAttendanceCubit>();
 
-    // ✅ إعادة الجلب التلقائي عند بداية الشاشة إذا كانت الحالة Initial
     if (cubit.state is TeacherAttendanceInitial) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         cubit.fetchTeachers(tr: context.tr,);
@@ -96,7 +95,6 @@ class _TeachersAttendanceBody extends StatelessWidget {
                         : null,
                   ),
                   body: SafeArea(
-                    // 🔴 ميزة السحب للتحديث الشاملة
                     child: RefreshIndicator.adaptive(
                       onRefresh: () => cubit.fetchTeachers(tr: context.tr,),
                       child: CustomScrollView(

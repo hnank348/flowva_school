@@ -1,9 +1,9 @@
-import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:flowva_school/cubit/supervisor/submit_student/submit_attendance_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flowva_school/cubit/supervisor/student/student_attendance_state.dart';
 import 'package:flowva_school/models/supervisor/student_attendance_model.dart';
 import 'package:flowva_school/services/supervisor/submit_attendance_service.dart';
+
+import '../student_attendance/student_attendance_state.dart';
 
 class SubmitAttendanceCubit extends Cubit<SubmitAttendanceState> {
   final SubmitAttendanceService _service;
@@ -40,6 +40,11 @@ class SubmitAttendanceCubit extends Cubit<SubmitAttendanceState> {
       final date = '${now.year}-${_p(now.month)}-${_p(now.day)}';
       final time = '${_p(now.hour)}:${_p(now.minute)}';
 
+      // 🟢 طباعة تشخيصية - احذفها بعد التأكد من الحل
+      print('📅 [DEBUG] Device DateTime.now() = $now');
+      print('📅 [DEBUG] Sending date = $date');
+      print('📅 [DEBUG] Sending time = $time');
+
       final statusMap = <String, int>{};
       for (final student in students) {
         final sid    = student.id.toString();
@@ -56,7 +61,7 @@ class SubmitAttendanceCubit extends Cubit<SubmitAttendanceState> {
         date:           date,
         checkInTime:    time,
         notesMap:       noteMap,
-        tr: context.tr,
+        tr: tr, // ✅ تم إصلاح المشكلة: استخدام البارامتر الممرر بدلاً من context.tr
       );
 
       emit(SubmitAttendanceSuccess(tr('submit_attendance_success')));

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flowva_school/app_localizations.dart';
 
-/// بادج "تعديل" اللي يظهر بالـ AppBar بوضع العرض/التعديل
 class AttendanceEditModeBadge extends StatelessWidget {
   const AttendanceEditModeBadge({super.key});
 

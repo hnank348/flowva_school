@@ -10,7 +10,7 @@ import 'teacher_attendance_record_card.dart';
 class TeachersAttendanceGrid extends StatelessWidget {
   final List<TeacherModel>? teachers;
   final Map<int, TeacherAttendanceStatus>? attendanceMap;
-  final Map<int, String?>? noteMap; // ✅ جديد - للملاحظات بوضع التسجيل
+  final Map<int, String?>? noteMap;
   final List<TeacherAttendanceRecord>? records;
   final Map<int, TeacherAttendanceStatus>? editMap;
   final bool isTablet;
@@ -20,7 +20,7 @@ class TeachersAttendanceGrid extends StatelessWidget {
     super.key,
     required List<TeacherModel> this.teachers,
     required Map<int, TeacherAttendanceStatus> this.attendanceMap,
-    this.noteMap, // ✅ جديد
+    this.noteMap,
     required this.isTablet,
   })  : records = null,
         editMap = null,
@@ -69,7 +69,6 @@ class TeachersAttendanceGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isViewMode) {
-      // ✅ بوضع العرض/التعديل: الكارت بياخد الحالة والملاحظة من الـ Cubit State بنفسه
       return AttendanceGrid<TeacherAttendanceRecord, TeacherAttendanceStatus>(
         items: records!,
         statusOf: (r) => editMap![r.id] ?? _recordToStatus(r),
@@ -78,7 +77,7 @@ class TeachersAttendanceGrid extends StatelessWidget {
         mainAxisExtent: 145,
         emptyTextKey: 'filter_empty_teachers',
         itemBuilder: (context, record, status) => TeacherAttendanceRecordCard(
-          record: record, // ✅ بدون currentStatus - الكارت بياخدها من الـ Cubit
+          record: record,
         ),
       );
     }
@@ -93,7 +92,7 @@ class TeachersAttendanceGrid extends StatelessWidget {
       itemBuilder: (context, teacher, status) => TeacherAttendanceCard(
         teacher: teacher,
         currentStatus: status,
-        note: noteMap?[teacher.id], // ✅ من noteMap مش attendanceMap
+        note: noteMap?[teacher.id],
       ),
     );
   }

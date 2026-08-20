@@ -1,3 +1,5 @@
+import '../../services/constant_api.dart';
+
 class TeacherModel {
   final int id;
   final String employeeId;
@@ -5,7 +7,7 @@ class TeacherModel {
   final String fullNameAr;
   final String? gender;
   final String? avatar;
-  final String? notes; // ✅ جديد
+  final String? notes;
 
   const TeacherModel({
     required this.id,
@@ -23,20 +25,23 @@ class TeacherModel {
     final firstNameAr = json['first_name_ar'] ?? '';
     final lastNameAr  = json['last_name_ar']  ?? '';
 
+    // 🟢 قراءة مسار الصورة وتحويله إلى رابط كامل تلقائياً
+    final rawAvatar = json['avatar'] ?? json['photo'];
+
     return TeacherModel(
       id:         json['id'] as int,
       employeeId: json['employee_id'] ?? '',
       fullName:   '$firstName $lastName'.trim(),
       fullNameAr: '$firstNameAr $lastNameAr'.trim(),
       gender:     json['gender'],
-      avatar:     json['avatar'],
-      notes:      json['notes'], // 🔶 تأكد اسم الحقل بالـ API عندك
+      avatar:     ConstantApi.getImageUrl(rawAvatar), // 🟢 تحويل المسار لرابط كامل هنا
+      notes:      json['notes'],
     );
   }
 
   bool get hasValidAvatar {
     final url = avatar ?? '';
-    return url.startsWith('http://') || url.startsWith('https://');
+    return url.trim().isNotEmpty && (url.startsWith('http://') || url.startsWith('https://'));
   }
 
   TeacherModel copyWith({String? notes}) {

@@ -8,37 +8,77 @@ class Button extends StatelessWidget {
     required this.colorText,
     required this.onPressed,
     this.colorOutline,
+    this.icon,
+    this.width,
+    this.height = 50,
+    this.fontSize = 15,
+    this.isLoading = false,
+    this.borderRadius = 16,
   });
 
   final String text;
   final Color color;
   final Color colorText;
   final Color? colorOutline;
-  final void Function() onPressed;
+  final IconData? icon;
+  final double? width;
+  final double height;
+  final double fontSize;
+  final bool isLoading;
+  final double borderRadius;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 320,
-      height: 50,
+    return SizedBox(
+      width: width ?? double.infinity,
+      height: height,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
-          minimumSize: const Size(320, 50),
-          maximumSize: const Size(330, 50),
-          side: BorderSide(
-            color: colorOutline ?? color,
-            width: 2,
+          disabledBackgroundColor: color.withOpacity(0.5),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(borderRadius),
+            side: BorderSide(
+              color: colorOutline ?? color,
+              width: 1.5,
+            ),
           ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
         ),
-        onPressed: onPressed,
-        child: Text(
-          text,
-          style: TextStyle(
-            color: colorText,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+        onPressed: isLoading ? null : onPressed,
+        child: isLoading
+            ? SizedBox(
+          width: 22,
+          height: 22,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.5,
+            valueColor: AlwaysStoppedAnimation<Color>(colorText),
           ),
+        )
+            : Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, color: colorText, size: 20),
+              const SizedBox(width: 8),
+            ],
+            Flexible(
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: colorText,
+                  fontSize: fontSize,
+                  fontFamily: 'Cairo',
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
       ),
     );

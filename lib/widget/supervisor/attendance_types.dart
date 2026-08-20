@@ -28,8 +28,6 @@ class AttendanceOption<T> {
   });
 }
 
-/// ✅ ما عاد في حاجة لـ TFilter منفصل
-/// status == null يعني "الكل"، وإلا يعني فلترة على حالة محددة
 class AttendanceFilterConfig<TStatus> {
   final String labelKey;
   final Color color;

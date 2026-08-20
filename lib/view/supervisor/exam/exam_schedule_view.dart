@@ -4,6 +4,8 @@ import 'package:flowva_school/cubit/supervisor/classes/classes_cubit.dart';
 import 'package:flowva_school/cubit/supervisor/classes/classes_state.dart';
 import 'package:flowva_school/cubit/current_semester/current_semester_cubit.dart';
 import 'package:flowva_school/cubit/current_semester/current_semester_state.dart';
+import 'package:flowva_school/cubit/locale/locale_cubit.dart';
+import 'package:flowva_school/cubit/locale/locale_state.dart';
 import 'package:flowva_school/models/supervisor/exam_model.dart';
 
 import '../../../cubit/supervisor/exam_schedule/exam_schedule_cubit.dart';
@@ -26,7 +28,7 @@ class ExamScheduleView extends StatelessWidget {
         ? semesterState.currentSemester.id
         : 1;
     context.read<ExamScheduleCubit>().fetchExams(
-      sectionId:  sectionId,
+      sectionId: sectionId,
       semesterId: semesterId,
     );
   }
@@ -42,7 +44,8 @@ class ExamScheduleView extends StatelessWidget {
   }
 
   void _toggleExamStatus(BuildContext context, ExamModel exam) {
-    final newStatus = exam.status.toLowerCase() == 'completed' ? 'scheduled' : 'completed';
+    final newStatus =
+    exam.status.toLowerCase() == 'completed' ? 'scheduled' : 'completed';
     context.read<ManageExamCubit>().changeStatus(
       examId: exam.id,
       status: newStatus,
@@ -59,125 +62,191 @@ class ExamScheduleView extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final selectedFilterNotifier = ValueNotifier<String>('all');
 
-    return BlocBuilder<ClassesCubit, ClassesState>(
-      builder: (context, classState) {
-        if (classState is ClassesLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    // 🟢 الاستماع لتغير اللغة وإعادة بناء الواجهة بالكامل
+    return BlocBuilder<LocaleCubit, LocaleState>(
+      builder: (context, localeState) {
+        return Directionality(
+          textDirection: localeState.textDirection,
+          child: BlocBuilder<ClassesCubit, ClassesState>(
+            builder: (context, classState) {
+              if (classState is ClassesLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-        if (classState is ClassesError) {
-          return Center(
-            child: Text(classState.message, style: TextStyle(fontFamily: 'Cairo', color: cs.error)),
-          );
-        }
+              if (classState is ClassesError) {
+                return Center(
+                  child: Text(classState.message,
+                      style: TextStyle(fontFamily: 'Cairo', color: cs.error)),
+                );
+              }
 
-        if (classState is! ClassesLoaded) return const SizedBox();
+              if (classState is! ClassesLoaded) return const SizedBox();
 
-        final activeSections  = classState.classDetails.sections;
-        final selectedSection = classState.selectedSection;
+              final activeSections = classState.classDetails.sections;
+              final selectedSection = classState.selectedSection;
 
-        if (selectedSection != null) {
-          final examCubit = context.read<ExamScheduleCubit>();
-          if (examCubit.state is ExamScheduleInitial) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              _fetchExams(context, selectedSection.id);
-            });
-          }
-        }
+              if (selectedSection != null) {
+                final examCubit = context.read<ExamScheduleCubit>();
+                if (examCubit.state is ExamScheduleInitial) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _fetchExams(context, selectedSection.id);
+                  });
+                }
+              }
 
-        return BlocListener<ManageExamCubit, ManageExamState>(
-          listener: (context, manageState) {
-            if (manageState is DeleteExamSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(context.tr('exam_success_delete'), style: const TextStyle(fontFamily: 'Cairo')),
-                backgroundColor: const Color(0xFF0F766E),
-                behavior: SnackBarBehavior.floating,
-              ));
-              if (selectedSection != null) _fetchExams(context, selectedSection.id);
-              context.read<ManageExamCubit>().reset();
-            }
+              return BlocListener<ManageExamCubit, ManageExamState>(
+                listener: (context, manageState) {
+                  if (manageState is DeleteExamSuccess) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(context.tr('exam_success_delete'),
+                          style: const TextStyle(fontFamily: 'Cairo')),
+                      backgroundColor: const Color(0xFF0F766E),
+                      behavior: SnackBarBehavior.floating,
+                    ));
+                    if (selectedSection != null) {
+                      _fetchExams(context, selectedSection.id);
+                    }
+                    context.read<ManageExamCubit>().reset();
+                  }
 
-            if (manageState is ChangeExamStatusSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(
-                  manageState.newStatus == 'completed' ? context.tr('exam_success_status_completed') : context.tr('exam_success_status_scheduled'),
-                  style: const TextStyle(fontFamily: 'Cairo'),
-                ),
-                behavior: SnackBarBehavior.floating,
-              ));
-              if (selectedSection != null) _fetchExams(context, selectedSection.id);
-              context.read<ManageExamCubit>().reset();
-            }
-
-            if (manageState is ManageExamError) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(manageState.message, style: const TextStyle(fontFamily: 'Cairo')),
-                backgroundColor: cs.error,
-                behavior: SnackBarBehavior.floating,
-              ));
-            }
-          },
-          child: BlocBuilder<ExamScheduleCubit, ExamScheduleState>(
-            builder: (context, examState) {
-              return Container(
-                color: cs.surface,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 12),
-
-                    AttendanceSectionHeader(
-                      selectedSection: selectedSection,
-                      sections:        activeSections,
-                      onSectionChanged: (newSection) {
-                        context.read<ClassesCubit>().selectSection(newSection);
-                        _fetchExams(context, newSection.id);
-                      },
-                      onExportPdfPressed: () {},
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    ValueListenableBuilder<String>(
-                      valueListenable: selectedFilterNotifier,
-                      builder: (context, selectedFilter, _) {
-                        return Row(
-                          children: [
-                            _topButton(
-                              context.tr('exam_btn_add'),
-                              const Color(0xFF319795),
-                              Colors.white,
-                              icon: Icons.add_rounded,
-                              onTap: selectedSection == null
-                                  ? null
-                                  : () => AddExamBottomSheet.show(
-                                context,
-                                sectionId: selectedSection.id,
-                              ),
-                            ),
-                            const Spacer(),
-                            _filterChip(context, 'all', context.tr('exam_filter_all'), selectedFilterNotifier),
-                            const SizedBox(width: 6),
-                            _filterChip(context, 'scheduled', context.tr('exam_filter_scheduled'), selectedFilterNotifier),
-                            const SizedBox(width: 6),
-                            _filterChip(context, 'completed', context.tr('exam_filter_completed'), selectedFilterNotifier),
-                          ],
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    Expanded(
-                      child: ValueListenableBuilder<String>(
-                        valueListenable: selectedFilterNotifier,
-                        builder: (context, selectedFilter, _) {
-                          return _buildBody(context, examState, cs, selectedSection?.id, selectedFilter);
-                        },
+                  if (manageState is ChangeExamStatusSuccess) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                        manageState.newStatus == 'completed'
+                            ? context.tr('exam_success_status_completed')
+                            : context.tr('exam_success_status_scheduled'),
+                        style: const TextStyle(fontFamily: 'Cairo'),
                       ),
-                    ),
-                  ],
+                      behavior: SnackBarBehavior.floating,
+                    ));
+                    if (selectedSection != null) {
+                      _fetchExams(context, selectedSection.id);
+                    }
+                    context.read<ManageExamCubit>().reset();
+                  }
+
+                  if (manageState is ManageExamError) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(manageState.message,
+                          style: const TextStyle(fontFamily: 'Cairo')),
+                      backgroundColor: cs.error,
+                      behavior: SnackBarBehavior.floating,
+                    ));
+                  }
+                },
+                child: BlocBuilder<ExamScheduleCubit, ExamScheduleState>(
+                  builder: (context, examState) {
+                    return Container(
+                      color: cs.surface,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 12),
+
+                          AttendanceSectionHeader(
+                            selectedSection: selectedSection,
+                            sections: activeSections,
+                            onSectionChanged: (newSection) {
+                              context.read<ClassesCubit>().selectSection(newSection);
+                              _fetchExams(context, newSection.id);
+                            },
+                            onExportPdfPressed: () {},
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          // 🟢 الجزء الريسبونسف: زر الإضافة + الفلاتر
+                          ValueListenableBuilder<String>(
+                            valueListenable: selectedFilterNotifier,
+                            builder: (context, selectedFilter, _) {
+                              return LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final isNarrow = constraints.maxWidth < 380;
+
+                                  final addButton = _topButton(
+                                    context.tr('exam_btn_add'),
+                                    const Color(0xFF319795),
+                                    Colors.white,
+                                    icon: Icons.add_rounded,
+                                    onTap: selectedSection == null
+                                        ? null
+                                        : () => AddExamBottomSheet.show(
+                                      context,
+                                      sectionId: selectedSection.id,
+                                    ),
+                                  );
+
+                                  final filters = Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      _filterChip(context, 'all',
+                                          context.tr('exam_filter_all'),
+                                          selectedFilterNotifier),
+                                      const SizedBox(width: 6),
+                                      _filterChip(context, 'scheduled',
+                                          context.tr('exam_filter_scheduled'),
+                                          selectedFilterNotifier),
+                                      const SizedBox(width: 6),
+                                      _filterChip(context, 'completed',
+                                          context.tr('exam_filter_completed'),
+                                          selectedFilterNotifier),
+                                    ],
+                                  );
+
+                                  // 📱 شاشة ضيقة جداً: عمودي
+                                  if (isNarrow) {
+                                    return Column(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                      children: [
+                                        addButton,
+                                        const SizedBox(height: 10),
+                                        SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: filters,
+                                        ),
+                                      ],
+                                    );
+                                  }
+
+                                  // 💻 شاشة عادية/واسعة: أفقي مع Scroll للفلاتر
+                                  return Row(
+                                    children: [
+                                      addButton,
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Align(
+                                          alignment: Alignment.centerRight,
+                                          child: SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            reverse: true,
+                                            child: filters,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                          ),
+
+                          const SizedBox(height: 14),
+
+                          Expanded(
+                            child: ValueListenableBuilder<String>(
+                              valueListenable: selectedFilterNotifier,
+                              builder: (context, selectedFilter, _) {
+                                return _buildBody(context, examState, cs,
+                                    selectedSection?.id, selectedFilter);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               );
             },
@@ -218,7 +287,8 @@ class ExamScheduleView extends StatelessWidget {
     );
   }
 
-  Widget _topButton(String text, Color bg, Color txt, {required IconData icon, required VoidCallback? onTap}) {
+  Widget _topButton(String text, Color bg, Color txt,
+      {required IconData icon, required VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
@@ -233,7 +303,12 @@ class ExamScheduleView extends StatelessWidget {
           children: [
             Icon(icon, color: txt, size: 16),
             const SizedBox(width: 6),
-            Text(text, style: TextStyle(color: txt, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'Cairo')),
+            Text(text,
+                style: TextStyle(
+                    color: txt,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Cairo')),
           ],
         ),
       ),
@@ -258,11 +333,13 @@ class ExamScheduleView extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline_rounded, size: 40, color: cs.error.withOpacity(0.5)),
+              Icon(Icons.error_outline_rounded,
+                  size: 40, color: cs.error.withOpacity(0.5)),
               const SizedBox(height: 12),
               Text(
                 state.message,
-                style: TextStyle(fontFamily: 'Cairo', color: cs.error, fontSize: 13),
+                style: TextStyle(
+                    fontFamily: 'Cairo', color: cs.error, fontSize: 13),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -274,8 +351,10 @@ class ExamScheduleView extends StatelessWidget {
     final allExams = (state as ExamScheduleSuccess).exams;
 
     final filteredExams = allExams.where((e) {
-      if (selectedFilter == 'scheduled') return e.status.toLowerCase() == 'scheduled';
-      if (selectedFilter == 'completed') return e.status.toLowerCase() == 'completed';
+      if (selectedFilter == 'scheduled')
+        return e.status.toLowerCase() == 'scheduled';
+      if (selectedFilter == 'completed')
+        return e.status.toLowerCase() == 'completed';
       return true;
     }).toList();
 
@@ -283,15 +362,20 @@ class ExamScheduleView extends StatelessWidget {
       return Center(
         child: Text(
           context.tr('exam_empty_category'),
-          style: TextStyle(fontFamily: 'Cairo', fontSize: 13, color: cs.onSurfaceVariant),
+          style: TextStyle(
+              fontFamily: 'Cairo', fontSize: 13, color: cs.onSurfaceVariant),
         ),
       );
     }
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cols = constraints.maxWidth > 900 ? 3 : (constraints.maxWidth > 600 ? 2 : 1);
-        final ratio = constraints.maxWidth > 900 ? 2.5 : (constraints.maxWidth > 600 ? 2.2 : 3.2);
+        final cols = constraints.maxWidth > 900
+            ? 3
+            : (constraints.maxWidth > 600 ? 2 : 1);
+        final ratio = constraints.maxWidth > 900
+            ? 2.5
+            : (constraints.maxWidth > 600 ? 2.2 : 3.2);
 
         return GridView.builder(
           physics: const BouncingScrollPhysics(),

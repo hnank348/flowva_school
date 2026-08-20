@@ -1,19 +1,50 @@
 import 'package:flowva_school/view/supervisor/attendance/students/student_attendance_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flowva_school/cubit/supervisor/classes/classes_cubit.dart';
-import 'package:flowva_school/cubit/supervisor/student/student_attendance_cubit.dart';
 import 'package:flowva_school/cubit/current_semester/current_semester_cubit.dart';
 import 'package:flowva_school/cubit/locale/locale_cubit.dart';
 import 'package:flowva_school/cubit/locale/locale_state.dart';
 import '../../../cubit/current_year/current_year_cubit.dart';
 import '../../../app_localizations.dart';
+import '../../../cubit/supervisor/student_attendance/section_students_cubit.dart';
+import '../../../cubit/supervisor/student_attendance/section_students_stats.dart';
+import '../../../cubit/supervisor/student_attendance/student_attendance_cubit.dart';
 import '../../../cubit/supervisor/submit_student/submit_attendance_cubit.dart';
 import '../../../cubit/supervisor/submit_teacher/teachers_attendance_cubit.dart';
 import 'teachers/teachers_attendance_view.dart';
 
-class AttendanceView extends StatelessWidget {
+class AttendanceView extends StatefulWidget {
   const AttendanceView({super.key});
+
+  @override
+  State<AttendanceView> createState() => _AttendanceViewState();
+}
+
+class _AttendanceViewState extends State<AttendanceView> {
+  bool _canTakeTeacherAttendance = false;
+  bool _isLoadingRoles = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPermissions();
+  }
+
+  Future<void> _checkPermissions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final roles = prefs.getStringList('userRoles') ?? [];
+
+    setState(() {
+      // 🟢 فحص إذا كان الموجه يمتلك صلاحية الحضور (أو أي اسم صلاحية مستخدمة في الباك إند)
+      _canTakeTeacherAttendance = roles.contains('counselor.attendace') ||
+          roles.contains('counselor.attendance') ||
+          roles.contains('teacher.attendance') ||
+          roles.contains('admin');
+      _isLoadingRoles = false;
+    });
+  }
 
   void _openStudentAttendance(BuildContext context) {
     final classesCubit         = context.read<ClassesCubit>();
@@ -21,6 +52,7 @@ class AttendanceView extends StatelessWidget {
     final submitCubit          = context.read<SubmitAttendanceCubit>();
     final currentYearCubit     = context.read<CurrentYearCubit>();
     final currentSemesterCubit = context.read<CurrentSemesterCubit>();
+    final sectionStatsCubit    = context.read<SectionStudentsStatsCubit>();
 
     Navigator.push(
       context,
@@ -32,6 +64,7 @@ class AttendanceView extends StatelessWidget {
             BlocProvider.value(value: submitCubit),
             BlocProvider.value(value: currentYearCubit),
             BlocProvider.value(value: currentSemesterCubit),
+            BlocProvider.value(value: sectionStatsCubit),
           ],
           child: const StudentAttendanceView(),
         ),
@@ -40,8 +73,8 @@ class AttendanceView extends StatelessWidget {
   }
 
   void _openTeacherAttendance(BuildContext context) {
-    final teachersCubit       = context.read<TeacherAttendanceCubit>();
-    final submitTeacherCubit  = context.read<SubmitTeacherAttendanceCubit>();
+    final teachersCubit      = context.read<TeacherAttendanceCubit>();
+    final submitTeacherCubit = context.read<SubmitTeacherAttendanceCubit>();
 
     Navigator.push(
       context,
@@ -61,6 +94,12 @@ class AttendanceView extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
+    if (_isLoadingRoles) {
+      return Center(
+        child: CircularProgressIndicator(color: cs.primary, strokeWidth: 2),
+      );
+    }
+
     return BlocBuilder<LocaleCubit, LocaleState>(
       builder: (context, localeState) {
         final isArabic = localeState.currentLanguage == 'AR';
@@ -79,41 +118,49 @@ class AttendanceView extends StatelessWidget {
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       final isWide = constraints.maxWidth > 600;
-                      final cards = [
-                        _AttendanceEntry(
-                          imagePath: 'assets/Images/student_attendance.png',
-                          title:     context.tr('attendance_students_title'),
-                          subtitle:  context.tr('attendance_students_subtitle'),
-                          accent:    cs.primary,
-                          isArabic:  isArabic,
-                          onTap:     () => _openStudentAttendance(context),
-                        ),
-                        _AttendanceEntry(
-                          imagePath: 'assets/Images/teacher_attendance.png',
-                          title:     context.tr('attendance_teachers_title'),
-                          subtitle:  context.tr('attendance_teachers_subtitle'),
-                          accent:    const Color(0xFF0F766E),
-                          isArabic:  isArabic,
-                          onTap:     () => _openTeacherAttendance(context),
-                        ),
-                      ];
+
+                      final studentCard = _AttendanceEntry(
+                        imagePath: 'assets/Images/student_attendance.png',
+                        title:     context.tr('attendance_students_title'),
+                        subtitle:  context.tr('attendance_students_subtitle'),
+                        accent:    cs.primary,
+                        isArabic:  isArabic,
+                        onTap:     () => _openStudentAttendance(context),
+                      );
+
+                      final teacherCard = _AttendanceEntry(
+                        imagePath: 'assets/Images/teacher_attendance.png',
+                        title:     context.tr('attendance_teachers_title'),
+                        subtitle:  context.tr('attendance_teachers_subtitle'),
+                        accent:    const Color(0xFF0F766E),
+                        isArabic:  isArabic,
+                        onTap:     () => _openTeacherAttendance(context),
+                      );
+
+                      if (!_canTakeTeacherAttendance) {
+                        return ListView(
+                          physics: const BouncingScrollPhysics(),
+                          children: [studentCard],
+                        );
+                      }
 
                       if (isWide) {
                         return Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(child: cards[0]),
+                            Expanded(child: studentCard),
                             const SizedBox(width: 14),
-                            Expanded(child: cards[1]),
+                            Expanded(child: teacherCard),
                           ],
                         );
                       }
+
                       return ListView(
                         physics: const BouncingScrollPhysics(),
                         children: [
-                          cards[0],
+                          studentCard,
                           const SizedBox(height: 14),
-                          cards[1],
+                          teacherCard,
                         ],
                       );
                     },
@@ -127,8 +174,6 @@ class AttendanceView extends StatelessWidget {
     );
   }
 }
-
-// ─── هيدر بسيط ───────────────────────────────────────────────────────────────
 
 class _Header extends StatelessWidget {
   final ColorScheme cs;
@@ -161,7 +206,6 @@ class _Header extends StatelessWidget {
     );
   }
 }
-
 
 class _AttendanceEntry extends StatelessWidget {
   final String imagePath;
@@ -204,7 +248,6 @@ class _AttendanceEntry extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ─── الصورة التوضيحية ───
               AspectRatio(
                 aspectRatio: 16 / 10,
                 child: Stack(
@@ -219,7 +262,6 @@ class _AttendanceEntry extends StatelessWidget {
                             color: accent.withOpacity(0.4), size: 40),
                       ),
                     ),
-                    // تدرج خفيف أسفل الصورة لدمجها بالكارد
                     Positioned(
                       left: 0, right: 0, bottom: 0,
                       child: Container(
@@ -240,8 +282,6 @@ class _AttendanceEntry extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // ─── النص ───
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
                 child: Column(

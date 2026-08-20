@@ -1,6 +1,6 @@
 import 'package:flowva_school/view/supervisor/attendance/attendance_view.dart';
 import 'package:flowva_school/view/supervisor/exam/exam_schedule_view.dart';
-import 'package:flowva_school/view/supervisor/statistics_view.dart';
+import 'package:flowva_school/view/supervisor/students/students_view.dart';
 import 'package:flowva_school/view/mutual/settings/settings_view.dart';
 import 'package:flowva_school/cubit/logout/logout_cubit.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +23,7 @@ import '../../notifications/cubit/notifications_state.dart';
 import '../../notifications/cubit/notification_switch_cubit.dart';
 
 import '../../notifications/screens/supervisor_notifications_screen.dart';
+import '../../widget/custom_avatar.dart';
 import 'weekly_schedule/weekly_schedule_view.dart';
 import 'custom_bottom_navigation_bar.dart';
 
@@ -77,7 +78,6 @@ class MainLayoutView extends StatelessWidget {
         ),
       ),
     ).then((_) {
-      // 🟢 تم التصحيح: تمرير context.tr
       profileCubit.fetchUserProfile(token: userToken);
     });
   }
@@ -112,7 +112,7 @@ class MainLayoutView extends StatelessWidget {
       WeeklyScheduleView(),
       ExamScheduleView(),
       AttendanceView(),
-      StatisticsView(),
+      StudentsView(),
     ];
 
     return BlocBuilder<LocaleCubit, LocaleState>(
@@ -138,12 +138,8 @@ class MainLayoutView extends StatelessWidget {
                       gradient: isDark
                           ? null
                           : LinearGradient(
-                        begin: isArabic
-                            ? Alignment.topRight
-                            : Alignment.topLeft,
-                        end: isArabic
-                            ? Alignment.bottomLeft
-                            : Alignment.bottomRight,
+                        begin: isArabic ? Alignment.topRight : Alignment.topLeft,
+                        end: isArabic ? Alignment.bottomLeft : Alignment.bottomRight,
                         colors: [
                           colorScheme.primary,
                           colorScheme.primary.withOpacity(0.8),
@@ -184,8 +180,7 @@ class MainLayoutView extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Container(
-                                      width: 72,
-                                      height: 72,
+                                      padding: const EdgeInsets.all(2.5),
                                       decoration: BoxDecoration(
                                         color: isDark
                                             ? colorScheme.surfaceContainerLow
@@ -193,38 +188,25 @@ class MainLayoutView extends StatelessWidget {
                                         shape: BoxShape.circle,
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.black.withOpacity(0.05),
+                                            color: Colors.black.withOpacity(0.08),
                                             blurRadius: 8,
                                             offset: const Offset(0, 4),
                                           )
                                         ],
                                       ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(36),
-                                        child: avatarUrl != null
-                                            ? Image.network(
-                                          avatarUrl,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => Icon(
-                                            Icons.person,
-                                            color: colorScheme.primary,
-                                            size: 42,
-                                          ),
-                                        )
-                                            : Center(
-                                          child: Icon(
-                                            Icons.person,
-                                            color: colorScheme.primary,
-                                            size: 42,
-                                          ),
-                                        ),
+                                      child: CustomAvatar(
+                                        imageUrl: avatarUrl,
+                                        radius: 34,
+                                        backgroundColor: isDark
+                                            ? colorScheme.surfaceContainer
+                                            : colorScheme.primary.withOpacity(0.12),
+                                        iconColor: colorScheme.primary,
                                       ),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
@@ -256,17 +238,13 @@ class MainLayoutView extends StatelessWidget {
                                             ),
                                           ),
                                           const SizedBox(height: 4),
-                                          BlocBuilder<CurrentYearCubit,
-                                              CurrentYearState>(
+                                          BlocBuilder<CurrentYearCubit, CurrentYearState>(
                                             builder: (context, yearState) {
                                               String yearContent = '...';
                                               if (yearState is CurrentYearSuccess) {
-                                                yearContent =
-                                                    yearState.currentYear.name;
-                                              } else if (yearState
-                                              is CurrentYearError) {
-                                                yearContent =
-                                                    context.tr('main_year_error');
+                                                yearContent = yearState.currentYear.name;
+                                              } else if (yearState is CurrentYearError) {
+                                                yearContent = context.tr('main_year_error');
                                               }
                                               return Text(
                                                 '${context.tr('main_academic_year')} $yearContent',
@@ -275,8 +253,7 @@ class MainLayoutView extends StatelessWidget {
                                                 style: TextStyle(
                                                   color: isDark
                                                       ? colorScheme.primary
-                                                      : Colors.white
-                                                      .withOpacity(0.75),
+                                                      : Colors.white.withOpacity(0.75),
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.bold,
                                                   fontFamily: 'Cairo',
@@ -309,8 +286,7 @@ class MainLayoutView extends StatelessWidget {
                                   onPressed: () => _openSettings(context),
                                 ),
                                 const SizedBox(width: 4),
-                                BlocBuilder<NotificationsCubit,
-                                    NotificationsState>(
+                                BlocBuilder<NotificationsCubit, NotificationsState>(
                                   builder: (context, notifState) {
                                     final unread = notifState is NotificationsLoaded
                                         ? notifState.unreadCount
@@ -328,8 +304,7 @@ class MainLayoutView extends StatelessWidget {
                                           ),
                                           constraints: const BoxConstraints(),
                                           padding: const EdgeInsets.all(6),
-                                          onPressed: () =>
-                                              _openNotifications(context),
+                                          onPressed: () => _openNotifications(context),
                                         ),
                                         if (unread > 0)
                                           Positioned(
@@ -348,12 +323,10 @@ class MainLayoutView extends StatelessWidget {
                                               decoration: BoxDecoration(
                                                 color: colorScheme.error,
                                                 shape: BoxShape.rectangle,
-                                                borderRadius:
-                                                BorderRadius.circular(10),
+                                                borderRadius: BorderRadius.circular(10),
                                                 border: Border.all(
                                                   color: isDark
-                                                      ? colorScheme
-                                                      .surfaceContainer
+                                                      ? colorScheme.surfaceContainer
                                                       : colorScheme.primary,
                                                   width: 1.5,
                                                 ),

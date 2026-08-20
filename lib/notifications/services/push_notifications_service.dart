@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'package:easy_localization/easy_localization.dart' as context;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flowva_school/services/api_service.dart';
@@ -8,8 +7,6 @@ import 'local_notification_service.dart';
 
 class PushNotificationsService {
   static FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-  /// 🟢 حماية من الرسائل المكرّرة: FCM أحياناً يوصّل نفس الرسالة أكثر من مرة
   static final Set<String> _handledMessageIds = <String>{};
 
   static bool _isDuplicate(RemoteMessage message) {
@@ -24,41 +21,50 @@ class PushNotificationsService {
   }
 
   static Future<void> init() async {
-    // 🔴 طلب الصلاحيات
-    final NotificationSettings settings = await messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      provisional: false,
-    );
+    try {
+      final NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: false,
+      );
 
-    log('User notification status: ${settings.authorizationStatus}');
+      log('User notification status: ${settings.authorizationStatus}');
 
-    // 🔴 مهم: على أندرويد نوقف عرض النظام التلقائي ونعرضه محلياً
-    //    (لو تركناه true رح يصير إشعارين: واحد من النظام وواحد محلي،
-    //     والنظام بيكتم الـ heads-up للمكرّر)
-    await messaging.setForegroundNotificationPresentationOptions(
-      alert: false,
-      badge: true,
-      sound: false,
-    );
+      // 🟢 تفعيل ظهور التنبيهات في واجهة النظام
+      await messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
 
-    final token = await messaging.getToken();
-    if (token != null) {
-      log('🔑 FCM Token: $token');
-      await sendTokenToServer(token);
+      try {
+        final token = await messaging.getToken();
+        if (token != null) {
+          log('🔑 FCM Token: $token');
+          await sendTokenToServer(token);
+        }
+      } catch (e) {
+        log('⚠️ Failed to get FCM Token: $e');
+      }
+
+      messaging.onTokenRefresh.listen((value) {
+        log('🔄 FCM Token Refreshed');
+        sendTokenToServer(value);
+      });
+
+      FirebaseMessaging.onBackgroundMessage(handleBackgroundMessage);
+      handleForegroundMessage();
+
+      try {
+        await messaging.subscribeToTopic('all');
+        log('Subscribed to "all" topic');
+      } catch (e) {
+        log('⚠️ Failed to subscribe to topic "all": $e');
+      }
+    } catch (e) {
+      log('⚠️ PushNotificationsService initialization error: $e');
     }
-
-    messaging.onTokenRefresh.listen((value) {
-      log('🔄 FCM Token Refreshed');
-      sendTokenToServer(value);
-    });
-
-    FirebaseMessaging.onBackgroundMessage(handleBackgroundMessage);
-    handleForegroundMessage();
-
-    await messaging.subscribeToTopic('all');
-    log('Subscribed to "all" topic');
   }
 
   @pragma('vm:entry-point')
@@ -88,7 +94,7 @@ class PushNotificationsService {
       final response = await apiService.post(
         '${ConstantApi.baseApi}/users/fcm-token',
         data: {'fcm_token': token},
-        tr: context.tr,
+        tr: (key) => key,
       );
       log('✅ FCM Token synced: ${response.statusCode}');
     } catch (_) {

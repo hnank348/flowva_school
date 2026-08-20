@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// الـ AppBar الموحّد لشاشات الحضور (طالب / معلم)
-/// كل الشكل الثابت هون (title style, leading, shape)
-/// و trailing هو الجزء المتغير (زر حفظ أو بادج تعديل أو null)
 class AttendancePageAppBar extends StatelessWidget
     implements PreferredSizeWidget {
   final String title;

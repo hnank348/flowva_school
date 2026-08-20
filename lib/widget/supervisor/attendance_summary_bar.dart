@@ -12,7 +12,6 @@ class GenericAttendanceSummaryBar extends StatelessWidget {
 
     return Row(
       children: items.map((item) {
-        // ✅ لون نص فاتح وواضح بالدارك مود (هون كانت المشكلة عند المعلم)
         final textColor = isDark
             ? Color.lerp(item.color, Colors.white, 0.4)!
             : item.color;

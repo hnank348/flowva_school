@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/cubit/login/login_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,25 +30,40 @@ class LoginCubit extends Cubit<LoginState> {
       );
 
       if (result['success']) {
-        final String token = result['data']['token'] ?? '';
+        final innerData = result['data'];
+        final String token = innerData['token'] ?? '';
+        final user = innerData['user'] ?? {};
+
+        final prefs = await SharedPreferences.getInstance();
 
         if (token.isNotEmpty) {
-          final prefs = await SharedPreferences.getInstance();
           await prefs.setString('userToken', token);
+          // 🟢 تثبيت التوكن فوراً لتجنب خطأ 401
+          _loginService.forceUpdateToken(token);
+        }
 
-          try {
-            final String? fcmToken = await FirebaseMessaging.instance.getToken();
-            if (fcmToken != null && fcmToken.isNotEmpty) {
-              await prefs.setString('fcmToken', fcmToken);
-              // 🟢 تم التصحيح: تمرير fcmToken و tr بشكل صحيح
-              await _loginService.sendFcmToken(
-                fcmToken: fcmToken,
-                tr: tr,
-              );
-            }
-          } catch (e) {
-            print('⚠️ FCM Token Error: $e');
+        // استخراج وحفظ قائمة الأدوار (roles)
+        final List<dynamic> rawRoles = user['roles'] ?? [];
+        final List<String> roleNames = rawRoles
+            .map((r) => (r['name'] ?? r['display_name'] ?? '').toString())
+            .where((name) => name.isNotEmpty)
+            .toList();
+
+        await prefs.setStringList('userRoles', roleNames);
+
+        // 🟢 إرسال الـ FCM Token وتحديثه في السيرفر
+        try {
+          final String? fcmToken = await FirebaseMessaging.instance.getToken();
+          if (fcmToken != null && fcmToken.isNotEmpty) {
+            await prefs.setString('fcmToken', fcmToken);
+            await _loginService.sendFcmToken(
+              fcmToken: fcmToken,
+              userToken: token,
+              tr: tr,
+            );
           }
+        } catch (e) {
+          print('⚠️ FCM Token Error: $e');
         }
 
         emit(LoginSuccess(

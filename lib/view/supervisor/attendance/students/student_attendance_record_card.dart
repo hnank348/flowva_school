@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flowva_school/cubit/supervisor/student/student_attendance_cubit.dart';
-import 'package:flowva_school/cubit/supervisor/student/student_attendance_state.dart';
 import 'package:flowva_school/cubit/locale/locale_cubit.dart';
 import 'package:flowva_school/cubit/locale/locale_state.dart';
 import 'package:flowva_school/models/supervisor/student_attendance_record_model.dart';
 import 'package:flowva_school/app_localizations.dart';
+import '../../../../cubit/supervisor/student_attendance/student_attendance_cubit.dart';
+import '../../../../cubit/supervisor/student_attendance/student_attendance_state.dart';
 import '../../../../widget/supervisor/attendance_types.dart';
 import '../../../../widget/supervisor/attendance_record_entity_card.dart';
 
@@ -73,6 +73,7 @@ class StudentAttendanceRecordCard extends StatelessWidget {
             return AttendanceRecordEntityCard<StudentAttendanceStatus>(
               name: displayName,
               subtitle: 'ID: ${record.studentId}',
+              imageUrl: record.studentAvatar,
               currentStatus: currentStatus,
               styleOf: _styleOf,
               options: options,

@@ -14,9 +14,10 @@ import '../../../cubit/supervisor/exam_schedule/add_exam_state.dart';
 import '../../../cubit/supervisor/exam_schedule/exam_schedule_cubit.dart';
 import '../../../cubit/supervisor/exam_schedule/manage_exam_cubit.dart';
 import '../../../cubit/supervisor/exam_schedule/manage_exam_state.dart';
+import '../../../models/supervisor/exam_type_option.dart';
+import '../../../widget/button.dart';
 import '../../../app_localizations.dart';
 import 'add_exam_form_fields.dart';
-import '../../../models/supervisor/exam_type_option.dart';
 
 class AddExamBottomSheet {
   static void show(BuildContext context, {required int sectionId, ExamModel? examToEdit}) {
@@ -24,8 +25,8 @@ class AddExamBottomSheet {
     final teachersCubit = context.read<TeachersCubit>();
     final examCubit     = context.read<ExamScheduleCubit>();
     final manageCubit   = context.read<ManageExamCubit>();
-    final yearCubit      = context.read<CurrentYearCubit>();
-    final semesterCubit  = context.read<CurrentSemesterCubit>();
+    final yearCubit     = context.read<CurrentYearCubit>();
+    final semesterCubit = context.read<CurrentSemesterCubit>();
 
     showModalBottomSheet(
       context: context,
@@ -51,6 +52,49 @@ class AddExamBottomSheet {
                   passMarks: examToEdit.passMarks.toStringAsFixed(0),
                   instructions: examToEdit.instructions,
                 );
+
+                if (examToEdit.subject != null) {
+                  cubit.setSubjectId(examToEdit.subject!.id);
+                }
+                if (examToEdit.teacher != null) {
+                  cubit.setTeacherId(examToEdit.teacher!.id);
+                }
+
+                if (examToEdit.examType != null) {
+                  try {
+                    final matchedType = ExamTypeOption.values.firstWhere(
+                          (t) =>
+                      t.id == examToEdit.examType!.id ||
+                          t.nameEn.toLowerCase() == examToEdit.examType!.name.toLowerCase(),
+                    );
+                    cubit.setExamType(matchedType);
+                  } catch (_) {}
+                }
+
+                try {
+                  final parsedDate = DateTime.parse(examToEdit.examDate);
+                  cubit.setExamDate(parsedDate);
+                } catch (_) {}
+
+                if (examToEdit.startTime != null && examToEdit.startTime!.isNotEmpty) {
+                  final parts = examToEdit.startTime!.split(':');
+                  if (parts.length >= 2) {
+                    cubit.setStartTime(TimeOfDay(
+                      hour: int.tryParse(parts[0]) ?? 0,
+                      minute: int.tryParse(parts[1]) ?? 0,
+                    ));
+                  }
+                }
+
+                if (examToEdit.endTime != null && examToEdit.endTime!.isNotEmpty) {
+                  final parts = examToEdit.endTime!.split(':');
+                  if (parts.length >= 2) {
+                    cubit.setEndTime(TimeOfDay(
+                      hour: int.tryParse(parts[0]) ?? 0,
+                      minute: int.tryParse(parts[1]) ?? 0,
+                    ));
+                  }
+                }
               }
               return cubit;
             },
@@ -77,33 +121,6 @@ class _AddExamForm extends StatelessWidget {
     this.examToEdit,
   });
 
-  Future<void> _pickDate(BuildContext context) async {
-    final addCubit = context.read<AddExamCubit>();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: addCubit.state.examDate ?? DateTime.now(),
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
-    );
-    if (picked != null) addCubit.setExamDate(picked);
-  }
-
-  Future<void> _pickTime(BuildContext context, bool isStart) async {
-    final addCubit = context.read<AddExamCubit>();
-    final current = isStart ? addCubit.state.startTime : addCubit.state.endTime;
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: current ?? TimeOfDay.now(),
-    );
-    if (picked != null) {
-      if (isStart) {
-        addCubit.setStartTime(picked);
-      } else {
-        addCubit.setEndTime(picked);
-      }
-    }
-  }
-
   String _fmtTime(TimeOfDay t) =>
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
@@ -111,15 +128,22 @@ class _AddExamForm extends StatelessWidget {
     final isEdit = examToEdit != null;
     final addState = context.read<AddExamCubit>().state;
 
+    final nameEn = addState.nameEn.trim();
+    final nameAr = addState.nameAr.trim();
+    final room = addState.room.trim();
+    final totalMarks = addState.totalMarks.trim();
+    final passMarks = addState.passMarks.trim();
+    final instructions = addState.instructions.trim();
+
     if (!isEdit) {
-      if (addState.nameEn.trim().isEmpty ||
+      if (nameEn.isEmpty ||
           addState.examType == null ||
           addState.subjectId == null ||
           addState.teacherId == null ||
           addState.examDate == null ||
           addState.startTime == null ||
           addState.endTime == null ||
-          addState.room.trim().isEmpty) {
+          room.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(context.tr('exam_error_required'), style: const TextStyle(fontFamily: 'Cairo')),
         ));
@@ -127,7 +151,7 @@ class _AddExamForm extends StatelessWidget {
       }
     }
 
-    final yearState     = context.read<CurrentYearCubit>().state;
+    final yearState = context.read<CurrentYearCubit>().state;
     final semesterState = context.read<CurrentSemesterCubit>().state;
 
     if (yearState is! CurrentYearSuccess || semesterState is! CurrentSemesterSuccess) {
@@ -139,21 +163,23 @@ class _AddExamForm extends StatelessWidget {
 
     if (isEdit) {
       final updateReq = UpdateExamRequest(
-        name:           addState.nameEn.trim().isNotEmpty ? addState.nameEn.trim() : null,
-        nameAr:         addState.nameAr.trim().isNotEmpty ? addState.nameAr.trim() : null,
+        name:           nameEn.isNotEmpty ? nameEn : null,
+        nameAr:         nameAr.isNotEmpty ? nameAr : null,
         examTypeId:     addState.examType?.id,
         subjectId:      addState.subjectId,
         sectionId:      sectionId,
         academicYearId: yearState.currentYear.id,
         semesterId:     semesterState.currentSemester.id,
         teacherId:      addState.teacherId,
-        examDate:       addState.examDate != null ? '${addState.examDate!.year}-${addState.examDate!.month.toString().padLeft(2, '0')}-${addState.examDate!.day.toString().padLeft(2, '0')}' : null,
+        examDate:       addState.examDate != null
+            ? '${addState.examDate!.year}-${addState.examDate!.month.toString().padLeft(2, '0')}-${addState.examDate!.day.toString().padLeft(2, '0')}'
+            : null,
         startTime:      addState.startTime != null ? _fmtTime(addState.startTime!) : null,
         endTime:        addState.endTime != null ? _fmtTime(addState.endTime!) : null,
-        room:           addState.room.trim().isNotEmpty ? addState.room.trim() : null,
-        totalMarks:     double.tryParse(addState.totalMarks),
-        passMarks:      double.tryParse(addState.passMarks),
-        instructions:   addState.instructions.trim().isNotEmpty ? addState.instructions.trim() : null,
+        room:           room.isNotEmpty ? room : null,
+        totalMarks:     double.tryParse(totalMarks),
+        passMarks:      double.tryParse(passMarks),
+        instructions:   instructions.isNotEmpty ? instructions : null,
       );
 
       context.read<ManageExamCubit>().updateExam(
@@ -163,8 +189,8 @@ class _AddExamForm extends StatelessWidget {
       );
     } else {
       final addReq = AddExamRequest(
-        name:           addState.nameEn.trim(),
-        nameAr:         addState.nameAr.trim().isEmpty ? addState.nameEn.trim() : addState.nameAr.trim(),
+        name:           nameEn,
+        nameAr:         nameAr.isEmpty ? nameEn : nameAr,
         examTypeId:     addState.examType!.id,
         subjectId:      addState.subjectId!,
         sectionId:      sectionId,
@@ -174,10 +200,10 @@ class _AddExamForm extends StatelessWidget {
         examDate:       '${addState.examDate!.year}-${addState.examDate!.month.toString().padLeft(2, '0')}-${addState.examDate!.day.toString().padLeft(2, '0')}',
         startTime:      _fmtTime(addState.startTime!),
         endTime:        _fmtTime(addState.endTime!),
-        room:           addState.room.trim(),
-        totalMarks:     double.tryParse(addState.totalMarks) ?? 100,
-        passMarks:      double.tryParse(addState.passMarks) ?? 50,
-        instructions:   addState.instructions.trim(),
+        room:           room,
+        totalMarks:     double.tryParse(totalMarks) ?? 100,
+        passMarks:      double.tryParse(passMarks) ?? 50,
+        instructions:   instructions,
       );
 
       context.read<AddExamCubit>().submit(
@@ -195,7 +221,7 @@ class _AddExamForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs     = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isEdit = examToEdit != null;
 
@@ -209,10 +235,8 @@ class _AddExamForm extends StatelessWidget {
               context.read<AddExamCubit>().reset();
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text(context.tr('exam_success_add'), style: const TextStyle(fontFamily: 'Cairo')),
-                backgroundColor: const Color(0xFF0F766E),
+                backgroundColor: const Color(0xFF10B981),
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                margin: const EdgeInsets.all(16),
               ));
             }
             if (state is AddExamError) {
@@ -220,7 +244,6 @@ class _AddExamForm extends StatelessWidget {
                 content: Text(state.message, style: const TextStyle(fontFamily: 'Cairo')),
                 backgroundColor: cs.error,
                 behavior: SnackBarBehavior.floating,
-                margin: const EdgeInsets.all(16),
               ));
             }
           },
@@ -233,10 +256,8 @@ class _AddExamForm extends StatelessWidget {
               context.read<ManageExamCubit>().reset();
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text(context.tr('exam_success_update'), style: const TextStyle(fontFamily: 'Cairo')),
-                backgroundColor: const Color(0xFF0F766E),
+                backgroundColor: const Color(0xFF10B981),
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                margin: const EdgeInsets.all(16),
               ));
             }
             if (state is ManageExamError) {
@@ -244,236 +265,192 @@ class _AddExamForm extends StatelessWidget {
                 content: Text(state.message, style: const TextStyle(fontFamily: 'Cairo')),
                 backgroundColor: cs.error,
                 behavior: SnackBarBehavior.floating,
-                margin: const EdgeInsets.all(16),
               ));
             }
           },
         ),
       ],
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth > 600;
-          return Center(
-            child: Container(
-              width: isWide ? 600 : double.infinity,
-              margin: isWide ? EdgeInsets.symmetric(horizontal: (constraints.maxWidth - 600) / 2) : EdgeInsets.zero,
-              decoration: BoxDecoration(
-                color: cs.surfaceContainerLow,
-                borderRadius: const BorderRadius.only(topLeft: Radius.circular(28), topRight: Radius.circular(28)),
-              ),
-              padding: EdgeInsets.only(
-                top: 16, left: 24, right: 24,
-                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
-              ),
-              child: SafeArea(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Center(child: Container(
-                        width: 45, height: 4.5,
-                        decoration: BoxDecoration(color: cs.outlineVariant, borderRadius: BorderRadius.circular(10)),
-                      )),
-                      const SizedBox(height: 20),
-                      Text(
-                        isEdit ? context.tr('exam_edit_title') : context.tr('exam_add_title'),
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Cairo',
-                          color: isDark ? cs.primary : const Color(0xFF234E52),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 20),
-
-                      Row(children: [
-                        Expanded(
-                          child: ExamTextField(
-                            initialValue: context.read<AddExamCubit>().state.nameEn,
-                            onChanged: (v) => context.read<AddExamCubit>().updateTextData(nameEn: v),
-                            label: context.tr('exam_name_en'),
-                            icon: Icons.badge_outlined,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: ExamTextField(
-                            initialValue: context.read<AddExamCubit>().state.nameAr,
-                            onChanged: (v) => context.read<AddExamCubit>().updateTextData(nameAr: v),
-                            label: context.tr('exam_name_ar'),
-                            icon: Icons.badge_outlined,
-                          ),
-                        ),
-                      ]),
-                      const SizedBox(height: 14),
-
-                      BlocBuilder<AddExamCubit, AddExamState>(
-                        builder: (context, state) {
-                          return ExamTypeDropdownField(
-                            value: state.examType,
-                            onChanged: (v) => context.read<AddExamCubit>().setExamType(v),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 14),
-
-                      BlocBuilder<AddExamCubit, AddExamState>(
-                        builder: (context, state) {
-                          return ExamSubjectDropdownField(
-                            selectedSubjectId: state.subjectId,
-                            onChanged: (v) => context.read<AddExamCubit>().setSubjectId(v),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 14),
-
-                      BlocBuilder<AddExamCubit, AddExamState>(
-                        builder: (context, state) {
-                          return ExamTeacherDropdownField(
-                            selectedTeacherId: state.teacherId,
-                            onChanged: (v) => context.read<AddExamCubit>().setTeacherId(v),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 14),
-
-                      BlocBuilder<AddExamCubit, AddExamState>(
-                        builder: (context, state) {
-                          return Row(children: [
-                            Expanded(
-                              child: _pickerTile(
-                                context,
-                                icon: Icons.calendar_month_outlined,
-                                label: state.examDate == null
-                                    ? context.tr('exam_date')
-                                    : '${state.examDate!.year}-${state.examDate!.month.toString().padLeft(2, '0')}-${state.examDate!.day.toString().padLeft(2, '0')}',
-                                onTap: () => _pickDate(context),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: _pickerTile(
-                                context,
-                                icon: Icons.play_circle_outline_rounded,
-                                label: state.startTime == null ? context.tr('exam_start_time') : _fmtTime(state.startTime!),
-                                onTap: () => _pickTime(context, true),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: _pickerTile(
-                                context,
-                                icon: Icons.stop_circle_outlined,
-                                label: state.endTime == null ? context.tr('exam_end_time') : _fmtTime(state.endTime!),
-                                onTap: () => _pickTime(context, false),
-                              ),
-                            ),
-                          ]);
-                        },
-                      ),
-                      const SizedBox(height: 14),
-
-                      ExamTextField(
-                        initialValue: context.read<AddExamCubit>().state.room,
-                        onChanged: (v) => context.read<AddExamCubit>().updateTextData(room: v),
-                        label: context.tr('exam_room'),
-                        icon: Icons.meeting_room_outlined,
-                      ),
-                      const SizedBox(height: 14),
-
-                      Row(children: [
-                        Expanded(
-                          child: ExamTextField(
-                            initialValue: context.read<AddExamCubit>().state.totalMarks,
-                            onChanged: (v) => context.read<AddExamCubit>().updateTextData(totalMarks: v),
-                            label: context.tr('exam_total_marks'),
-                            icon: Icons.grade_outlined,
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: ExamTextField(
-                            initialValue: context.read<AddExamCubit>().state.passMarks,
-                            onChanged: (v) => context.read<AddExamCubit>().updateTextData(passMarks: v),
-                            label: context.tr('exam_pass_marks'),
-                            icon: Icons.check_circle_outline_rounded,
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                      ]),
-                      const SizedBox(height: 14),
-
-                      ExamTextField(
-                        initialValue: context.read<AddExamCubit>().state.instructions,
-                        onChanged: (v) => context.read<AddExamCubit>().updateTextData(instructions: v),
-                        label: context.tr('exam_instructions'),
-                        icon: Icons.info_outline_rounded,
-                      ),
-                      const SizedBox(height: 24),
-
-                      Builder(
-                        builder: (context) {
-                          final addState    = context.watch<AddExamCubit>().state;
-                          final manageState = context.watch<ManageExamCubit>().state;
-                          final isLoading   = addState is AddExamLoading || manageState is ManageExamLoading;
-
-                          return Row(children: [
-                            Expanded(flex: 2, child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: isDark ? cs.primary : const Color(0xFF234E52),
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
-                              onPressed: isLoading ? null : () => _submit(context),
-                              child: isLoading
-                                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                  : Text(isEdit ? context.tr('session_btn_save') : context.tr('session_btn_add'), style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Cairo')),
-                            )),
-                            const SizedBox(width: 12),
-                            Expanded(child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: cs.outlineVariant),
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
-                              onPressed: () => Navigator.pop(sheetContext),
-                              child: Text(context.tr('session_btn_cancel'), style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14, fontFamily: 'Cairo')),
-                            )),
-                          ]);
-                        },
-                      ),
-                    ],
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.88,
+        ),
+        decoration: BoxDecoration(
+          color: isDark ? cs.surfaceContainer : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: EdgeInsets.only(
+          top: 14,
+          left: 20,
+          right: 20,
+          bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 20,
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: cs.outlineVariant,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
+                const SizedBox(height: 16),
+                Text(
+                  isEdit ? context.tr('exam_edit_title') : context.tr('exam_add_title'),
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Cairo',
+                    color: cs.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 18),
 
-  Widget _pickerTile(BuildContext context, {required IconData icon, required String label, required VoidCallback onTap}) {
-    final cs = Theme.of(context).colorScheme;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: cs.outlineVariant.withOpacity(0.6), width: 1.5),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ExamCustomInputField(
+                        initialValue: context.read<AddExamCubit>().state.nameEn,
+                        label: context.tr('exam_name_en'),
+                        icon: Icons.badge_outlined,
+                        onChanged: (v) => context.read<AddExamCubit>().updateTextData(nameEn: v),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ExamCustomInputField(
+                        initialValue: context.read<AddExamCubit>().state.nameAr,
+                        label: context.tr('exam_name_ar'),
+                        icon: Icons.badge_outlined,
+                        onChanged: (v) => context.read<AddExamCubit>().updateTextData(nameAr: v),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                BlocBuilder<AddExamCubit, AddExamState>(
+                  builder: (context, state) {
+                    return ExamTypeDropdownField(
+                      value: state.examType,
+                      onChanged: (v) => context.read<AddExamCubit>().setExamType(v),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                BlocBuilder<AddExamCubit, AddExamState>(
+                  builder: (context, state) {
+                    return ExamSubjectDropdownField(
+                      selectedSubjectId: state.subjectId,
+                      onChanged: (v) => context.read<AddExamCubit>().setSubjectId(v),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                BlocBuilder<AddExamCubit, AddExamState>(
+                  builder: (context, state) {
+                    return ExamTeacherDropdownField(
+                      selectedTeacherId: state.teacherId,
+                      onChanged: (v) => context.read<AddExamCubit>().setTeacherId(v),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                const ExamDateTimePickers(),
+                const SizedBox(height: 12),
+
+                ExamCustomInputField(
+                  initialValue: context.read<AddExamCubit>().state.room,
+                  label: context.tr('exam_room'),
+                  icon: Icons.meeting_room_outlined,
+                  onChanged: (v) => context.read<AddExamCubit>().updateTextData(room: v),
+                ),
+                const SizedBox(height: 12),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: ExamCustomInputField(
+                        initialValue: context.read<AddExamCubit>().state.totalMarks,
+                        label: context.tr('exam_total_marks'),
+                        icon: Icons.grade_outlined,
+                        keyboardType: TextInputType.number,
+                        onChanged: (v) => context.read<AddExamCubit>().updateTextData(totalMarks: v),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ExamCustomInputField(
+                        initialValue: context.read<AddExamCubit>().state.passMarks,
+                        label: context.tr('exam_pass_marks'),
+                        icon: Icons.check_circle_outline_rounded,
+                        keyboardType: TextInputType.number,
+                        onChanged: (v) => context.read<AddExamCubit>().updateTextData(passMarks: v),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                ExamCustomInputField(
+                  initialValue: context.read<AddExamCubit>().state.instructions,
+                  label: context.tr('exam_instructions'),
+                  icon: Icons.info_outline_rounded,
+                  onChanged: (v) => context.read<AddExamCubit>().updateTextData(instructions: v),
+                ),
+                const SizedBox(height: 20),
+
+                Builder(
+                  builder: (context) {
+                    final addState = context.watch<AddExamCubit>().state;
+                    final manageState = context.watch<ManageExamCubit>().state;
+                    final isLoading = addState is AddExamLoading || manageState is ManageExamLoading;
+
+                    return Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Button(
+                            text: isEdit
+                                ? context.tr('session_btn_save')
+                                : context.tr('session_btn_add'),
+                            icon: isEdit ? Icons.save_rounded : Icons.add_rounded,
+                            color: cs.primary,
+                            colorText: Colors.white,
+                            height: 48,
+                            onPressed: isLoading ? () {} : () => _submit(context),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Button(
+                            text: context.tr('session_btn_cancel'),
+                            color: Colors.transparent,
+                            colorOutline: cs.outlineVariant,
+                            colorText: cs.onSurfaceVariant,
+                            height: 48,
+                            onPressed: () => Navigator.pop(sheetContext),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
         ),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 16, color: cs.primary),
-          const SizedBox(width: 6),
-          Flexible(child: Text(label, style: TextStyle(fontFamily: 'Cairo', fontSize: 11, color: cs.onSurfaceVariant, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
-        ]),
       ),
     );
   }

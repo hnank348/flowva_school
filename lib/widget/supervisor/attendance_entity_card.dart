@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flowva_school/services/constant_api.dart';
 import 'attendance_types.dart';
 import 'attendance_status_badge.dart';
 import 'attendance_chip.dart';
@@ -7,13 +8,14 @@ import 'attendance_note_field.dart';
 class AttendanceEntityCard<T> extends StatelessWidget {
   final String name;
   final String subtitle;
+  final String? imageUrl;
   final T currentStatus;
   final AttendanceStatusStyle Function(T status) styleOf;
   final List<AttendanceOption<T>> options;
   final void Function(T status) onSelect;
 
-  final bool expanded; // ✅ من الـ Cubit
-  final ValueChanged<bool> onExpandedChanged; // ✅ من الـ Cubit
+  final bool expanded;
+  final ValueChanged<bool> onExpandedChanged;
 
   final String? note;
   final ValueChanged<String?>? onNoteChanged;
@@ -22,6 +24,7 @@ class AttendanceEntityCard<T> extends StatelessWidget {
     super.key,
     required this.name,
     required this.subtitle,
+    this.imageUrl,
     required this.currentStatus,
     required this.styleOf,
     required this.options,
@@ -45,6 +48,7 @@ class AttendanceEntityCard<T> extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final style = styleOf(currentStatus);
+    final resolvedUrl = ConstantApi.getImageUrl(imageUrl);
 
     final currentOption = options.firstWhere(
           (o) => o.status == currentStatus,
@@ -63,6 +67,16 @@ class AttendanceEntityCard<T> extends StatelessWidget {
         final vPad = isNarrow ? 6.0 : 8.0;
         final gap = isNarrow ? 5.0 : 7.0;
         const topBarH = 3.0;
+
+        final fallbackAvatar = Text(
+          _initials(name),
+          style: TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: nameFz - 1,
+            fontWeight: FontWeight.w700,
+            color: style.accent,
+          ),
+        );
 
         return Container(
           decoration: BoxDecoration(
@@ -96,16 +110,33 @@ class AttendanceEntityCard<T> extends StatelessWidget {
                               color: isDark ? style.bgDark : style.bg,
                               shape: BoxShape.circle,
                             ),
+                            clipBehavior: Clip.antiAlias,
                             alignment: Alignment.center,
-                            child: Text(
-                              _initials(name),
-                              style: TextStyle(
-                                fontFamily: 'Cairo',
-                                fontSize: nameFz - 1,
-                                fontWeight: FontWeight.w700,
-                                color: style.accent,
-                              ),
-                            ),
+                            child: (resolvedUrl != null && resolvedUrl.isNotEmpty)
+                                ? Image.network(
+                              resolvedUrl,
+                              width: 34,
+                              height: 34,
+                              fit: BoxFit.cover,
+                              headers: const {'Accept': '*/*'},
+                              loadingBuilder: (context, child, progress) {
+                                if (progress == null) return child;
+                                return Center(
+                                  child: SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 1.5,
+                                      color: style.accent,
+                                    ),
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return fallbackAvatar;
+                              },
+                            )
+                                : fallbackAvatar,
                           ),
                           SizedBox(width: isNarrow ? 6 : 9),
                           Expanded(
@@ -145,7 +176,6 @@ class AttendanceEntityCard<T> extends StatelessWidget {
                           ),
                         ],
                       ),
-
                       if (onNoteChanged != null) ...[
                         SizedBox(height: gap * 0.7),
                         AttendanceNoteArea(
@@ -155,9 +185,7 @@ class AttendanceEntityCard<T> extends StatelessWidget {
                           compact: isNarrow,
                         ),
                       ],
-
                       const Spacer(),
-
                       SizedBox(height: gap),
                       AnimatedCrossFade(
                         duration: const Duration(milliseconds: 200),
@@ -179,7 +207,7 @@ class AttendanceEntityCard<T> extends StatelessWidget {
                                 fontSize: chipFz,
                                 onTap: () {
                                   onSelect(options[i].status);
-                                  onExpandedChanged(false); // ✅ عبر الـ Cubit
+                                  onExpandedChanged(false);
                                 },
                               ),
                             ],
@@ -188,7 +216,7 @@ class AttendanceEntityCard<T> extends StatelessWidget {
                         secondChild: GenericAttendanceStatusBadge(
                           style: style,
                           label: currentOption.label,
-                          onEditTap: () => onExpandedChanged(true), // ✅ عبر الـ Cubit
+                          onEditTap: () => onExpandedChanged(true),
                         ),
                       ),
                     ],

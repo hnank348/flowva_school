@@ -25,28 +25,11 @@ class ProfileCard extends StatelessWidget {
     required this.localeState,
   });
 
-  String _displayName(BuildContext context) {
+  String _displayName() {
     final isAr = localeState.currentLanguage == 'AR';
     return isAr
         ? (user.fullNameAr.isNotEmpty ? user.fullNameAr : user.fullName)
         : (user.fullName.isNotEmpty ? user.fullName : user.fullNameAr);
-  }
-
-  String _formatDate(String? raw) {
-    if (raw == null) return '';
-    try {
-      return intl.DateFormat('yyyy / MM / dd').format(DateTime.parse(raw));
-    } catch (_) {
-      return '';
-    }
-  }
-
-  String? _toApiDate(String display) {
-    try {
-      final parts = display.replaceAll(' ', '').split('/');
-      if (parts.length == 3) return '${parts[0]}-${parts[1]}-${parts[2]}';
-    } catch (_) {}
-    return null;
   }
 
   String _initials(String name) {
@@ -73,63 +56,13 @@ class ProfileCard extends StatelessWidget {
     }
   }
 
-  void _save(
-      BuildContext context,
-      TextEditingController nameCtrl,
-      TextEditingController phoneCtrl,
-      TextEditingController birthDateCtrl,
-      ) {
-    final isAr = localeState.currentLanguage == 'AR';
-    final parts = nameCtrl.text.trim().split(' ');
-    final first = parts.isNotEmpty ? parts.first : '';
-    final last = parts.length > 1 ? parts.sublist(1).join(' ') : '';
-
-    context.read<ProfileUpdateCubit>().updateProfile(
-      userId: user.id,
-      userToken: userToken,
-      firstName: isAr ? null : first,
-      firstNameAr: isAr ? first : null,
-      lastName: isAr ? null : last,
-      lastNameAr: isAr ? last : null,
-      phone: phoneCtrl.text.trim(),
-      dateOfBirth: _toApiDate(birthDateCtrl.text),
-      tr: context.tr,
-    );
-  }
-
-  void _cancel(
-      BuildContext context,
-      TextEditingController nameCtrl,
-      TextEditingController phoneCtrl,
-      TextEditingController birthDateCtrl,
-      ) {
-    final name = _displayName(context);
-    nameCtrl.text = name;
-    phoneCtrl.text = user.phone ?? '';
-    birthDateCtrl.text = _formatDate(user.dateOfBirth);
-    context.read<ProfileUpdateCubit>().toggleEditing(false);
-  }
-
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final cardWidth = MediaQuery.of(context).size.width > 600 ? 450.0 : double.infinity;
+    final name = _displayName();
 
-    final name = _displayName(context);
-    final nameCtrl = TextEditingController(text: name);
-    final phoneCtrl = TextEditingController(text: user.phone ?? '');
-    final birthDateCtrl = TextEditingController(text: _formatDate(user.dateOfBirth));
-
-    return BlocConsumer<ProfileUpdateCubit, ProfileUpdateState>(
-      listener: (context, state) {
-        if (state is ProfileUpdateSuccess) {
-          _snack(context, state.message, const Color(0xFF0F766E));
-          context.read<ProfileUpdateCubit>().reset();
-        }
-        if (state is ProfileUpdateError) {
-          _snack(context, state.errorMessage, cs.error);
-        }
-      },
+    return BlocBuilder<ProfileUpdateCubit, ProfileUpdateState>(
       builder: (context, updateState) {
         final isEditing = updateState.isEditing;
 
@@ -140,15 +73,15 @@ class ProfileCard extends StatelessWidget {
             child: SizedBox(
               width: cardWidth,
               child: Card(
-                elevation: isDark ? 4 : 12,
-                shadowColor: Colors.black.withOpacity(isDark ? 0.4 : 0.08),
+                elevation: isDark ? 4 : 10,
+                shadowColor: Colors.black.withOpacity(isDark ? 0.35 : 0.06),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
                   side: BorderSide(
-                    color: cs.outlineVariant.withOpacity(isDark ? 0.4 : 0.5),
+                    color: cs.outlineVariant.withOpacity(isDark ? 0.35 : 0.45),
                   ),
                 ),
-                color: cs.surfaceContainer,
+                color: isDark ? cs.surfaceContainerHigh : Colors.white,
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Column(
@@ -163,31 +96,17 @@ class ProfileCard extends StatelessWidget {
                         onPickImage: () => _pickImage(context),
                       ),
                       const SizedBox(height: 28),
-                      isEditing
-                          ? ProfileEditFields(
-                        nameCtrl: nameCtrl,
-                        phoneCtrl: phoneCtrl,
-                        birthDateCtrl: birthDateCtrl,
-                      )
-                          : ProfileViewFields(
-                        displayName: name,
-                        phone: user.phone,
-                        birthDate: birthDateCtrl.text.isNotEmpty
-                            ? birthDateCtrl.text
-                            : context.tr('profile_not_specified'),
-                      ),
-                      const SizedBox(height: 28),
-                      isEditing
-                          ? ProfileEditButtons(
-                        onSave: () => _save(context, nameCtrl, phoneCtrl, birthDateCtrl),
-                        onCancel: () => _cancel(context, nameCtrl, phoneCtrl, birthDateCtrl),
-                      )
-                          : Button(
-                        text: context.tr('profile_btn_edit'),
-                        color: cs.primary,
-                        colorText: Colors.white,
-                        onPressed: () => context.read<ProfileUpdateCubit>().toggleEditing(true),
-                      ),
+                      if (isEditing)
+                        _EditBody(
+                          user: user,
+                          userToken: userToken,
+                          localeState: localeState,
+                        )
+                      else
+                        _ViewBody(
+                          user: user,
+                          displayName: name,
+                        ),
                     ],
                   ),
                 ),
@@ -198,30 +117,130 @@ class ProfileCard extends StatelessWidget {
       },
     );
   }
+}
 
-  void _snack(BuildContext ctx, String msg, Color color) {
-    ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-      content: Row(children: [
-        Icon(
-          color == const Color(0xFF0F766E)
-              ? Icons.check_circle_rounded
-              : Icons.error_outline_rounded,
-          color: Colors.white,
-          size: 18,
+class _ViewBody extends StatelessWidget {
+  final UserModel user;
+  final String displayName;
+
+  const _ViewBody({required this.user, required this.displayName});
+
+  String _formatDate(String? raw) {
+    if (raw == null) return '';
+    try {
+      return intl.DateFormat('yyyy / MM / dd').format(DateTime.parse(raw));
+    } catch (_) {
+      return '';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final birthStr = _formatDate(user.dateOfBirth);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ProfileViewFields(
+          displayName: displayName,
+          phone: user.phone,
+          birthDate: birthStr.isNotEmpty ? birthStr : context.tr('profile_not_specified'),
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            msg,
-            style: const TextStyle(fontFamily: 'Cairo', fontSize: 13),
-          ),
+        const SizedBox(height: 28),
+        Button(
+          text: context.tr('profile_btn_edit'),
+          color: cs.primary,
+          colorText: Colors.white,
+          onPressed: () => context.read<ProfileUpdateCubit>().toggleEditing(true),
         ),
-      ]),
-      backgroundColor: color,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.all(16),
-      duration: const Duration(seconds: 3),
-    ));
+      ],
+    );
+  }
+}
+
+class _EditBody extends StatelessWidget {
+  final UserModel user;
+  final String userToken;
+  final LocaleState localeState;
+
+  const _EditBody({
+    required this.user,
+    required this.userToken,
+    required this.localeState,
+  });
+
+  String _formatDate(String? raw) {
+    if (raw == null) return '';
+    try {
+      return intl.DateFormat('yyyy / MM / dd').format(DateTime.parse(raw));
+    } catch (_) {
+      return '';
+    }
+  }
+
+  String? _toApiDate(String display) {
+    try {
+      final parts = display.replaceAll(' ', '').split('/');
+      if (parts.length == 3) return '${parts[0]}-${parts[1]}-${parts[2]}';
+    } catch (_) {}
+    return null;
+  }
+
+  void _save(
+      BuildContext context,
+      TextEditingController nameCtrl,
+      TextEditingController phoneCtrl,
+      TextEditingController birthDateCtrl,
+      ) {
+    final isAr = localeState.currentLanguage == 'AR';
+    final parts = nameCtrl.text.trim().split(' ');
+    final first = parts.isNotEmpty ? parts.first : '';
+    final last = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+    final tr = context.tr;
+
+    context.read<ProfileUpdateCubit>().updateProfile(
+      userId: user.id,
+      userToken: userToken,
+      firstName: isAr ? null : first,
+      firstNameAr: isAr ? first : null,
+      lastName: isAr ? null : last,
+      lastNameAr: isAr ? last : null,
+      phone: phoneCtrl.text.trim(),
+      dateOfBirth: _toApiDate(birthDateCtrl.text),
+      tr: tr,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isAr = localeState.currentLanguage == 'AR';
+    final currentName = isAr
+        ? (user.fullNameAr.isNotEmpty ? user.fullNameAr : user.fullName)
+        : (user.fullName.isNotEmpty ? user.fullName : user.fullNameAr);
+
+    final nameCtrl = TextEditingController(text: currentName);
+    final phoneCtrl = TextEditingController(text: user.phone ?? '');
+    final birthDateCtrl = TextEditingController(text: _formatDate(user.dateOfBirth));
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ProfileEditFields(
+          nameCtrl: nameCtrl,
+          phoneCtrl: phoneCtrl,
+          birthDateCtrl: birthDateCtrl,
+        ),
+        const SizedBox(height: 28),
+        ProfileEditButtons(
+          onSave: () => _save(context, nameCtrl, phoneCtrl, birthDateCtrl),
+          onCancel: () {
+            final cubit = context.read<ProfileUpdateCubit>();
+            cubit.toggleEditing(false);
+            cubit.reset();
+          },
+        ),
+      ],
+    );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/cubit/profile/profile_update_cubit.dart';
 import 'package:flowva_school/services/constant_api.dart';
+import 'package:flowva_school/widget/custom_avatar.dart';
 
 class ProfileAvatarSection extends StatelessWidget {
   final String initials;
@@ -26,50 +27,55 @@ class ProfileAvatarSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final String? fullAvatarUrl = ConstantApi.getImageUrl(avatarUrl);
-
-    // 🟢 مقاس الإطار الكامل للصورة (يمكنك تكبيره أو تصغيره كما تحب هنا)
-    const double avatarSize = 220;
+    const double avatarRadius = 100;
 
     return SizedBox(
-      width: avatarSize,
-      height: avatarSize,
+      width: avatarRadius * 2,
+      height: avatarRadius * 2,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
           Container(
-            width: avatarSize,
-            height: avatarSize,
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: cs.primary.withOpacity(0.1),
+              color: cs.primary.withOpacity(0.08),
               border: Border.all(color: cs.primary.withOpacity(0.3), width: 3.5),
               boxShadow: [
                 BoxShadow(
-                  color: cs.primary.withOpacity(0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
+                  color: cs.primary.withOpacity(0.12),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 )
               ],
             ),
-            child: ClipOval(
-              child: SizedBox(
-                width: avatarSize,
-                height: avatarSize,
-                child: _buildAvatarImage(fullAvatarUrl, cs),
+            child: pickedImage != null
+                ? ClipOval(
+              child: Image.file(
+                pickedImage!,
+                fit: BoxFit.cover,
+                width: avatarRadius * 2,
+                height: avatarRadius * 2,
               ),
+            )
+                : CustomAvatar(
+              imageUrl: fullAvatarUrl,
+              radius: avatarRadius - 4,
+              backgroundColor: cs.primary.withOpacity(0.12),
+              iconColor: cs.primary,
             ),
           ),
 
-          // ─── 2. مؤشر التحميل ───
+          // ─── مؤشر التحميل ───
           BlocBuilder<ProfileUpdateCubit, ProfileUpdateState>(
             builder: (context, state) {
               if (state is! ProfileUpdateLoading) return const SizedBox.shrink();
 
               return IgnorePointer(
                 child: Container(
-                  width: avatarSize,
-                  height: avatarSize,
+                  width: avatarRadius * 2,
+                  height: avatarRadius * 2,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.black.withOpacity(0.35),
@@ -85,7 +91,6 @@ class ProfileAvatarSection extends StatelessWidget {
             },
           ),
 
-          // ─── 3. زر الكاميرا ───
           if (isEditing)
             Positioned(
               bottom: 6,
@@ -119,49 +124,4 @@ class ProfileAvatarSection extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildAvatarImage(String? formattedUrl, ColorScheme cs) {
-    if (pickedImage != null) {
-      // 🟢 ملء حجم الإطار بالكامل
-      return Image.file(
-        pickedImage!,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-      );
-    }
-
-    if (formattedUrl != null && formattedUrl.isNotEmpty) {
-      // 🟢 ملء حجم الإطار بالكامل
-      return Image.network(
-        formattedUrl,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-        errorBuilder: (_, __, ___) => _Initials(initials: initials, cs: cs),
-      );
-    }
-
-    return _Initials(initials: initials, cs: cs);
-  }
-}
-
-class _Initials extends StatelessWidget {
-  final String initials;
-  final ColorScheme cs;
-
-  const _Initials({required this.initials, required this.cs});
-
-  @override
-  Widget build(BuildContext context) => Center(
-    child: Text(
-      initials,
-      style: TextStyle(
-        fontFamily: 'Cairo',
-        fontSize: 42,
-        fontWeight: FontWeight.bold,
-        color: cs.primary,
-      ),
-    ),
-  );
 }

@@ -10,6 +10,7 @@ class UserModel {
   final String? phone;
   final String? avatarUrl;
   final String? dateOfBirth;
+  final String userType;
 
   UserModel({
     required this.id,
@@ -21,6 +22,7 @@ class UserModel {
     this.phone,
     this.avatarUrl,
     this.dateOfBirth,
+    required this.userType,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -32,8 +34,9 @@ class UserModel {
       lastNameAr: json['last_name_ar'] ?? '',
       email: json['email'] ?? '',
       phone: json['phone'],
-      avatarUrl: ConstantApi.getImageUrl(json['avatar']), // 🔴 هنا التعديل
+      avatarUrl: ConstantApi.getImageUrl(json['avatar']),
       dateOfBirth: json['date_of_birth'],
+      userType: json['user_type'] ?? '',
     );
   }
 

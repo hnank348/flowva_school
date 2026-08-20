@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flowva_school/services/constant_api.dart';
 import 'package:flowva_school/app_localizations.dart';
 import 'attendance_types.dart';
 import 'attendance_status_badge.dart';
@@ -8,16 +9,17 @@ import 'attendance_note_field.dart';
 class AttendanceRecordEntityCard<T> extends StatelessWidget {
   final String name;
   final String subtitle;
+  final String? imageUrl;
   final T currentStatus;
   final AttendanceStatusStyle Function(T status) styleOf;
   final List<AttendanceOption<T>> options;
   final void Function(T status) onSelect;
   final Future<void> Function() onSave;
 
-  final bool expanded; // ✅ من الـ Cubit
-  final ValueChanged<bool> onExpandedChanged; // ✅ من الـ Cubit
-  final bool isSaving; // ✅ من الـ Cubit
-  final bool isSaved;  // ✅ من الـ Cubit
+  final bool expanded;
+  final ValueChanged<bool> onExpandedChanged;
+  final bool isSaving;
+  final bool isSaved;
 
   final String? note;
   final ValueChanged<String?>? onNoteChanged;
@@ -26,6 +28,7 @@ class AttendanceRecordEntityCard<T> extends StatelessWidget {
     super.key,
     required this.name,
     required this.subtitle,
+    this.imageUrl,
     required this.currentStatus,
     required this.styleOf,
     required this.options,
@@ -52,6 +55,7 @@ class AttendanceRecordEntityCard<T> extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final style = styleOf(currentStatus);
+    final resolvedUrl = ConstantApi.getImageUrl(imageUrl);
 
     final currentOption = options.firstWhere(
           (o) => o.status == currentStatus,
@@ -71,6 +75,16 @@ class AttendanceRecordEntityCard<T> extends StatelessWidget {
         final gap = isNarrow ? 5.0 : 7.0;
         final actionBtnSize = isNarrow ? 24.0 : 28.0;
         const topBarH = 3.0;
+
+        final fallbackAvatar = Text(
+          _initials(name),
+          style: TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: nameFz - 1,
+            fontWeight: FontWeight.w700,
+            color: style.accent,
+          ),
+        );
 
         return Container(
           decoration: BoxDecoration(
@@ -104,16 +118,33 @@ class AttendanceRecordEntityCard<T> extends StatelessWidget {
                               color: isDark ? style.bgDark : style.bg,
                               shape: BoxShape.circle,
                             ),
+                            clipBehavior: Clip.antiAlias,
                             alignment: Alignment.center,
-                            child: Text(
-                              _initials(name),
-                              style: TextStyle(
-                                fontFamily: 'Cairo',
-                                fontSize: nameFz - 1,
-                                fontWeight: FontWeight.w700,
-                                color: style.accent,
-                              ),
-                            ),
+                            child: (resolvedUrl != null && resolvedUrl.isNotEmpty)
+                                ? Image.network(
+                              resolvedUrl,
+                              width: 34,
+                              height: 34,
+                              fit: BoxFit.cover,
+                              headers: const {'Accept': '*/*'},
+                              loadingBuilder: (context, child, progress) {
+                                if (progress == null) return child;
+                                return Center(
+                                  child: SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 1.5,
+                                      color: style.accent,
+                                    ),
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return fallbackAvatar;
+                              },
+                            )
+                                : fallbackAvatar,
                           ),
                           SizedBox(width: isNarrow ? 6 : 9),
                           Expanded(
@@ -160,7 +191,6 @@ class AttendanceRecordEntityCard<T> extends StatelessWidget {
                           ),
                         ],
                       ),
-
                       if (onNoteChanged != null) ...[
                         SizedBox(height: gap * 0.7),
                         AttendanceNoteArea(
@@ -170,9 +200,7 @@ class AttendanceRecordEntityCard<T> extends StatelessWidget {
                           compact: isNarrow,
                         ),
                       ],
-
                       const Spacer(),
-
                       SizedBox(height: gap),
                       AnimatedCrossFade(
                         duration: const Duration(milliseconds: 200),
@@ -216,7 +244,6 @@ class AttendanceRecordEntityCard<T> extends StatelessWidget {
   }
 }
 
-/// ✅ صار Stateless بالكامل - isSaving و isSaved قادمين من الـ Cubit
 class _SaveButton extends StatelessWidget {
   final Future<void> Function() onSave;
   final double size;
@@ -236,8 +263,11 @@ class _SaveButton extends StatelessWidget {
     final iconSize = size * 0.5;
 
     if (isSaved) {
-      return Icon(Icons.check_circle_rounded,
-          color: const Color(0xFF0F766E), size: size * 0.7);
+      return Icon(
+        Icons.check_circle_rounded,
+        color: const Color(0xFF0F766E),
+        size: size * 0.7,
+      );
     }
 
     return GestureDetector(
@@ -249,13 +279,16 @@ class _SaveButton extends StatelessWidget {
         } catch (_) {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(context.tr('error_update_attendance'),
-                  style: const TextStyle(fontFamily: 'Cairo')),
+              content: Text(
+                context.tr('error_update_attendance'),
+                style: const TextStyle(fontFamily: 'Cairo'),
+              ),
               backgroundColor: cs.error,
               behavior: SnackBarBehavior.floating,
               margin: const EdgeInsets.all(16),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
             ));
           }
         }
@@ -270,10 +303,13 @@ class _SaveButton extends StatelessWidget {
         ),
         child: isSaving
             ? SizedBox(
-            width: iconSize,
-            height: iconSize,
-            child: CircularProgressIndicator(
-                color: cs.primary, strokeWidth: 2))
+          width: iconSize,
+          height: iconSize,
+          child: CircularProgressIndicator(
+            color: cs.primary,
+            strokeWidth: 2,
+          ),
+        )
             : Icon(Icons.save_rounded, size: iconSize, color: cs.primary),
       ),
     );

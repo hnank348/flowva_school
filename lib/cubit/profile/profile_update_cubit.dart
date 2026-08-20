@@ -9,9 +9,8 @@ export 'package:flowva_school/cubit/profile/profile_update_state.dart';
 
 class ProfileUpdateCubit extends Cubit<ProfileUpdateState> {
   final ProfileService _profileService;
-  final ProfileCubit _profileCubit;
 
-  ProfileUpdateCubit(this._profileService, this._profileCubit)
+  ProfileUpdateCubit(this._profileService, ProfileCubit profileCubit)
       : super(const ProfileUpdateInitial());
 
   void toggleEditing(bool isEditing) {
@@ -52,10 +51,8 @@ class ProfileUpdateCubit extends Cubit<ProfileUpdateState> {
         phone:        phone?.isNotEmpty == true ? phone : null,
         dateOfBirth:  dateOfBirth?.isNotEmpty == true ? dateOfBirth : null,
         avatar:       currentImage,
-        tr: context.tr,
+        tr:           context.tr,
       );
-
-      await _profileCubit.fetchUserProfile(token: userToken);
 
       emit(ProfileUpdateSuccess(tr('profile_update_success')));
     } catch (e) {

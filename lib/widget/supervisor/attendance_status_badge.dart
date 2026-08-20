@@ -18,7 +18,6 @@ class GenericAttendanceStatusBadge extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // ✅ لون نص فاتح وواضح بالدارك مود
     final textColor = isDark
         ? Color.lerp(style.accent, Colors.white, 0.35)!
         : style.accent;

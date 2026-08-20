@@ -22,58 +22,118 @@ class ProfileView extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs     = Theme.of(context).colorScheme;
 
-    return BlocProvider<ProfileCubit>(
-      create: (_) {
-        final api = services.ApiService();
-        return ProfileCubit(ProfileService(api))
-          ..fetchUserProfile(token: userToken);
-      },
-      child: Builder(
-        builder: (ctx) => BlocProvider<ProfileUpdateCubit>(
-          create: (_) => ProfileUpdateCubit(
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<ProfileCubit>(
+          create: (_) => ProfileCubit(ProfileService(services.ApiService()))
+            ..fetchUserProfile(token: userToken),
+        ),
+        BlocProvider<ProfileUpdateCubit>(
+          create: (ctx) => ProfileUpdateCubit(
             ProfileService(services.ApiService()),
             ctx.read<ProfileCubit>(),
           ),
-          child: Scaffold(
-            backgroundColor: cs.surface,
-            appBar: _buildAppBar(context, isDark),
-            body: SafeArea(
-              child: BlocBuilder<LocaleCubit, LocaleState>(
-                builder: (context, localeState) {
-                  return BlocBuilder<ProfileCubit, ProfileState>(
-                    builder: (context, state) {
-                      if (state is ProfileLoading) {
-                        return Center(
-                          child: CircularProgressIndicator(
-                            color: Theme.of(context).colorScheme.primary,
-                            strokeWidth: 2.5,
+        ),
+      ],
+      child: Builder(
+        builder: (ctx) {
+          return BlocListener<ProfileUpdateCubit, ProfileUpdateState>(
+            listener: (context, state) {
+              if (state is ProfileUpdateSuccess) {
+                // 1. إيقاف وضع التعديل وتصفير الحالة
+                context.read<ProfileUpdateCubit>().toggleEditing(false);
+                context.read<ProfileUpdateCubit>().reset();
+
+                // 2. تحديث بيانات المستخدم في الشاشة الحالية
+                context.read<ProfileCubit>().fetchUserProfile(token: userToken);
+
+                // 3. عرض رسالة النجاح
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            state.message,
+                            style: const TextStyle(fontFamily: 'Cairo', fontSize: 13),
                           ),
-                        );
-                      }
-                      if (state is ProfileError) {
-                        return _ErrorBody(
-                          message: state.errorMessage,
-                          onRetry: () => context
-                              .read<ProfileCubit>()
-                              .fetchUserProfile(token: userToken),
-                        );
-                      }
-                      if (state is ProfileLoaded) {
-                        return ProfileCard(
-                          user:        state.user,
-                          userToken:   userToken,
-                          isDark:      isDark,
-                          localeState: localeState,
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    },
-                  );
-                },
+                        ),
+                      ],
+                    ),
+                    backgroundColor: const Color(0xFF10B981),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    margin: const EdgeInsets.all(16),
+                  ),
+                );
+              }
+
+              if (state is ProfileUpdateError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        const Icon(Icons.error_outline_rounded, color: Colors.white, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            state.errorMessage,
+                            style: const TextStyle(fontFamily: 'Cairo', fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: cs.error,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    margin: const EdgeInsets.all(16),
+                  ),
+                );
+              }
+            },
+            child: Scaffold(
+              backgroundColor: cs.surface,
+              appBar: _buildAppBar(context, isDark),
+              body: SafeArea(
+                child: BlocBuilder<LocaleCubit, LocaleState>(
+                  builder: (context, localeState) {
+                    return BlocBuilder<ProfileCubit, ProfileState>(
+                      builder: (context, state) {
+                        if (state is ProfileLoading) {
+                          return Center(
+                            child: CircularProgressIndicator(
+                              color: cs.primary,
+                              strokeWidth: 2.5,
+                            ),
+                          );
+                        }
+                        if (state is ProfileError) {
+                          return _ErrorBody(
+                            message: state.errorMessage,
+                            onRetry: () => context
+                                .read<ProfileCubit>()
+                                .fetchUserProfile(token: userToken),
+                          );
+                        }
+                        if (state is ProfileLoaded) {
+                          return ProfileCard(
+                            user: state.user,
+                            userToken: userToken,
+                            isDark: isDark,
+                            localeState: localeState,
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -83,7 +143,9 @@ class ProfileView extends StatelessWidget {
       title: Text(
         context.tr('profile_title'),
         style: const TextStyle(
-          fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold,
+          fontFamily: 'Cairo',
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
         ),
       ),
       centerTitle: true,
@@ -94,7 +156,8 @@ class ProfileView extends StatelessWidget {
       ),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24),
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
         ),
       ),
       systemOverlayStyle: SystemUiOverlayStyle(
@@ -104,8 +167,6 @@ class ProfileView extends StatelessWidget {
     );
   }
 }
-
-
 
 class _ErrorBody extends StatelessWidget {
   final String message;
@@ -124,13 +185,15 @@ class _ErrorBody extends StatelessWidget {
           children: [
             Icon(Icons.error_outline_rounded, size: 48, color: cs.error.withOpacity(0.6)),
             const SizedBox(height: 16),
-            Text(message,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontFamily: 'Cairo', fontSize: 13, color: cs.onSurface)),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontFamily: 'Cairo', fontSize: 13, color: cs.onSurface),
+            ),
             const SizedBox(height: 20),
             Button(
-              text:      context.tr('profile_retry'),
-              color:     cs.primary,
+              text: context.tr('profile_retry'),
+              color: cs.primary,
               colorText: Colors.white,
               onPressed: onRetry,
             ),

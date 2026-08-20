@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flowva_school/cubit/supervisor/student/student_attendance_cubit.dart';
 import 'package:flowva_school/app_localizations.dart';
 
+import '../../../../cubit/supervisor/student_attendance/student_attendance_state.dart';
 import '../../../../widget/supervisor/attendance_summary_bar.dart';
 import '../../../../widget/supervisor/attendance_types.dart';
 

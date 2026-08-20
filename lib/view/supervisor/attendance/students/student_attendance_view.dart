@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flowva_school/cubit/supervisor/student/student_attendance_cubit.dart';
 import 'package:flowva_school/cubit/supervisor/classes/classes_cubit.dart';
 import 'package:flowva_school/cubit/supervisor/classes/classes_state.dart';
 import 'package:flowva_school/cubit/current_year/current_year_cubit.dart';
@@ -13,7 +12,10 @@ import 'package:flowva_school/cubit/supervisor/submit_student/submit_attendance_
 import 'package:flowva_school/cubit/supervisor/submit_student/submit_attendance_state.dart';
 import 'package:flowva_school/app_localizations.dart';
 
-
+import '../../../../cubit/supervisor/student_attendance/section_students_cubit.dart';
+import '../../../../cubit/supervisor/student_attendance/section_students_stats.dart';
+import '../../../../cubit/supervisor/student_attendance/student_attendance_cubit.dart';
+import '../../../../cubit/supervisor/student_attendance/student_attendance_state.dart';
 import '../../../../widget/supervisor/attendance_edit_mode_badge.dart';
 import '../../../../widget/supervisor/attendance_error_view.dart';
 import '../../../../widget/supervisor/attendance_loading_indicator.dart';
@@ -23,6 +25,7 @@ import '../../../../widget/supervisor/attendance_snack.dart';
 import 'section_selector_header.dart';
 import 'students_attendance_grid.dart';
 import 'attendance_summary_bar.dart';
+import 'section_students_stats_bar.dart';
 
 class StudentAttendanceView extends StatelessWidget {
   final ClassesCubit? classesCubit;
@@ -34,10 +37,16 @@ class StudentAttendanceView extends StatelessWidget {
     final semesterId = semesterState is CurrentSemesterSuccess
         ? semesterState.currentSemester.id
         : 1;
+
     context.read<StudentAttendanceCubit>().fetchAttendance(
       sectionId,
       semesterId: semesterId,
-        tr: context.tr
+      tr: context.tr,
+    );
+
+    context.read<SectionStudentsStatsCubit>().fetchStats(
+      sectionId: sectionId,
+      tr: context.tr,
     );
   }
 
@@ -61,7 +70,7 @@ class StudentAttendanceView extends StatelessWidget {
       sectionId: section.id,
       academicYearId: yearState.currentYear.id,
       semesterId: semesterState.currentSemester.id,
-      noteMap:        attendanceState.noteMap,
+      noteMap: attendanceState.noteMap,
       tr: context.tr,
     );
   }
@@ -85,8 +94,7 @@ class StudentAttendanceView extends StatelessWidget {
             showAttendanceSnack(context, state.message, const Color(0xFF0F766E));
             context.read<SubmitAttendanceCubit>().reset();
             final classState = context.read<ClassesCubit>().state;
-            if (classState is ClassesLoaded &&
-                classState.selectedSection != null) {
+            if (classState is ClassesLoaded && classState.selectedSection != null) {
               _fetchAttendance(context, classState.selectedSection!.id);
             }
           }
@@ -100,23 +108,18 @@ class StudentAttendanceView extends StatelessWidget {
               textDirection: localeState.textDirection,
               child: BlocBuilder<ClassesCubit, ClassesState>(
                 builder: (context, classState) {
-                  return BlocBuilder<StudentAttendanceCubit,
-                      StudentAttendanceState>(
+                  return BlocBuilder<StudentAttendanceCubit, StudentAttendanceState>(
                     builder: (context, attendanceState) {
-                      // ─── إقلاع تلقائي ───
                       if (classState is ClassesLoaded &&
                           classState.selectedSection != null &&
                           attendanceState is StudentAttendanceInitial) {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
-                          _fetchAttendance(
-                              context, classState.selectedSection!.id);
+                          _fetchAttendance(context, classState.selectedSection!.id);
                         });
                       }
 
-                      final isRecordMode =
-                      attendanceState is StudentAttendanceSuccess;
-                      final isViewMode =
-                      attendanceState is StudentAttendanceViewMode;
+                      final isRecordMode = attendanceState is StudentAttendanceSuccess;
+                      final isViewMode = attendanceState is StudentAttendanceViewMode;
                       final hasData = isRecordMode || isViewMode;
 
                       return Scaffold(
@@ -126,14 +129,11 @@ class StudentAttendanceView extends StatelessWidget {
                               ? context.tr('attendance_view_title_edit')
                               : context.tr('attendance_view_title'),
                           trailing: isRecordMode
-                              ? BlocBuilder<SubmitAttendanceCubit,
-                              SubmitAttendanceState>(
+                              ? BlocBuilder<SubmitAttendanceCubit, SubmitAttendanceState>(
                             builder: (context, submitState) {
                               return AttendanceSaveAllButton(
-                                isLoading: submitState
-                                is SubmitAttendanceLoading,
-                                onTap: () =>
-                                    _submitNewAttendance(context),
+                                isLoading: submitState is SubmitAttendanceLoading,
+                                onTap: () => _submitNewAttendance(context),
                               );
                             },
                           )
@@ -143,44 +143,42 @@ class StudentAttendanceView extends StatelessWidget {
                         ),
                         body: SafeArea(
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 14),
 
-                              // ─── هيدر الشعبة ───
                               Padding(
-                                padding:
-                                EdgeInsets.symmetric(horizontal: hPad),
+                                padding: EdgeInsets.symmetric(horizontal: hPad),
                                 child: SectionSelectorHeader(
                                   classState: classState,
                                   semesterName: semesterName,
-                                  onSectionChanged: (id) =>
-                                      _fetchAttendance(context, id),
+                                  onSectionChanged: (id) => _fetchAttendance(context, id),
                                 ),
                               ),
 
                               const SizedBox(height: 10),
 
-                              // ─── الإحصائيات ───
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: hPad),
+                                child: SectionStudentsStatsBar(isTablet: isTablet),
+                              ),
+
+                              const SizedBox(height: 10),
+
                               if (hasData) ...[
                                 Padding(
-                                  padding:
-                                  EdgeInsets.symmetric(horizontal: hPad),
+                                  padding: EdgeInsets.symmetric(horizontal: hPad),
                                   child: AttendanceSummaryBar(
                                     attendanceMap: isViewMode
-                                        ? (attendanceState)
-                                        .attendanceMap
-                                        : (attendanceState
-                                    as StudentAttendanceSuccess)
-                                        .attendanceMap,
+                                        ? (attendanceState).attendanceMap
+                                        : (attendanceState as StudentAttendanceSuccess).attendanceMap,
                                   ),
                                 ),
                                 const SizedBox(height: 10),
                               ],
 
-                              // ─── المحتوى ───
                               Expanded(
-                                child:
-                                _buildBody(attendanceState, cs, isTablet),
+                                child: _buildBody(attendanceState, cs, isTablet),
                               ),
                             ],
                           ),
@@ -212,8 +210,7 @@ class StudentAttendanceView extends StatelessWidget {
 
     if (state is StudentAttendanceSuccess) {
       return StudentsAttendanceGrid.record(
-        key: ValueKey(
-            'record_${state.students.isNotEmpty ? state.students.first.id : 0}'),
+        key: ValueKey('record_${state.students.isNotEmpty ? state.students.first.id : 0}'),
         students: state.students,
         attendanceMap: state.attendanceMap,
         noteMap: state.noteMap,
@@ -223,14 +220,13 @@ class StudentAttendanceView extends StatelessWidget {
 
     if (state is StudentAttendanceViewMode) {
       return StudentsAttendanceGrid.view(
-        key: ValueKey(
-            'view_${state.records.isNotEmpty ? state.records.first.id : 0}'),
+        key: ValueKey('view_${state.records.isNotEmpty ? state.records.first.id : 0}'),
         records: state.records,
         editMap: state.editMap,
         isTablet: isTablet,
       );
     }
 
-    return const SizedBox();
+    return const SizedBox.shrink();
   }
 }

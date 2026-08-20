@@ -19,8 +19,8 @@ class ApiService {
   final Dio _dio = Dio(
     BaseOptions(
       baseUrl: ConstantApi.baseApi,
-      connectTimeout: const Duration(seconds: 60),
-      receiveTimeout: const Duration(seconds: 60),
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -32,8 +32,8 @@ class ApiService {
     (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate =
         (HttpClient client) {
       client.maxConnectionsPerHost = 5;
-      client.idleTimeout = const Duration(seconds: 10);
-      client.connectionTimeout = const Duration(seconds: 30);
+      client.idleTimeout = const Duration(seconds: 15);
+      client.connectionTimeout = const Duration(seconds: 15);
       client.autoUncompress = true;
       return client;
     };
@@ -42,10 +42,17 @@ class ApiService {
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           final prefs = await SharedPreferences.getInstance();
+
           final token = prefs.getString('userToken') ?? '';
           if (token.isNotEmpty && !options.headers.containsKey('Authorization')) {
             options.headers['Authorization'] = 'Bearer $token';
           }
+
+          // 2. تمرير لغة التطبيق الحالية إلى الباك إند تلقائياً
+          // (استبدل 'app_lang' باسم المفتاح المستخدم لديك لحفظ اللغة مثل 'language_code' أو 'lang')
+          final lang = prefs.getString('app_lang') ?? 'AR';
+          options.headers['Accept-Language'] = lang.toLowerCase();
+
           return handler.next(options);
         },
         onError: (DioException error, handler) async {
@@ -72,9 +79,14 @@ class ApiService {
     log('⚡️ [ApiService] Forced Token Update: Bearer $token');
   }
 
+  void forceUpdateLanguage(String lang) {
+    _dio.options.headers['Accept-Language'] = lang.toLowerCase();
+    log('🌐 [ApiService] Forced Language Update: $lang');
+  }
+
   Future<Response> get(
       String path, {
-        required String Function(String key) tr, // 🟢 إجباري بدون أي فحص إضافي
+        required String Function(String key) tr,
         Map<String, dynamic>? queryParameters,
         Object? data,
         Options? options,
@@ -95,7 +107,7 @@ class ApiService {
 
   Future<Response> post(
       String path, {
-        required String Function(String key) tr, // 🟢 إجباري بدون أي فحص إضافي
+        required String Function(String key) tr,
         Object? data,
         Options? options,
       }) async {
@@ -110,7 +122,7 @@ class ApiService {
 
   Future<Response> put(
       String path, {
-        required String Function(String key) tr, // 🟢 إجباري بدون أي فحص إضافي
+        required String Function(String key) tr,
         Object? data,
         Options? options,
       }) async {
@@ -125,7 +137,7 @@ class ApiService {
 
   Future<Response> patch(
       String path, {
-        required String Function(String key) tr, // 🟢 إجباري بدون أي فحص إضافي
+        required String Function(String key) tr,
         Object? data,
         Options? options,
       }) async {
@@ -140,7 +152,7 @@ class ApiService {
 
   Future<Response> delete(
       String path, {
-        required String Function(String key) tr, // 🟢 إجباري بدون أي فحص إضافي
+        required String Function(String key) tr,
         Object? data,
         Options? options,
       }) async {
@@ -155,7 +167,7 @@ class ApiService {
 
   ApiException _handleError(
       DioException e, {
-        required String Function(String key) tr, // 🟢 إجباري لتقديم رسالة مترجمة صحيحة
+        required String Function(String key) tr,
       }) {
     log('❌ [ApiService Error]');
     log('📍 Endpoint Path: ${e.requestOptions.path}');

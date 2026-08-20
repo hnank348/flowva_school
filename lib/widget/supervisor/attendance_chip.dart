@@ -46,7 +46,6 @@ class GenericAttendanceChip extends StatelessWidget {
               width: isSelected ? 1.2 : 0.8,
             ),
           ),
-          // ✅ هاد هو الحل: يصغّر الخط أوتوماتيكياً بدل ما يلف لسطر تاني
           child: FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(

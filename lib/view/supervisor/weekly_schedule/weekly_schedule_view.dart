@@ -34,6 +34,20 @@ class WeeklyScheduleView extends StatelessWidget {
     );
   }
 
+  Future<void> _refreshAll(
+      BuildContext context,
+      int? sectionId,
+      String? sectionName,
+      int semesterId,
+      ) async {
+    context.read<SubjectsCubit>().fetchSubjects(tr: context.tr);
+    context.read<TeachersCubit>().fetchTeachers(tr: context.tr);
+
+    if (sectionId != null && sectionName != null) {
+      _fetchScheduleOnly(context, sectionId, sectionName, semesterId);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -121,13 +135,25 @@ class WeeklyScheduleView extends StatelessWidget {
                                     );
                                   } else if (classState is ClassesError) {
                                     return Center(
-                                      child: Text(
-                                        classState.message,
-                                        style: TextStyle(
-                                          fontFamily: 'Cairo',
-                                          color: colorScheme.error,
-                                          fontSize: 12,
-                                        ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            classState.message,
+                                            style: TextStyle(
+                                              fontFamily: 'Cairo',
+                                              color: colorScheme.error,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.refresh, size: 18),
+                                            color: colorScheme.primary,
+                                            onPressed: () {
+                                              context.read<ClassesCubit>().fetchClassesAndSections(tr: context.tr);
+                                            },
+                                          ),
+                                        ],
                                       ),
                                     );
                                   } else if (classState is ClassesLoaded) {
@@ -151,37 +177,79 @@ class WeeklyScheduleView extends StatelessWidget {
                               ),
                               const SizedBox(height: 12),
                               Expanded(
-                                child: Builder(
-                                  builder: (context) {
-                                    if (scheduleState is ScheduleLoading) {
-                                      return Center(
-                                        child: CircularProgressIndicator(
-                                          color: colorScheme.primary,
-                                        ),
-                                      );
-                                    } else if (scheduleState is ScheduleError) {
-                                      return Center(
-                                        child: Text(
-                                          scheduleState.message,
-                                          style: TextStyle(
-                                            fontFamily: 'Cairo',
-                                            color: colorScheme.error,
+                                child: RefreshIndicator(
+                                  color: colorScheme.primary,
+                                  onRefresh: () => _refreshAll(
+                                    context,
+                                    activeSectionId != 0 ? activeSectionId : null,
+                                    activeClassName.isNotEmpty ? activeClassName : null,
+                                    currentSemesterId,
+                                  ),
+                                  child: Builder(
+                                    builder: (context) {
+                                      if (scheduleState is ScheduleLoading) {
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            color: colorScheme.primary,
                                           ),
-                                        ),
-                                      );
-                                    }
+                                        );
+                                      } else if (scheduleState is ScheduleError) {
+                                        return Center(
+                                          child: SingleChildScrollView(
+                                            physics: const AlwaysScrollableScrollPhysics(),
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  Icons.error_outline,
+                                                  color: colorScheme.error,
+                                                  size: 40,
+                                                ),
+                                                const SizedBox(height: 8),
+                                                Text(
+                                                  scheduleState.message,
+                                                  style: TextStyle(
+                                                    fontFamily: 'Cairo',
+                                                    color: colorScheme.error,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                                const SizedBox(height: 12),
+                                                ElevatedButton.icon(
+                                                  onPressed: () {
+                                                    if (activeSectionId != 0) {
+                                                      _fetchScheduleOnly(
+                                                        context,
+                                                        activeSectionId,
+                                                        activeClassName,
+                                                        currentSemesterId,
+                                                      );
+                                                    }
+                                                  },
+                                                  icon: const Icon(Icons.refresh, size: 18),
+                                                  label: const Text(
+                                                    'إعادة المحاولة',
+                                                    style: TextStyle(fontFamily: 'Cairo'),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      }
 
-                                    return ScheduleTableWidget(
-                                      key: ValueKey(
-                                        '${activeSectionId}_${currentSemesterId}_${localeState.currentLanguage}',
-                                      ),
-                                      sessions: activeSessions,
-                                      sectionId: activeSectionId,
-                                      className: activeClassName,
-                                      semesterId: currentSemesterId,
-                                      currentLanguage: localeState.currentLanguage,
-                                    );
-                                  },
+                                      return ScheduleTableWidget(
+                                        key: ValueKey(
+                                          '${activeSectionId}_${currentSemesterId}_${localeState.currentLanguage}',
+                                        ),
+                                        sessions: activeSessions,
+                                        sectionId: activeSectionId,
+                                        className: activeClassName,
+                                        semesterId: currentSemesterId,
+                                        currentLanguage: localeState.currentLanguage,
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             ],

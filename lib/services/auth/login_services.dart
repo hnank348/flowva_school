@@ -5,6 +5,10 @@ import '../api_service.dart';
 class LoginService {
   final ApiService _apiService = ApiService();
 
+  void forceUpdateToken(String token) {
+    _apiService.forceUpdateToken(token);
+  }
+
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
@@ -12,7 +16,7 @@ class LoginService {
   }) async {
     try {
       final formData = FormData.fromMap({
-        'email': email,
+        'email': email.trim(),
         'password': password,
       });
 
@@ -25,12 +29,13 @@ class LoginService {
       print('🌐 [LoginService] Response Data: ${response.data}');
       print('📊 [LoginService] Status Code: ${response.statusCode}');
 
-      final isSuccessStatus = response.statusCode == 200 || (response.statusCode == 201 && response.data['success'] == true);
+      final isSuccessStatus = response.statusCode == 200 ||
+          (response.statusCode == 201 && response.data['success'] == true);
 
-      if (isSuccessStatus) {
+      if (isSuccessStatus && response.data['data'] != null) {
         final innerData = response.data['data'];
-
-        final String userType = innerData['user']?['user_type'] ?? innerData['user_type'] ?? '';
+        final String userType =
+            innerData['user']?['user_type'] ?? innerData['user_type'] ?? '';
 
         return {
           'success': true,
@@ -42,11 +47,28 @@ class LoginService {
       } else {
         return {
           'success': false,
-          'message': (response.data is Map ? response.data['message'] : null) ?? tr('login_credentials_error_msg'),
+          'message': (response.data is Map ? response.data['message'] : null) ??
+              tr('login_credentials_error_msg'),
         };
       }
+    } on ApiException catch (e) {
+      print('❌ [LoginService ApiException]: ${e.message} | Code: ${e.statusCode}');
+
+      if (e.statusCode == 401) {
+        return {
+          'success': false,
+          'message': e.message.isNotEmpty && e.message != tr('api_unexpected_error')
+              ? e.message
+              : tr('login_credentials_error_msg'),
+        };
+      }
+
+      return {
+        'success': false,
+        'message': e.message,
+      };
     } catch (e) {
-      print('❌ [LoginService Exception]: $e');
+      print('❌ [LoginService General Exception]: $e');
       return {
         'success': false,
         'message': tr('server_unreachable_msg'),
@@ -54,12 +76,16 @@ class LoginService {
     }
   }
 
-  // 🟢 تم التصحيح: إزالة context.tr وتمرير tr كـ Parameter إجباري
   Future<void> sendFcmToken({
     required String fcmToken,
+    String? userToken,
     required String Function(String key) tr,
   }) async {
     try {
+      if (userToken != null && userToken.isNotEmpty) {
+        _apiService.forceUpdateToken(userToken);
+      }
+
       final response = await _apiService.post(
         '${ConstantApi.baseApi}/users/fcm-token',
         data: {'fcm_token': fcmToken},

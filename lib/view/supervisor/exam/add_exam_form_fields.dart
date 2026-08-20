@@ -4,9 +4,50 @@ import 'package:flowva_school/cubit/supervisor/subjects/subjects_cubit.dart';
 import 'package:flowva_school/cubit/supervisor/subjects/subjects_state.dart';
 import 'package:flowva_school/cubit/supervisor/teachers/teachers_cubit.dart';
 import 'package:flowva_school/cubit/supervisor/teachers/teachers_state.dart';
+import 'package:flowva_school/cubit/supervisor/exam_schedule/add_exam_cubit.dart';
+import 'package:flowva_school/cubit/supervisor/exam_schedule/add_exam_state.dart';
 import '../../../app_localizations.dart';
-import '../../../widget/supervisor/locale_name.dart';
 import '../../../models/supervisor/exam_type_option.dart';
+import '../../../widget/custom_text_field.dart';
+import '../../../widget/field_styles.dart';
+
+class ExamCustomInputField extends StatelessWidget {
+  final String? initialValue;
+  final String label;
+  final IconData icon;
+  final TextInputType keyboardType;
+  final ValueChanged<String>? onChanged;
+
+  const ExamCustomInputField({
+    super.key,
+    this.initialValue,
+    required this.label,
+    required this.icon,
+    this.keyboardType = TextInputType.text,
+    this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return TextFormField(
+      initialValue: initialValue,
+      onChanged: onChanged,
+      keyboardType: keyboardType,
+      style: TextStyle(
+        fontFamily: 'Cairo',
+        fontSize: 13.5,
+        color: cs.onSurface,
+        fontWeight: FontWeight.w600,
+      ),
+      decoration: FieldStyles.authInputDecoration(label: label, icon: icon).copyWith(
+        fillColor: cs.surfaceContainerLow,
+        filled: true,
+      ),
+    );
+  }
+}
 
 class ExamTypeDropdownField extends StatelessWidget {
   final ExamTypeOption? value;
@@ -21,13 +62,17 @@ class ExamTypeDropdownField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _ModernDropdown<ExamTypeOption>(
-      value:       value,
-      hint:        context.tr('exam_select_type'),
-      icon:        Icons.category_outlined,
-      activeColor: const Color(0xFFF97316),
+      value: value,
+      label: context.tr('exam_select_type'),
+      icon: Icons.category_outlined,
       items: ExamTypeOption.values.map((t) {
-        final name = resolveName(context, nameAr: t.nameAr, nameEn: t.nameEn);
-        return DropdownMenuItem(value: t, child: _DropdownText(name));
+        return DropdownMenuItem(
+          value: t,
+          child: Text(
+            t.nameAr.isNotEmpty ? t.nameAr : t.nameEn,
+            style: const TextStyle(fontFamily: 'Cairo', fontSize: 13),
+          ),
+        );
       }).toList(),
       onChanged: onChanged,
     );
@@ -53,13 +98,17 @@ class ExamSubjectDropdownField extends StatelessWidget {
         if (state is SubjectsSuccess) {
           final hasSubject = state.subjects.any((s) => s.id == selectedSubjectId);
           return _ModernDropdown<int>(
-            value:       hasSubject ? selectedSubjectId : null,
-            hint:        context.tr('exam_select_subject'),
-            icon:        Icons.auto_stories_rounded,
-            activeColor: const Color(0xFF3182CE),
+            value: hasSubject ? selectedSubjectId : null,
+            label: context.tr('exam_select_subject'),
+            icon: Icons.auto_stories_rounded,
             items: state.subjects.map((s) {
-              final name = resolveName(context, nameAr: s.nameAr, nameEn: s.name);
-              return DropdownMenuItem(value: s.id, child: _DropdownText(name));
+              return DropdownMenuItem(
+                value: s.id,
+                child: Text(
+                  s.nameAr.isNotEmpty ? s.nameAr : s.name,
+                  style: const TextStyle(fontFamily: 'Cairo', fontSize: 13),
+                ),
+              );
             }).toList(),
             onChanged: onChanged,
           );
@@ -70,7 +119,6 @@ class ExamSubjectDropdownField extends StatelessWidget {
   }
 }
 
-// ─── Dropdown المعلمين ───────────────────────────────────────────────────────
 class ExamTeacherDropdownField extends StatelessWidget {
   final int? selectedTeacherId;
   final ValueChanged<int?> onChanged;
@@ -85,24 +133,22 @@ class ExamTeacherDropdownField extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<TeachersCubit, TeachersState>(
       builder: (context, state) {
-        if (state is TeachersLoading) {
-          return _ModernDropdown<int>(
-            value: null, hint: context.tr('exam_loading_teachers'),
-            icon: Icons.supervisor_account_rounded, activeColor: const Color(0xFF805AD5),
-            items: const [], onChanged: (_) {},
-          );
-        }
+        if (state is TeachersLoading) return const _FieldLoading();
         if (state is TeachersError) return _FieldError(message: state.errorMessage);
         if (state is TeachersSuccess) {
           final hasTeacher = state.teachers.any((t) => t.id == selectedTeacherId);
           return _ModernDropdown<int>(
-            value:       hasTeacher ? selectedTeacherId : null,
-            hint:        context.tr('exam_select_teacher'),
-            icon:        Icons.supervisor_account_rounded,
-            activeColor: const Color(0xFF805AD5),
+            value: hasTeacher ? selectedTeacherId : null,
+            label: context.tr('exam_select_teacher'),
+            icon: Icons.supervisor_account_rounded,
             items: state.teachers.map((t) {
-              final name = resolveName(context, nameAr: t.fullNameAr, nameEn: t.fullName);
-              return DropdownMenuItem(value: t.id, child: _DropdownText(name));
+              return DropdownMenuItem(
+                value: t.id,
+                child: Text(
+                  t.fullNameAr.isNotEmpty ? t.fullNameAr : t.fullName,
+                  style: const TextStyle(fontFamily: 'Cairo', fontSize: 13),
+                ),
+              );
             }).toList(),
             onChanged: onChanged,
           );
@@ -113,45 +159,123 @@ class ExamTeacherDropdownField extends StatelessWidget {
   }
 }
 
-class ExamTextField extends StatelessWidget {
-  final TextEditingController? controller;
-  final String? initialValue;
-  final ValueChanged<String>? onChanged;
-  final String label;
-  final IconData icon;
-  final TextInputType? keyboardType;
+class ExamDateTimePickers extends StatelessWidget {
+  const ExamDateTimePickers({super.key});
 
-  const ExamTextField({
-    super.key,
-    this.controller,
-    this.initialValue,
-    this.onChanged,
-    required this.label,
+  String _fmtTime(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  Future<void> _pickDate(BuildContext context) async {
+    final addCubit = context.read<AddExamCubit>();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: addCubit.state.examDate ?? DateTime.now(),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+    );
+    if (picked != null) addCubit.setExamDate(picked);
+  }
+
+  Future<void> _pickTime(BuildContext context, bool isStart) async {
+    final addCubit = context.read<AddExamCubit>();
+    final current = isStart ? addCubit.state.startTime : addCubit.state.endTime;
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: current ?? TimeOfDay.now(),
+    );
+    if (picked != null) {
+      if (isStart) {
+        addCubit.setStartTime(picked);
+      } else {
+        addCubit.setEndTime(picked);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AddExamCubit, AddExamState>(
+      builder: (context, state) {
+        return Row(
+          children: [
+            Expanded(
+              child: _PickerTile(
+                icon: Icons.calendar_month_outlined,
+                label: state.examDate == null
+                    ? context.tr('exam_date')
+                    : '${state.examDate!.year}-${state.examDate!.month.toString().padLeft(2, '0')}-${state.examDate!.day.toString().padLeft(2, '0')}',
+                onTap: () => _pickDate(context),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _PickerTile(
+                icon: Icons.play_circle_outline_rounded,
+                label: state.startTime == null
+                    ? context.tr('exam_start_time')
+                    : _fmtTime(state.startTime!),
+                onTap: () => _pickTime(context, true),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _PickerTile(
+                icon: Icons.stop_circle_outlined,
+                label: state.endTime == null
+                    ? context.tr('exam_end_time')
+                    : _fmtTime(state.endTime!),
+                onTap: () => _pickTime(context, false),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _PickerTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _PickerTile({
     required this.icon,
-    this.keyboardType,
+    required this.label,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return TextFormField(
-      controller:   controller,
-      initialValue: controller == null ? initialValue : null,
-      onChanged:    onChanged,
-      keyboardType: keyboardType,
-      style: const TextStyle(fontFamily: 'Cairo', fontSize: 14, fontWeight: FontWeight.w600),
-      decoration: InputDecoration(
-        labelText:  label,
-        labelStyle: TextStyle(fontFamily: 'Cairo', color: cs.onSurfaceVariant, fontSize: 13),
-        prefixIcon: Icon(icon, color: cs.primary),
-        filled: true, fillColor: cs.surface,
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: cs.outlineVariant.withOpacity(0.6), width: 1.5),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        decoration: BoxDecoration(
+          color: cs.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.withOpacity(0.5)),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: cs.primary, width: 2),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: cs.primary),
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  fontSize: 11,
+                  color: cs.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -160,58 +284,49 @@ class ExamTextField extends StatelessWidget {
 
 class _ModernDropdown<T> extends StatelessWidget {
   final T? value;
-  final String hint;
+  final String label;
   final IconData icon;
-  final Color activeColor;
   final List<DropdownMenuItem<T>> items;
   final ValueChanged<T?> onChanged;
 
   const _ModernDropdown({
-    required this.value, required this.hint, required this.icon,
-    required this.activeColor, required this.items, required this.onChanged,
+    required this.value,
+    required this.label,
+    required this.icon,
+    required this.items,
+    required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return DropdownButtonFormField<T>(
-      value: value, dropdownColor: cs.surfaceContainerLow, isExpanded: true,
-      hint: Text(hint, style: TextStyle(fontFamily: 'Cairo', fontSize: 13, color: cs.onSurfaceVariant),
-          maxLines: 1, overflow: TextOverflow.ellipsis),
-      icon: Icon(Icons.arrow_drop_down_circle_outlined, color: cs.onSurfaceVariant.withOpacity(0.6), size: 22),
-      decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: activeColor),
-        filled: true, fillColor: cs.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: cs.outlineVariant.withOpacity(0.6), width: 1.5),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: activeColor, width: 2),
-        ),
+      value: value,
+      dropdownColor: cs.surfaceContainerHigh,
+      isExpanded: true,
+      icon: Icon(Icons.keyboard_arrow_down_rounded, color: cs.onSurfaceVariant),
+      decoration: FieldStyles.authInputDecoration(label: label, icon: icon).copyWith(
+        fillColor: cs.surfaceContainerLow,
+        filled: true,
       ),
-      items: items, onChanged: onChanged,
+      items: items,
+      onChanged: onChanged,
     );
   }
-}
-
-class _DropdownText extends StatelessWidget {
-  final String text;
-  const _DropdownText(this.text);
-  @override
-  Widget build(BuildContext context) => Text(text,
-      style: const TextStyle(fontFamily: 'Cairo', fontSize: 14, fontWeight: FontWeight.w600));
 }
 
 class _FieldLoading extends StatelessWidget {
   const _FieldLoading();
   @override
   Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.symmetric(vertical: 16),
-    child: Center(child: SizedBox(width: 24, height: 24,
-        child: CircularProgressIndicator(strokeWidth: 2.5))),
+    padding: EdgeInsets.symmetric(vertical: 14),
+    child: Center(
+      child: SizedBox(
+        width: 22,
+        height: 22,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      ),
+    ),
   );
 }
 
@@ -222,11 +337,16 @@ class _FieldError extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: cs.error.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-      child: Text(message,
-          style: TextStyle(color: cs.error, fontFamily: 'Cairo', fontSize: 12, fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: cs.error.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        message,
+        style: TextStyle(color: cs.error, fontFamily: 'Cairo', fontSize: 12),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 }

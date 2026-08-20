@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flowva_school/app_localizations.dart';
+
+import '../../cubit/supervisor/cubit_supervisor/attendance_note_cubit.dart';
 
 class AttendanceNoteField extends StatelessWidget {
   final String? note;
   final ValueChanged<String?> onChanged;
   final Color accentColor;
-  final double size; // ✅ جديد - قابل للتصغير بالشاشات الضيقة
+  final double size;
 
   const AttendanceNoteField({
     super.key,
@@ -48,8 +51,11 @@ class AttendanceNoteField extends StatelessWidget {
             color: cs.onSurfaceVariant.withOpacity(isDark ? 0.12 : 0.06),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(Icons.note_add_outlined,
-              size: iconSize, color: cs.onSurfaceVariant),
+          child: Icon(
+            Icons.note_add_outlined,
+            size: iconSize,
+            color: cs.onSurfaceVariant,
+          ),
         ),
       );
     }
@@ -66,8 +72,11 @@ class AttendanceNoteField extends StatelessWidget {
             color: accentColor.withOpacity(isDark ? 0.6 : 0.4),
           ),
         ),
-        child: Icon(Icons.sticky_note_2_rounded,
-            size: iconSize, color: accentColor),
+        child: Icon(
+          Icons.sticky_note_2_rounded,
+          size: iconSize,
+          color: accentColor,
+        ),
       ),
     );
   }
@@ -77,7 +86,7 @@ class AttendanceNotePreview extends StatelessWidget {
   final String note;
   final Color accentColor;
   final VoidCallback onTap;
-  final bool compact; // ✅ جديد
+  final bool compact;
 
   const AttendanceNotePreview({
     super.key,
@@ -105,8 +114,11 @@ class AttendanceNotePreview extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.sticky_note_2_rounded,
-                size: compact ? 10 : 12, color: accentColor),
+            Icon(
+              Icons.sticky_note_2_rounded,
+              size: compact ? 10 : 12,
+              color: accentColor,
+            ),
             const SizedBox(width: 4),
             Expanded(
               child: Text(
@@ -128,7 +140,7 @@ class AttendanceNotePreview extends StatelessWidget {
   }
 }
 
-class AttendanceNoteSheet extends StatefulWidget {
+class AttendanceNoteSheet extends StatelessWidget {
   final String initialText;
   final Color accentColor;
 
@@ -139,23 +151,25 @@ class AttendanceNoteSheet extends StatefulWidget {
   });
 
   @override
-  State<AttendanceNoteSheet> createState() => _AttendanceNoteSheetState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => AttendanceNoteCubit(initialText),
+      child: _AttendanceNoteSheetContent(
+        initialText: initialText,
+        accentColor: accentColor,
+      ),
+    );
+  }
 }
 
-class _AttendanceNoteSheetState extends State<AttendanceNoteSheet> {
-  late final TextEditingController _controller;
+class _AttendanceNoteSheetContent extends StatelessWidget {
+  final String initialText;
+  final Color accentColor;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.initialText);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  const _AttendanceNoteSheetContent({
+    required this.initialText,
+    required this.accentColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -191,8 +205,7 @@ class _AttendanceNoteSheetState extends State<AttendanceNoteSheet> {
             ),
             Row(
               children: [
-                Icon(Icons.sticky_note_2_rounded,
-                    size: 18, color: widget.accentColor),
+                Icon(Icons.sticky_note_2_rounded, size: 18, color: accentColor),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -207,14 +220,19 @@ class _AttendanceNoteSheetState extends State<AttendanceNoteSheet> {
                 ),
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
-                  child: Icon(Icons.close_rounded,
-                      size: 20, color: cs.onSurfaceVariant),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 20,
+                    color: cs.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 14),
-            TextField(
-              controller: _controller,
+            TextFormField(
+              initialValue: initialText,
+              onChanged: (value) =>
+                  context.read<AttendanceNoteCubit>().updateText(value),
               maxLines: 4,
               minLines: 3,
               maxLength: 200,
@@ -241,8 +259,7 @@ class _AttendanceNoteSheetState extends State<AttendanceNoteSheet> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                  BorderSide(color: widget.accentColor, width: 1.4),
+                  borderSide: BorderSide(color: accentColor, width: 1.4),
                 ),
                 contentPadding: const EdgeInsets.all(12),
               ),
@@ -250,7 +267,7 @@ class _AttendanceNoteSheetState extends State<AttendanceNoteSheet> {
             const SizedBox(height: 14),
             Row(
               children: [
-                if (widget.initialText.trim().isNotEmpty)
+                if (initialText.trim().isNotEmpty)
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context, ''),
@@ -259,33 +276,42 @@ class _AttendanceNoteSheetState extends State<AttendanceNoteSheet> {
                         side: BorderSide(color: cs.error.withOpacity(0.4)),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       child: Text(
                         context.tr('attendance_note_delete'),
                         style: const TextStyle(
-                            fontFamily: 'Cairo', fontWeight: FontWeight.w600),
+                          fontFamily: 'Cairo',
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
-                if (widget.initialText.trim().isNotEmpty)
-                  const SizedBox(width: 10),
+                if (initialText.trim().isNotEmpty) const SizedBox(width: 10),
                 Expanded(
                   flex: 2,
                   child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context, _controller.text),
+                    onPressed: () {
+                      final currentText =
+                          context.read<AttendanceNoteCubit>().state;
+                      Navigator.pop(context, currentText);
+                    },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: widget.accentColor,
+                      backgroundColor: accentColor,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: Text(
                       context.tr('attendance_note_save'),
                       style: const TextStyle(
-                          fontFamily: 'Cairo', fontWeight: FontWeight.w700),
+                        fontFamily: 'Cairo',
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
